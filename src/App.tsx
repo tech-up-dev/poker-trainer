@@ -20,6 +20,9 @@ function App() {
           <p>
             Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
           </p>
+          <div style={{ position: 'fixed', bottom: 8, right: 8, fontSize: 11, opacity: 0.4 }}>
+  {import.meta.env.VITE_SUPABASE_URL}
+</div>
         </div>
         <button
           type="button"
