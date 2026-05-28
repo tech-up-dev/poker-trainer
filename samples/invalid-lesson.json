@@ -1,0 +1,113 @@
+{
+  "lesson_id": "poker-fundamentals-broken-01",
+  "title": "Poker Fundamentals: Deliberately Broken Lesson",
+  "principle_tag": "preflop_strategy",
+  "questions": [
+    {
+      "question_id": "broken-q1-no-correct-answer",
+      "type": "multiple_choice",
+      "prompt": "Which of the following is the best opening hand from under the gun?",
+      "answers": [
+        {
+          "text": "Pocket aces",
+          "is_correct": false,
+          "explanation": "Marked false on purpose so this question has zero correct answers."
+        },
+        {
+          "text": "Seven-two offsuit",
+          "is_correct": false,
+          "explanation": "Correctly weak, but every answer here is marked false to trigger the refinement error."
+        },
+        {
+          "text": "Ten-Jack suited",
+          "is_correct": false,
+          "explanation": "A speculative hand, but again deliberately marked false."
+        },
+        {
+          "text": "Ace-Queen offsuit",
+          "is_correct": false,
+          "explanation": "Marked false on purpose so this question has zero is_correct=true answers."
+        }
+      ]
+    },
+    {
+      "question_id": "broken-q2-missing-explanation",
+      "type": "multiple_choice",
+      "prompt": "Which street comes immediately after the flop?",
+      "answers": [
+        {
+          "text": "Preflop",
+          "is_correct": false,
+          "explanation": "Preflop happens before the flop, not after it."
+        },
+        {
+          "text": "River",
+          "is_correct": false,
+          "explanation": "The river is the fifth and final community card, not the one immediately after the flop."
+        },
+        {
+          "text": "Turn",
+          "is_correct": true
+        },
+        {
+          "text": "Showdown",
+          "is_correct": false,
+          "explanation": "Showdown is the reveal of hole cards, not a betting street."
+        }
+      ]
+    },
+    {
+      "question_id": "broken-q3-invalid-type",
+      "type": "multichoice",
+      "prompt": "What is the minimum number of hole cards each player receives in Texas Hold'em?",
+      "answers": [
+        {
+          "text": "One",
+          "is_correct": false,
+          "explanation": "Players are dealt two hole cards, not one."
+        },
+        {
+          "text": "Two",
+          "is_correct": true,
+          "explanation": "Each player is dealt exactly two private hole cards in Texas Hold'em."
+        },
+        {
+          "text": "Four",
+          "is_correct": false,
+          "explanation": "Four hole cards is Omaha, not Texas Hold'em."
+        },
+        {
+          "text": "Five",
+          "is_correct": false,
+          "explanation": "Five-card games are stud variants, not Texas Hold'em."
+        }
+      ]
+    },
+    {
+      "type": "multiple_choice",
+      "prompt": "What does 'GTO' stand for in poker strategy?",
+      "answers": [
+        {
+          "text": "Good Tournament Outcome",
+          "is_correct": false,
+          "explanation": "GTO is a strategic concept, not a tournament result label."
+        },
+        {
+          "text": "Game Theory Optimal",
+          "is_correct": true,
+          "explanation": "GTO stands for Game Theory Optimal, an unexploitable baseline strategy."
+        },
+        {
+          "text": "General Table Order",
+          "is_correct": false,
+          "explanation": "There is no poker concept by this name."
+        },
+        {
+          "text": "Grand Total Odds",
+          "is_correct": false,
+          "explanation": "Not a real poker term; this distractor exists only to fill the answer slot."
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "lesson_id": "poker-fundamentals-01",
+  "title": "Poker Fundamentals: Opening Ranges and Position",
+  "principle_tag": "preflop_strategy",
+  "questions": [
+    {
+      "question_id": "pf01-q1",
+      "type": "multiple_choice",
+      "prompt": "Which position at a 9-handed table acts last on every postflop street?",
+      "answers": [
+        {
+          "text": "Under the gun (UTG)",
+          "is_correct": false,
+          "explanation": "UTG is the first player to act preflop and is in an early postflop position, not last."
+        },
+        {
+          "text": "Small blind (SB)",
+          "is_correct": false,
+          "explanation": "The small blind acts first on every postflop street, not last."
+        },
+        {
+          "text": "Button (BTN)",
+          "is_correct": true,
+          "explanation": "The button acts last on the flop, turn, and river, which is the most profitable position at the table."
+        },
+        {
+          "text": "Big blind (BB)",
+          "is_correct": false,
+          "explanation": "The big blind acts second-to-last postflop when the button is in the pot, not last."
+        }
+      ],
+      "glossary_terms": ["position", "button"]
+    },
+    {
+      "question_id": "pf01-q2",
+      "type": "multiple_choice",
+      "prompt": "From early position, which of these starting hands is generally considered the strongest opening raise?",
+      "answers": [
+        {
+          "text": "Ace-King suited",
+          "is_correct": true,
+          "explanation": "AKs is a premium hand that plays well from any position, with strong equity against most opening ranges."
+        },
+        {
+          "text": "Pocket sixes",
+          "is_correct": false,
+          "explanation": "66 is a marginal opener from early position; it set-mines well but loses value out of position."
+        },
+        {
+          "text": "King-Ten offsuit",
+          "is_correct": false,
+          "explanation": "KTo is dominated by most hands that call an early-position raise and should usually be folded UTG."
+        },
+        {
+          "text": "Jack-Nine suited",
+          "is_correct": false,
+          "explanation": "J9s is a speculative hand best played in late position, not from early position."
+        }
+      ],
+      "glossary_terms": ["opening range", "early position"]
+    },
+    {
+      "question_id": "pf01-q3",
+      "type": "hand_scenario",
+      "prompt": "Effective stacks 100bb. You are on the button with A♠ K♠. UTG opens to 3bb, MP calls, and action folds to you. What is the most theoretically sound action?",
+      "answers": [
+        {
+          "text": "Fold",
+          "is_correct": false,
+          "explanation": "Folding AKs to a single raise and a flat is far too tight; you have one of the strongest hands in the game."
+        },
+        {
+          "text": "Flat call to keep weaker hands in",
+          "is_correct": false,
+          "explanation": "Flatting lets the blinds squeeze and gives up the equity edge of three-betting in position with a premium hand."
+        },
+        {
+          "text": "Three-bet to roughly 12bb for value and isolation",
+          "is_correct": true,
+          "explanation": "Three-betting AKs in position builds the pot with a hand that flops well, isolates the original raiser, and denies equity to the blinds."
+        },
+        {
+          "text": "Limp behind to disguise hand strength",
+          "is_correct": false,
+          "explanation": "Limping behind with AKs is a clear leak; it caps your range and forfeits the initiative."
+        }
+      ],
+      "table_state": { "placeholder": true },
+      "glossary_terms": ["three-bet", "isolation raise", "effective stack"]
+    }
+  ]
+}
