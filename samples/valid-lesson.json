@@ -1,92 +1,108 @@
 {
-  "lesson_id": "poker-fundamentals-01",
-  "title": "Poker Fundamentals: Opening Ranges and Position",
-  "principle_tag": "preflop_strategy",
+  "lesson_id": "preflop-opens-utg-9max",
+  "title": "Pre-flop Opens from UTG (9-max)",
+  "principle_tag": "position_aware_aggression",
+  "concept": "opening_ranges_utg",
+  "difficulty": "intermediate",
   "questions": [
     {
-      "question_id": "pf01-q1",
+      "question_id": "utg-q1-opening-hand",
       "type": "multiple_choice",
-      "prompt": "Which position at a 9-handed table acts last on every postflop street?",
+      "prompt": "Effective stacks 100bb in a 9-max $1/$2 cash game. Folded to you UTG. Which hand is the clearest profitable open?",
       "answers": [
-        {
-          "text": "Under the gun (UTG)",
-          "is_correct": false,
-          "explanation": "UTG is the first player to act preflop and is in an early postflop position, not last."
-        },
-        {
-          "text": "Small blind (SB)",
-          "is_correct": false,
-          "explanation": "The small blind acts first on every postflop street, not last."
-        },
-        {
-          "text": "Button (BTN)",
-          "is_correct": true,
-          "explanation": "The button acts last on the flop, turn, and river, which is the most profitable position at the table."
-        },
-        {
-          "text": "Big blind (BB)",
-          "is_correct": false,
-          "explanation": "The big blind acts second-to-last postflop when the button is in the pot, not last."
-        }
-      ],
-      "glossary_terms": ["position", "button"]
-    },
-    {
-      "question_id": "pf01-q2",
-      "type": "multiple_choice",
-      "prompt": "From early position, which of these starting hands is generally considered the strongest opening raise?",
-      "answers": [
-        {
-          "text": "Ace-King suited",
-          "is_correct": true,
-          "explanation": "AKs is a premium hand that plays well from any position, with strong equity against most opening ranges."
-        },
-        {
-          "text": "Pocket sixes",
-          "is_correct": false,
-          "explanation": "66 is a marginal opener from early position; it set-mines well but loses value out of position."
-        },
         {
           "text": "King-Ten offsuit",
           "is_correct": false,
-          "explanation": "KTo is dominated by most hands that call an early-position raise and should usually be folded UTG."
+          "explanation": "KTo is dominated by most of the calling and 3-betting ranges that act behind you in early position. It's a leak from UTG in 9-max."
         },
         {
-          "text": "Jack-Nine suited",
+          "text": "Ace-Jack suited",
+          "is_correct": true,
+          "explanation": "AJs has strong equity against the calling range, flops well, and unblocks the hands you want villains to continue with. A clear open from UTG."
+        },
+        {
+          "text": "Pocket fours",
           "is_correct": false,
-          "explanation": "J9s is a speculative hand best played in late position, not from early position."
+          "explanation": "44 set-mines poorly from UTG because eight players act behind. It plays better in late position where you realize equity more easily."
+        },
+        {
+          "text": "Queen-Nine suited",
+          "is_correct": false,
+          "explanation": "Q9s is too dominated and too disconnected to open profitably from UTG; it's a late-position hand."
         }
       ],
-      "glossary_terms": ["opening range", "early position"]
+      "glossary_terms": ["UTG", "opening range", "dominated"]
     },
     {
-      "question_id": "pf01-q3",
-      "type": "hand_scenario",
-      "prompt": "Effective stacks 100bb. You are on the button with A♠ K♠. UTG opens to 3bb, MP calls, and action folds to you. What is the most theoretically sound action?",
+      "question_id": "utg-q2-sizing",
+      "type": "multiple_choice",
+      "prompt": "Standard UTG open sizing in a 9-max live $1/$2 game with deep stacks. What is the most theoretically sound raise size?",
       "answers": [
         {
-          "text": "Fold",
+          "text": "2x the big blind",
           "is_correct": false,
-          "explanation": "Folding AKs to a single raise and a flat is far too tight; you have one of the strongest hands in the game."
+          "explanation": "2x is too small for a live game with many players behind and a high rake. It invites calls and reduces fold equity."
         },
         {
-          "text": "Flat call to keep weaker hands in",
-          "is_correct": false,
-          "explanation": "Flatting lets the blinds squeeze and gives up the equity edge of three-betting in position with a premium hand."
-        },
-        {
-          "text": "Three-bet to roughly 12bb for value and isolation",
+          "text": "3x the big blind",
           "is_correct": true,
-          "explanation": "Three-betting AKs in position builds the pot with a hand that flops well, isolates the original raiser, and denies equity to the blinds."
+          "explanation": "3x ($6 over a $2 BB) is the standard live-cash UTG open. Big enough to thin the field and price out speculative hands, small enough to keep risk manageable."
         },
         {
-          "text": "Limp behind to disguise hand strength",
+          "text": "5x the big blind",
           "is_correct": false,
-          "explanation": "Limping behind with AKs is a clear leak; it caps your range and forfeits the initiative."
+          "explanation": "5x is over-sized and bleeds chips when called by stronger hands. Reserve larger sizes for spots with limpers or specific exploitative reads."
+        },
+        {
+          "text": "Limp",
+          "is_correct": false,
+          "explanation": "Limping UTG caps your range and gives up the initiative. It's almost always a leak in 9-max cash with no prior action."
         }
       ],
-      "table_state": { "placeholder": true },
-      "glossary_terms": ["three-bet", "isolation raise", "effective stack"]
+      "glossary_terms": ["raise sizing", "fold equity"]
+    },
+    {
+      "question_id": "utg-q3-flop-decision",
+      "type": "hand_scenario",
+      "prompt": "You open AKs from UTG to $6 and only the BB calls. Flop comes Kc 7d 2s. BB checks. What is the most theoretically sound action?",
+      "answers": [
+        {
+          "text": "Check back",
+          "is_correct": false,
+          "explanation": "Checking back forfeits value with top pair top kicker on a dry board. You lose protection and don't get paid by worse Kx and pocket pairs."
+        },
+        {
+          "text": "C-bet small (1/3 pot)",
+          "is_correct": true,
+          "explanation": "A small c-bet (~$4 into $13) maximizes EV: gets thin value from worse Kx and pocket pairs, denies equity to villain's gutshots and overcards, and keeps villain's bluff-catching range wide."
+        },
+        {
+          "text": "C-bet large (3/4 pot)",
+          "is_correct": false,
+          "explanation": "A large c-bet on a dry board folds out the exact hands you want to call (Qx, Jx, small pairs) and only gets called by hands that beat you or have equity against you."
+        },
+        {
+          "text": "Overbet for protection",
+          "is_correct": false,
+          "explanation": "Overbetting AK on K72 rainbow is a clear leak. The board is too dry to need protection sizing, and villain folds out almost every worse hand."
+        }
+      ],
+      "table_state": {
+        "street": "flop",
+        "hero_position": "UTG",
+        "hero_hole_cards": ["As", "Ks"],
+        "board_cards": ["Kc", "7d", "2s"],
+        "pot_size": 13,
+        "stack_sizes": {
+          "UTG": 194,
+          "BB": 194
+        },
+        "villain_player_types": {
+          "BB": "calling_station"
+        },
+        "notes": "Villain has been calling wide preflop and folding turn often when missed."
+      },
+      "glossary_terms": ["c-bet", "top pair", "dry board", "protection"]
     }
   ]
 }
