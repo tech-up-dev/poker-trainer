@@ -9,6 +9,7 @@ import { validateLesson, type FieldError } from '../lib/validate'
 import validSample from '../../samples/valid-lesson.json'
 import invalidSample from '../../samples/invalid-lesson.json'
 
+import { PublishedContent } from './PublishedContent'
 import { VersionsPanel } from './VersionsPanel'
 
 type ValidationState =
@@ -200,6 +201,13 @@ export function LessonValidator(): JSX.Element {
           </p>
         ) : null}
       </div>
+
+      {validatedLessonId !== null ? (
+        <PublishedContent
+          lessonId={validatedLessonId}
+          refreshSignal={versionsRefresh}
+        />
+      ) : null}
 
       {validatedLessonId !== null ? (
         <VersionsPanel
