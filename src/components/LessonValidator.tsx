@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
@@ -9,7 +9,6 @@ import { validateLesson, type FieldError } from '../lib/validate'
 import validSample from '../../samples/valid-lesson.json'
 import invalidSample from '../../samples/invalid-lesson.json'
 
-import { PublishedContent } from './PublishedContent'
 import { VersionsPanel } from './VersionsPanel'
 
 type ValidationState =
@@ -25,12 +24,27 @@ type PromoteStatus =
   | { promoted: number }
   | { error: string }
 
-export function LessonValidator(): JSX.Element {
+type LessonValidatorProps = {
+  onPublishedContextChange: (ctx: {
+    lessonId: string | null
+    refreshSignal: number
+  }) => void
+}
+
+export function LessonValidator({
+  onPublishedContextChange,
+}: LessonValidatorProps): JSX.Element {
   const [inputText, setInputText] = useState('')
   const [validationResult, setValidationResult] = useState<ValidationState | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [promoteStatus, setPromoteStatus] = useState<PromoteStatus>('idle')
   const [versionsRefresh, setVersionsRefresh] = useState(0)
+
+  useEffect(() => {
+    const lessonId =
+      validationResult?.ok === true ? validationResult.data.lesson_id : null
+    onPublishedContextChange({ lessonId, refreshSignal: versionsRefresh })
+  }, [validationResult, versionsRefresh, onPublishedContextChange])
 
   const canSave = validationResult?.ok === true
   const isSaving = saveStatus === 'saving'
@@ -207,13 +221,6 @@ export function LessonValidator(): JSX.Element {
           lessonId={validatedLessonId}
           refreshSignal={versionsRefresh}
           onAfterRollback={() => setVersionsRefresh((s) => s + 1)}
-        />
-      ) : null}
-
-      {validatedLessonId !== null ? (
-        <PublishedContent
-          lessonId={validatedLessonId}
-          refreshSignal={versionsRefresh}
         />
       ) : null}
     </section>
