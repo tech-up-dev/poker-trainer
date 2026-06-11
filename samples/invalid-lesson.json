@@ -1,111 +1,115 @@
 {
-  "lesson_id": "poker-fundamentals-broken-01",
-  "title": "Poker Fundamentals: Deliberately Broken Lesson",
-  "principle_tag": "preflop_strategy",
+  "lesson_id": "preflop-opens-broken-lesson",
+  "title": "Pre-flop Opens (Deliberately Broken Sample)",
+  "principle_tag": "position_aware_aggression",
+  "concept": "opening_ranges_utg",
+  "difficulty": "intermediate",
   "questions": [
     {
-      "question_id": "broken-q1-no-correct-answer",
+      "question_id": "broken-q1-three-answers",
       "type": "multiple_choice",
-      "prompt": "Which of the following is the best opening hand from under the gun?",
+      "prompt": "Which hand opens most profitably from UTG in 9-max?",
       "answers": [
         {
-          "text": "Pocket aces",
-          "is_correct": false,
-          "explanation": "Marked false on purpose so this question has zero correct answers."
-        },
-        {
-          "text": "Seven-two offsuit",
-          "is_correct": false,
-          "explanation": "Correctly weak, but every answer here is marked false to trigger the refinement error."
-        },
-        {
-          "text": "Ten-Jack suited",
-          "is_correct": false,
-          "explanation": "A speculative hand, but again deliberately marked false."
-        },
-        {
-          "text": "Ace-Queen offsuit",
-          "is_correct": false,
-          "explanation": "Marked false on purpose so this question has zero is_correct=true answers."
-        }
-      ]
-    },
-    {
-      "question_id": "broken-q2-missing-explanation",
-      "type": "multiple_choice",
-      "prompt": "Which street comes immediately after the flop?",
-      "answers": [
-        {
-          "text": "Preflop",
-          "is_correct": false,
-          "explanation": "Preflop happens before the flop, not after it."
-        },
-        {
-          "text": "River",
-          "is_correct": false,
-          "explanation": "The river is the fifth and final community card, not the one immediately after the flop."
-        },
-        {
-          "text": "Turn",
-          "is_correct": true
-        },
-        {
-          "text": "Showdown",
-          "is_correct": false,
-          "explanation": "Showdown is the reveal of hole cards, not a betting street."
-        }
-      ]
-    },
-    {
-      "question_id": "broken-q3-invalid-type",
-      "type": "multichoice",
-      "prompt": "What is the minimum number of hole cards each player receives in Texas Hold'em?",
-      "answers": [
-        {
-          "text": "One",
-          "is_correct": false,
-          "explanation": "Players are dealt two hole cards, not one."
-        },
-        {
-          "text": "Two",
+          "text": "Ace-Jack suited",
           "is_correct": true,
-          "explanation": "Each player is dealt exactly two private hole cards in Texas Hold'em."
+          "explanation": "Marked correct so this question still has exactly one is_correct; the deliberate fault here is only three answers."
         },
         {
-          "text": "Four",
+          "text": "King-Ten offsuit",
           "is_correct": false,
-          "explanation": "Four hole cards is Omaha, not Texas Hold'em."
+          "explanation": "Dominated by the ranges behind you UTG."
         },
         {
-          "text": "Five",
+          "text": "Queen-Nine suited",
           "is_correct": false,
-          "explanation": "Five-card games are stud variants, not Texas Hold'em."
+          "explanation": "Too disconnected and dominated to open UTG profitably."
         }
       ]
     },
     {
+      "question_id": "broken-q2-two-correct",
       "type": "multiple_choice",
-      "prompt": "What does 'GTO' stand for in poker strategy?",
+      "prompt": "Standard 9-max UTG open sizing in live $1/$2?",
       "answers": [
         {
-          "text": "Good Tournament Outcome",
-          "is_correct": false,
-          "explanation": "GTO is a strategic concept, not a tournament result label."
-        },
-        {
-          "text": "Game Theory Optimal",
+          "text": "3x the big blind",
           "is_correct": true,
-          "explanation": "GTO stands for Game Theory Optimal, an unexploitable baseline strategy."
+          "explanation": "The textbook live UTG open."
         },
         {
-          "text": "General Table Order",
+          "text": "Limp",
           "is_correct": false,
-          "explanation": "There is no poker concept by this name."
+          "explanation": "Limping UTG is almost always a leak; this is intentionally wrong."
         },
         {
-          "text": "Grand Total Odds",
+          "text": "5x the big blind",
+          "is_correct": true,
+          "explanation": "Deliberately also marked correct so this question has two is_correct=true answers."
+        },
+        {
+          "text": "2x the big blind",
           "is_correct": false,
-          "explanation": "Not a real poker term; this distractor exists only to fill the answer slot."
+          "explanation": "Too small for live cash with many players behind."
+        }
+      ]
+    },
+    {
+      "question_id": "broken-q3-invalid-street",
+      "type": "hand_scenario",
+      "prompt": "You open AKs from UTG and the BB calls. What is the most theoretically sound action on the flop?",
+      "answers": [
+        {
+          "text": "Check back",
+          "is_correct": false,
+          "explanation": "Forfeits value with top pair on a dry board."
+        },
+        {
+          "text": "C-bet small (1/3 pot)",
+          "is_correct": true,
+          "explanation": "Small c-bet maximizes EV on dry boards with strong made hands."
+        },
+        {
+          "text": "C-bet large (3/4 pot)",
+          "is_correct": false,
+          "explanation": "Folds out the hands you want to call."
+        },
+        {
+          "text": "Overbet for protection",
+          "is_correct": false,
+          "explanation": "Overbetting AK on a dry rainbow board is a clear leak."
+        }
+      ],
+      "table_state": {
+        "street": "fifth_street",
+        "hero_position": "UTG",
+        "board_cards": ["Kc", "7d", "2s"],
+        "pot_size": 13
+      }
+    },
+    {
+      "question_id": "broken-q4-missing-prompt",
+      "type": "multiple_choice",
+      "answers": [
+        {
+          "text": "Fold",
+          "is_correct": false,
+          "explanation": "Folding here is overly tight; included only so the answers array is well-formed."
+        },
+        {
+          "text": "Call",
+          "is_correct": true,
+          "explanation": "Marked correct only so this question has exactly one is_correct=true; the deliberate fault is the missing prompt."
+        },
+        {
+          "text": "Raise",
+          "is_correct": false,
+          "explanation": "Marked wrong only so this question still parses cleanly otherwise."
+        },
+        {
+          "text": "Three-bet",
+          "is_correct": false,
+          "explanation": "Marked wrong only so this question still parses cleanly otherwise."
         }
       ]
     }
