@@ -203,17 +203,17 @@ export function LessonValidator(): JSX.Element {
       </div>
 
       {validatedLessonId !== null ? (
-        <PublishedContent
-          lessonId={validatedLessonId}
-          refreshSignal={versionsRefresh}
-        />
-      ) : null}
-
-      {validatedLessonId !== null ? (
         <VersionsPanel
           lessonId={validatedLessonId}
           refreshSignal={versionsRefresh}
           onAfterRollback={() => setVersionsRefresh((s) => s + 1)}
+        />
+      ) : null}
+
+      {validatedLessonId !== null ? (
+        <PublishedContent
+          lessonId={validatedLessonId}
+          refreshSignal={versionsRefresh}
         />
       ) : null}
     </section>
