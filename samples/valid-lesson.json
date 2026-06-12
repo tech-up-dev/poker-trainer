@@ -1,7 +1,7 @@
 {
   "lesson_id": "preflop-opens-utg-9max",
   "title": "Pre-flop Opens from UTG (9-max)",
-  "principle_tag": "position_aware_aggression",
+  "principle_tag": "character_mapping",
   "concept": "opening_ranges_utg",
   "difficulty": "intermediate",
   "questions": [
@@ -98,7 +98,7 @@
           "BB": 194
         },
         "villain_player_types": {
-          "BB": "calling_station"
+          "BB": "PLF"
         },
         "notes": "Villain has been calling wide preflop and folding turn often when missed."
       },
