@@ -1,0 +1,1648 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Developer Guide — Poker Trainer V1</title>
+<meta name="description" content="Comprehensive technical reference for developers working on the Poker Trainer V1 build." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,500;1,6..72,600;1,6..72,700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #F7F4ED;
+  --bg-elev: #FFFFFF;
+  --bg-code: #1B1817;
+  --ink: #1B1817;
+  --ink-soft: #4A453F;
+  --ink-mute: #8C8579;
+  --ink-faint: rgba(27, 24, 23, 0.18);
+  --accent: #7A2E2E;
+  --accent-bg: rgba(122, 46, 46, 0.06);
+  --rule: rgba(27, 24, 23, 0.10);
+  --code-text: #E8E3DA;
+  --code-mute: #908A80;
+
+  --font-display: 'Newsreader', Georgia, 'Times New Roman', serif;
+  --font-body: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Menlo', Consolas, monospace;
+
+  --max-content: 720px;
+  --toc-width: 280px;
+  --pad-page: 32px;
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16.5px;
+  line-height: 1.65;
+  font-feature-settings: "kern", "liga", "calt", "ss01";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection { background: var(--accent); color: #fff; }
+
+/* --- Header --- */
+
+.site-header {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 56px var(--pad-page) 0;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.eyebrow .dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--accent);
+  display: inline-block;
+}
+
+.title-wrap {
+  margin-top: 28px;
+  padding-bottom: 36px;
+  border-bottom: 1px solid var(--rule);
+  max-width: var(--max-content);
+}
+
+h1.doc-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(40px, 7vw, 64px);
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--ink);
+}
+
+h1.doc-title em {
+  font-style: italic;
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.doc-meta {
+  margin-top: 18px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 28px;
+  align-items: baseline;
+}
+
+.doc-meta dt {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin: 0;
+}
+
+.doc-meta dd {
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--ink-soft);
+  margin: 0 0 0 8px;
+  display: inline;
+}
+
+.doc-meta .meta-item { display: inline-flex; align-items: baseline; gap: 8px; }
+
+.lead {
+  max-width: var(--max-content);
+  margin: 36px 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 19px;
+  line-height: 1.55;
+  color: var(--ink-soft);
+}
+
+/* --- Layout --- */
+
+.layout {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 64px var(--pad-page) 96px;
+  display: grid;
+  grid-template-columns: var(--toc-width) 1fr;
+  gap: 64px;
+  align-items: start;
+}
+
+/* --- TOC --- */
+
+.toc-toggle {
+  display: none;
+  position: fixed;
+  bottom: 20px; right: 20px;
+  background: var(--ink);
+  color: var(--bg);
+  border: none;
+  padding: 12px 18px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  z-index: 100;
+}
+
+.toc {
+  position: sticky;
+  top: 32px;
+  max-height: calc(100vh - 64px);
+  overflow-y: auto;
+  padding-right: 16px;
+}
+
+.toc-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin: 0 0 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.toc-list {
+  list-style: none;
+  margin: 0; padding: 0;
+  counter-reset: none;
+}
+
+.toc-list li { margin: 0; }
+
+.toc-list a {
+  display: grid;
+  grid-template-columns: 26px 1fr;
+  gap: 6px;
+  padding: 7px 0;
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  line-height: 1.4;
+  border-left: 2px solid transparent;
+  padding-left: 12px;
+  margin-left: -12px;
+  transition: color 120ms ease, border-color 120ms ease, background-color 120ms ease;
+}
+
+.toc-list a:hover {
+  color: var(--ink);
+}
+
+.toc-list a.active {
+  color: var(--accent);
+  border-left-color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.toc-num {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  color: var(--ink-mute);
+}
+
+.toc-list a.active .toc-num { color: var(--accent); }
+
+/* --- Main content --- */
+
+.content {
+  max-width: var(--max-content);
+  min-width: 0;
+}
+
+.content p {
+  margin: 0 0 18px;
+  color: var(--ink);
+}
+
+.content > p:first-of-type { margin-top: 0; }
+
+.content h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 32px;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  margin: 72px 0 24px;
+  padding-top: 16px;
+  color: var(--ink);
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  scroll-margin-top: 24px;
+}
+
+.content h2:first-child { margin-top: 0; }
+
+.sec-num {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 44px;
+  color: var(--accent);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.sec-text { flex: 1; }
+
+.content h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin: 44px 0 16px;
+  color: var(--ink);
+  scroll-margin-top: 24px;
+}
+
+.content h4 {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 32px 0 12px;
+  color: var(--ink-soft);
+}
+
+.anchor {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  font-size: 0.65em;
+  color: var(--ink-faint);
+  text-decoration: none;
+  margin-left: 10px;
+  opacity: 0;
+  transition: opacity 120ms ease, color 120ms ease;
+}
+
+.content h2:hover .anchor,
+.content h3:hover .anchor { opacity: 1; }
+
+.anchor:hover { color: var(--accent); }
+
+.content a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(122, 46, 46, 0.35);
+  transition: text-decoration-color 120ms ease;
+}
+
+.content a:hover {
+  text-decoration-color: var(--accent);
+}
+
+.content strong { font-weight: 600; color: var(--ink); }
+.content em { font-style: italic; }
+
+.content ul, .content ol {
+  margin: 0 0 18px;
+  padding-left: 24px;
+}
+
+.content li { margin-bottom: 6px; }
+.content li > p { margin-bottom: 8px; }
+.content li > ul, .content li > ol { margin-top: 6px; margin-bottom: 6px; }
+
+.content ul li::marker { color: var(--accent); }
+.content ol li::marker { color: var(--accent); font-family: var(--font-display); font-style: italic; }
+
+/* Inline code */
+
+.content code {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--accent-bg);
+  color: var(--ink);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid rgba(122, 46, 46, 0.08);
+}
+
+/* Code blocks */
+
+.code-wrap {
+  position: relative;
+  margin: 24px 0;
+}
+
+.content pre {
+  margin: 0;
+  background: var(--bg-code);
+  color: var(--code-text);
+  padding: 20px 22px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.content pre code {
+  background: transparent;
+  color: var(--code-text);
+  padding: 0;
+  border: none;
+  font-size: inherit;
+  border-radius: 0;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 12px; right: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--code-text);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 150ms ease, background 150ms ease;
+}
+
+.code-wrap:hover .copy-btn { opacity: 1; }
+
+.copy-btn:hover { background: rgba(255, 255, 255, 0.15); }
+
+.copy-btn.copied {
+  background: var(--accent);
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+/* Tables */
+
+.content table {
+  width: 100%;
+  margin: 24px 0;
+  border-collapse: collapse;
+  font-size: 14.5px;
+}
+
+.content thead {
+  border-top: 1.5px solid var(--ink);
+  border-bottom: 1px solid var(--rule);
+}
+
+.content th {
+  text-align: left;
+  padding: 12px 14px 12px 0;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.content tbody tr {
+  border-bottom: 1px solid var(--rule);
+}
+
+.content td {
+  padding: 12px 14px 12px 0;
+  vertical-align: top;
+  color: var(--ink-soft);
+}
+
+.content td:first-child { color: var(--ink); font-weight: 500; }
+
+/* Blockquotes */
+
+.content blockquote {
+  margin: 24px 0;
+  padding: 4px 0 4px 20px;
+  border-left: 2px solid var(--accent);
+  font-style: italic;
+  color: var(--ink-soft);
+}
+
+/* Horizontal rule */
+
+.content hr {
+  border: none;
+  border-top: 1px solid var(--rule);
+  margin: 56px 0;
+}
+
+/* Footer */
+
+.site-footer {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px var(--pad-page) 56px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.site-footer a { color: var(--ink-mute); text-decoration: none; }
+.site-footer a:hover { color: var(--accent); }
+
+/* Responsive */
+
+@media (max-width: 960px) {
+  :root { --pad-page: 24px; }
+
+  .site-header { padding-top: 36px; }
+
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding-top: 32px;
+  }
+
+  .toc-toggle { display: block; }
+
+  .toc {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg);
+    padding: 32px 24px;
+    overflow-y: auto;
+    z-index: 50;
+    transform: translateY(100%);
+    transition: transform 220ms ease;
+    max-height: 100vh;
+  }
+
+  .toc.open { transform: translateY(0); }
+
+  .toc-close {
+    display: block;
+    margin: 0 0 20px auto;
+    background: none;
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    padding: 6px 12px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .content h2 { font-size: 26px; gap: 12px; margin-top: 56px; }
+  .sec-num { font-size: 34px; }
+  .content h3 { font-size: 19px; }
+
+  h1.doc-title { font-size: 40px; }
+
+  .copy-btn { opacity: 1; } /* Always visible on touch */
+}
+
+@media (min-width: 961px) {
+  .toc-close { display: none; }
+}
+
+@media print {
+  .toc, .toc-toggle, .anchor, .copy-btn { display: none !important; }
+  .layout { grid-template-columns: 1fr; padding: 24px; }
+  .content { max-width: 100%; }
+  body { font-size: 11pt; }
+  .content pre { font-size: 9.5pt; page-break-inside: avoid; }
+  .content h2 { page-break-after: avoid; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="eyebrow">
+    <span class="dot"></span>
+    <span>BLAGOJCHE.DEV</span>
+    <span>·</span>
+    <span>DOCS</span>
+    <span>·</span>
+    <span>POKER TRAINER</span>
+  </div>
+
+  <div class="title-wrap">
+    <h1 class="doc-title">Developer <em>Guide</em></h1>
+    <dl class="doc-meta">
+      <span class="meta-item"><dt>Project</dt><dd>Beat Small Stakes</dd></span>
+      <span class="meta-item"><dt>Version</dt><dd>V1 build</dd></span>
+      <span class="meta-item"><dt>Repo</dt><dd>beatsmallstakes/beat-small-stakes-app</dd></span>
+      <span class="meta-item"><dt>Stack</dt><dd>React · Supabase · Stripe</dd></span>
+    </dl>
+    <p class="lead">Comprehensive technical reference for developers working on the Poker Trainer app. This is a content-heavy subscription PWA with a no-code content operations backbone. The codebase is one repo, but logically two workstreams: the member-facing app and the CMS pipeline. For day-to-day code style, see <code>CLAUDE.md</code> at the repo root. This document complements it with deeper architecture, patterns, and how-to-extend guidance.</p>
+  </div>
+</header>
+
+<div class="layout">
+
+  <aside class="toc" id="toc" aria-label="Table of contents">
+    <button class="toc-close" aria-label="Close table of contents">Close</button>
+    <p class="toc-label">Contents</p>
+    <ol class="toc-list">
+<li><a href="#mission-and-product-context" data-target="mission-and-product-context"><span class="toc-num">1</span><span class="toc-text">Mission and product context</span></a></li>
+<li><a href="#architecture-at-a-glance" data-target="architecture-at-a-glance"><span class="toc-num">2</span><span class="toc-text">Architecture at a glance</span></a></li>
+<li><a href="#tech-stack-reference" data-target="tech-stack-reference"><span class="toc-num">3</span><span class="toc-text">Tech stack reference</span></a></li>
+<li><a href="#repository-structure" data-target="repository-structure"><span class="toc-num">4</span><span class="toc-text">Repository structure</span></a></li>
+<li><a href="#local-development-setup" data-target="local-development-setup"><span class="toc-num">5</span><span class="toc-text">Local development setup</span></a></li>
+<li><a href="#frontend-architecture" data-target="frontend-architecture"><span class="toc-num">6</span><span class="toc-text">Frontend architecture</span></a></li>
+<li><a href="#backend-architecture-supabase" data-target="backend-architecture-supabase"><span class="toc-num">7</span><span class="toc-text">Backend architecture (Supabase)</span></a></li>
+<li><a href="#validation-pattern-zod-single-source-of-truth" data-target="validation-pattern-zod-single-source-of-truth"><span class="toc-num">8</span><span class="toc-text">Validation pattern (Zod, single source of truth)</span></a></li>
+<li><a href="#the-content-pipeline" data-target="the-content-pipeline"><span class="toc-num">9</span><span class="toc-text">The content pipeline</span></a></li>
+<li><a href="#authentication-and-entitlements" data-target="authentication-and-entitlements"><span class="toc-num">10</span><span class="toc-text">Authentication and entitlements</span></a></li>
+<li><a href="#pwa-and-push-notifications" data-target="pwa-and-push-notifications"><span class="toc-num">11</span><span class="toc-text">PWA and push notifications</span></a></li>
+<li><a href="#branching-commits-and-prs" data-target="branching-commits-and-prs"><span class="toc-num">12</span><span class="toc-text">Branching, commits, and PRs</span></a></li>
+<li><a href="#how-to-add-a-new-content-type" data-target="how-to-add-a-new-content-type"><span class="toc-num">13</span><span class="toc-text">How to add a new content type</span></a></li>
+<li><a href="#how-to-add-a-new-edge-function" data-target="how-to-add-a-new-edge-function"><span class="toc-num">14</span><span class="toc-text">How to add a new Edge Function</span></a></li>
+<li><a href="#how-to-add-a-new-react-component" data-target="how-to-add-a-new-react-component"><span class="toc-num">15</span><span class="toc-text">How to add a new React component</span></a></li>
+<li><a href="#how-to-add-a-database-migration" data-target="how-to-add-a-database-migration"><span class="toc-num">16</span><span class="toc-text">How to add a database migration</span></a></li>
+<li><a href="#testing-approach" data-target="testing-approach"><span class="toc-num">17</span><span class="toc-text">Testing approach</span></a></li>
+<li><a href="#common-pitfalls" data-target="common-pitfalls"><span class="toc-num">18</span><span class="toc-text">Common pitfalls</span></a></li>
+</ol>
+  </aside>
+
+  <main class="content" id="content">
+    <hr />
+<h2 id="mission-and-product-context"><span class="sec-num">1.</span><span class="sec-text">Mission and product context</span><a class="anchor" href="#mission-and-product-context" aria-label="Permalink">#</a></h2>
+<p>The Poker Trainer is a Duolingo-style learning experience built around the client's poker methodology (Controlled Chaos). Members work through scenario-based quiz questions with instant teaching feedback, earn streaks and badges, and progress through a guided Skills Path.</p>
+<p><strong>Two workstreams that matter:</strong></p>
+<ol>
+<li><strong>Member-facing app.</strong> The quiz, the static 9-max poker table, the glossary drawer, the Skills Path, the dashboard, the tips library. Mobile-first PWA.</li>
+<li><strong>Content Operations backbone (CMS).</strong> The wizard-style authoring UI, the visual table builder, bulk import/export, the Zod validation engine, separate staging and production environments, versioning, and one-click rollback.</li>
+</ol>
+<p>The CMS is the heaviest technical work in V1. It's the heart of the app. Content goes through the same pipeline (validate → stage → publish → rollback) regardless of type. Lessons, Tips, References, and Skills Path nodes all use the same machinery.</p>
+<p><strong>Hard constraints:</strong></p>
+<ul>
+<li>9-max poker table only. Never 6-max. This is non-negotiable.</li>
+<li>Static table layout. No card-dealing animations, no live-play simulation, no branching decision trees.</li>
+<li>All content is authored by the client. Developers build the pipeline, validator, and tools. Never the content.</li>
+<li>PWA only. No native mobile apps.</li>
+</ul>
+<hr />
+<h2 id="architecture-at-a-glance"><span class="sec-num">2.</span><span class="sec-text">Architecture at a glance</span><a class="anchor" href="#architecture-at-a-glance" aria-label="Permalink">#</a></h2>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code>┌──────────────────────────────────────────────────────────────────────┐
+│                      USER (browser, mobile PWA)                       │
+└────────────────────────────┬──────────────────────────────────────────┘
+                             │ HTTPS
+              ┌──────────────▼───────────────┐
+              │  Vercel (React app, static)  │
+              │  Vite + React + TS + Tailwind │
+              └──────────────┬───────────────┘
+                             │
+        ┌────────────────────┼────────────────────────┐
+        │                    │                        │
+┌───────▼─────────┐  ┌──────▼──────────┐    ┌────────▼─────────┐
+│ Supabase        │  │ Supabase Edge   │    │ Stripe           │
+│ (Production)    │  │ Functions       │    │ (recurring sub)  │
+│                 │  │ - promote       │    │                  │
+│ - Postgres      │  │ - rollback      │    └─────────┬────────┘
+│ - Auth          │  │ - stripe-webhook│              │
+│ - Storage       │  │ - ghl-webhook   │              │ webhook
+│ - RLS policies  │  └────┬────────────┘              │
+└─────────────────┘       │                ┌──────────▼────────┐
+                          │                │ Supabase Edge Fn  │
+                          │                │ (Stripe to GHL)   │
+                          │                └─────────┬─────────┘
+            ┌─────────────▼─────────────┐            │
+            │ Supabase (Staging)        │            │
+            │ - Same schema as Prod     │   ┌────────▼─────────┐
+            │ - Used for content        │   │ GoHighLevel CRM  │
+            │   preview before publish  │   └──────────────────┘
+            └───────────────────────────┘
+</code></pre></div>
+<p><strong>Two Supabase projects</strong> (staging and production) from day one. Content gets written to staging first, previewed, then promoted to production. Each promotion creates a version snapshot.</p>
+<p><strong>Two-layer rollback:</strong>
+- Code rollback: Vercel's one-click deployment revert
+- Content rollback: Supabase versioned publish (any prior version can be restored)</p>
+<p>Code and content roll back independently. No coordination needed between them.</p>
+<hr />
+<h2 id="tech-stack-reference"><span class="sec-num">3.</span><span class="sec-text">Tech stack reference</span><a class="anchor" href="#tech-stack-reference" aria-label="Permalink">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technology</th>
+<th>Why</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Build tool</td>
+<td>Vite</td>
+<td>Fast dev server, fast builds, modern ESM</td>
+</tr>
+<tr>
+<td>Framework</td>
+<td>React 18+</td>
+<td>Standard for this type of app</td>
+</tr>
+<tr>
+<td>Language</td>
+<td>TypeScript (strict)</td>
+<td>Schema-heavy app; type safety end to end</td>
+</tr>
+<tr>
+<td>Styling</td>
+<td>Tailwind CSS</td>
+<td>Utility-first, fast to iterate, no custom CSS bloat</td>
+</tr>
+<tr>
+<td>Validation</td>
+<td>Zod</td>
+<td>Schemas are the source of truth; types derived</td>
+</tr>
+<tr>
+<td>State (local)</td>
+<td>React <code>useState</code>, <code>useReducer</code></td>
+<td>No global state library in V1</td>
+</tr>
+<tr>
+<td>State (server)</td>
+<td>Direct Supabase queries</td>
+<td>No TanStack Query yet; add if needed in M2</td>
+</tr>
+<tr>
+<td>Routing</td>
+<td>React Router (added M1)</td>
+<td>Standard SPA routing</td>
+</tr>
+<tr>
+<td>Database</td>
+<td>Postgres (via Supabase)</td>
+<td>Relational data, strong consistency, RLS</td>
+</tr>
+<tr>
+<td>Auth</td>
+<td>Supabase Auth</td>
+<td>Password + magic link, integrated with RLS</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>Supabase Storage</td>
+<td>For avatar artwork and any future media</td>
+</tr>
+<tr>
+<td>Edge Functions</td>
+<td>Supabase Edge Functions (Deno)</td>
+<td>Server-side logic for promote, rollback, webhooks</td>
+</tr>
+<tr>
+<td>Payments</td>
+<td>Stripe (recurring billing)</td>
+<td>Industry standard</td>
+</tr>
+<tr>
+<td>CRM sync</td>
+<td>GoHighLevel (via Stripe webhook)</td>
+<td>Real-time, per-Stripe-event</td>
+</tr>
+<tr>
+<td>PWA</td>
+<td>Service Worker + Web Manifest</td>
+<td>Add-to-home-screen, offline caching, web push</td>
+</tr>
+<tr>
+<td>Push</td>
+<td>Web Push API (VAPID)</td>
+<td>iOS 16.4+ supported for installed PWAs</td>
+</tr>
+<tr>
+<td>Hosting</td>
+<td>Vercel</td>
+<td>Code deploys, instant rollback, branch previews</td>
+</tr>
+<tr>
+<td>Source control</td>
+<td>GitHub</td>
+<td>Repo lives under the client's account</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Versions to pin:</strong> see <code>package.json</code>. Notable: Zod v4 (the validation API uses <code>error</code> callbacks, not <code>errorMap</code>).</p>
+<hr />
+<h2 id="repository-structure"><span class="sec-num">4.</span><span class="sec-text">Repository structure</span><a class="anchor" href="#repository-structure" aria-label="Permalink">#</a></h2>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code>/
+├── CLAUDE.md                   # Code standards (read first, always)
+├── README.md                   # Quick start, what this is
+├── package.json
+├── tsconfig.json
+├── tsconfig.app.json
+├── vite.config.ts
+├── tailwind.config.ts
+├── postcss.config.cjs
+├── index.html
+├── public/                     # Static assets served as-is
+│   ├── manifest.json           # PWA manifest
+│   └── service-worker.js       # Custom SW (added M1 PWA scaffold)
+├── src/
+│   ├── main.tsx                # Entry point, providers
+│   ├── App.tsx                 # Root component, router
+│   ├── index.css               # Tailwind directives only
+│   ├── components/             # Reusable UI components, one per file
+│   ├── pages/                  # Top-level page components (with routing)
+│   ├── hooks/                  # Custom React hooks
+│   ├── lib/                    # Utility modules (supabase client, validators)
+│   └── types/                  # Cross-cutting TypeScript types
+├── shared/
+│   └── schemas/                # Zod schemas — imported by app AND Edge Functions
+│       ├── lesson.ts           # Lesson and Question schemas
+│       ├── tip.ts              # Tip schema (added M2)
+│       ├── reference.ts        # Reference schema (added M2)
+│       ├── path-node.ts        # Skills Path node schema (added M2)
+│       └── glossary.ts         # Glossary entry schema
+├── supabase/
+│   ├── config.toml             # Supabase CLI config
+│   ├── migrations/             # SQL files, sequential timestamped
+│   ├── functions/              # Edge Functions, one folder per function
+│   │   ├── promote-to-prod/
+│   │   ├── rollback-to-version/
+│   │   ├── stripe-webhook/
+│   │   └── ghl-sync/
+│   └── seed.sql                # Optional seed data for local dev
+├── docs/
+│   ├── schema-spec.md          # Canonical content schema for Claude bulk gen
+│   ├── build-prompts.md        # Chronological build log (Claude Code prompts)
+│   ├── DEVELOPER_GUIDE.md      # This file
+│   ├── QA_GUIDE.md
+│   ├── DEVOPS_GUIDE.md
+│   ├── PROJECT_MANAGEMENT.md
+│   └── CLIENT_DEPENDENCIES.md
+└── samples/                    # Sample content fixtures for the validator
+</code></pre></div>
+<p><strong>Conventions:</strong></p>
+<ul>
+<li><code>shared/</code> is the only place code is shared between the React app and Edge Functions. Never put React-specific imports (JSX, hooks) in <code>shared/</code>.</li>
+<li>One component per file. Filename matches the component name in PascalCase.</li>
+<li>Utilities in <code>lib/</code> are kebab-case (<code>validate.ts</code>, <code>supabase.ts</code>, <code>format-path.ts</code>).</li>
+<li>Edge Function folders are kebab-case (<code>promote-to-prod/</code>). The folder name becomes the URL path.</li>
+</ul>
+<hr />
+<h2 id="local-development-setup"><span class="sec-num">5.</span><span class="sec-text">Local development setup</span><a class="anchor" href="#local-development-setup" aria-label="Permalink">#</a></h2>
+<h3 id="prerequisites">Prerequisites<a class="anchor" href="#prerequisites" aria-label="Permalink">#</a></h3>
+<ul>
+<li>Node.js 20+ (LTS)</li>
+<li>npm or pnpm</li>
+<li>Supabase CLI (for migrations and Edge Function deployment)</li>
+<li>Git</li>
+<li>A modern browser (Chrome, Firefox, Safari, Edge)</li>
+</ul>
+<h3 id="first-time-setup">First-time setup<a class="anchor" href="#first-time-setup" aria-label="Permalink">#</a></h3>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash"># Clone the repo
+git clone https://github.com/beatsmallstakes/beat-small-stakes-app.git
+cd beat-small-stakes-app
+
+# Install dependencies
+npm install
+
+# Copy the env template
+cp .env.example .env.local
+</code></pre></div>
+<p>Fill in <code>.env.local</code> with:</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code>VITE_SUPABASE_URL=&lt;staging Supabase URL&gt;
+VITE_SUPABASE_ANON_KEY=&lt;staging Supabase anon key&gt;
+</code></pre></div>
+<p>For production builds, Vercel injects production env vars at build time. Never put production keys in your local <code>.env.local</code>.</p>
+<h3 id="running-the-app">Running the app<a class="anchor" href="#running-the-app" aria-label="Permalink">#</a></h3>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash">npm run dev          # Dev server on http://localhost:5173
+npm run build        # Production build to dist/
+npm run preview      # Serve the production build locally
+npm run lint         # ESLint
+npm run typecheck    # TypeScript check without emitting
+</code></pre></div>
+<h3 id="working-with-supabase-locally">Working with Supabase locally<a class="anchor" href="#working-with-supabase-locally" aria-label="Permalink">#</a></h3>
+<p>The development workflow uses the <strong>staging</strong> Supabase project directly, not a local Postgres instance. This keeps the schema in sync with what the team sees in the dashboard.</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash"># Link the CLI to a project (one-time, per environment)
+supabase login
+supabase link --project-ref &lt;staging-project-ref&gt;
+
+# Apply migrations to the linked project
+supabase db push
+
+# Deploy an Edge Function to the linked project
+supabase functions deploy &lt;function-name&gt;
+
+# Set Edge Function secrets
+supabase secrets set KEY=value
+</code></pre></div>
+<p>To switch contexts to the production project, re-link:</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash">supabase link --project-ref &lt;prod-project-ref&gt;
+</code></pre></div>
+<p>The CLI tracks the current linked project in <code>supabase/.temp/project-ref</code>. Always confirm which environment you're targeting before running destructive operations.</p>
+<hr />
+<h2 id="frontend-architecture"><span class="sec-num">6.</span><span class="sec-text">Frontend architecture</span><a class="anchor" href="#frontend-architecture" aria-label="Permalink">#</a></h2>
+<h3 id="routing-structure-added-in-m1">Routing structure (added in M1)<a class="anchor" href="#routing-structure-added-in-m1" aria-label="Permalink">#</a></h3>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code>/                    → Home/dashboard (member-facing)
+/drill/:lessonId     → Active drill session
+/library             → References Library and Saved Tips
+/glossary            → Standalone glossary browser
+/profile             → Subscription, settings, logout
+/admin/validator     → Validation UI (admin-only, M2 auth gated)
+/admin/wizard        → CMS wizard authoring (M2)
+/admin/versions      → Versioned content management, rollback (M2)
+/onboarding          → First-login flow (M4)
+</code></pre></div>
+<p>All <code>/admin/*</code> routes are gated by an admin entitlement check (added in M2). Before that, the validator UI is publicly reachable in dev/test environments.</p>
+<h3 id="component-categorization">Component categorization<a class="anchor" href="#component-categorization" aria-label="Permalink">#</a></h3>
+<p><strong>Presentational components</strong> (<code>src/components/</code>): receive props, render UI, no data fetching. Examples: <code>Button</code>, <code>Drawer</code>, <code>PokerTable</code>, <code>QuestionCard</code>.</p>
+<p><strong>Page components</strong> (<code>src/pages/</code>): correspond to routes. Handle data fetching, compose presentational components. Examples: <code>DrillPage</code>, <code>DashboardPage</code>, <code>ValidatorPage</code>.</p>
+<p><strong>Domain components</strong> (<code>src/components/</code>, grouped logically): related to a feature area. Examples: <code>quiz/QuestionRenderer.tsx</code>, <code>glossary/GlossaryDrawer.tsx</code>, <code>table/StaticPokerTable.tsx</code>.</p>
+<h3 id="state-management-strategy">State management strategy<a class="anchor" href="#state-management-strategy" aria-label="Permalink">#</a></h3>
+<p>Local component state via <code>useState</code> and <code>useReducer</code>. No global state library in V1.</p>
+<p>Server state (Supabase queries) is fetched in <code>useEffect</code> or event handlers. If complexity grows in M2 (caching, refetching), consider adding TanStack Query — that's a decision point, not a default.</p>
+<p>For session-wide state (current user, entitlements), use React Context. One provider at the app root: <code>AuthProvider</code> exposing the current Supabase session and the user's entitlement set.</p>
+<h3 id="styling-conventions">Styling conventions<a class="anchor" href="#styling-conventions" aria-label="Permalink">#</a></h3>
+<ul>
+<li>Tailwind utilities first. No custom CSS outside <code>index.css</code> (which is just <code>@import "tailwindcss"</code>).</li>
+<li>Extract a component when the markup repeats 3+ times or has its own behavior.</li>
+<li>Don't write <code>@apply</code> directives in custom CSS. Use utility classes in JSX.</li>
+<li>Dark mode: not in V1. The app uses a single light scheme until V2.</li>
+<li>Mobile-first: design every screen for the smallest viewport (around 360px) first, then expand for larger screens with Tailwind responsive prefixes (<code>sm:</code>, <code>md:</code>, <code>lg:</code>).</li>
+</ul>
+<h3 id="component-anatomy-example">Component anatomy example<a class="anchor" href="#component-anatomy-example" aria-label="Permalink">#</a></h3>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-tsx">// src/components/quiz/QuestionRenderer.tsx
+import { useState } from &quot;react&quot;;
+import type { Question, Answer } from &quot;@/types/lesson&quot;;
+import { FeedbackDrawer } from &quot;./FeedbackDrawer&quot;;
+
+type QuestionRendererProps = {
+  question: Question;
+  onAnswered: (answer: Answer, isCorrect: boolean) =&gt; void;
+};
+
+export function QuestionRenderer({ question, onAnswered }: QuestionRendererProps) {
+  const [selected, setSelected] = useState&lt;Answer | null&gt;(null);
+
+  function handleSelect(answer: Answer) {
+    setSelected(answer);
+    onAnswered(answer, answer.is_correct);
+  }
+
+  return (
+    &lt;div className=&quot;max-w-2xl mx-auto px-6 py-8&quot;&gt;
+      &lt;h2 className=&quot;text-xl font-semibold mb-4&quot;&gt;{question.prompt}&lt;/h2&gt;
+      &lt;div className=&quot;space-y-3&quot;&gt;
+        {question.answers.map((answer, idx) =&gt; (
+          &lt;button
+            key={idx}
+            onClick={() =&gt; handleSelect(answer)}
+            disabled={selected !== null}
+            className=&quot;w-full p-4 text-left rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50&quot;
+          &gt;
+            {answer.text}
+          &lt;/button&gt;
+        ))}
+      &lt;/div&gt;
+      {selected &amp;&amp; (
+        &lt;FeedbackDrawer answer={selected} isCorrect={selected.is_correct} /&gt;
+      )}
+    &lt;/div&gt;
+  );
+}
+</code></pre></div>
+<p>Key patterns visible:
+- Props as a <code>type</code> alias (not <code>interface</code>)
+- Hooks at top of component
+- Event handlers as named functions inside the component
+- No premature memoization
+- Tailwind utilities for all styling</p>
+<hr />
+<h2 id="backend-architecture-supabase"><span class="sec-num">7.</span><span class="sec-text">Backend architecture (Supabase)</span><a class="anchor" href="#backend-architecture-supabase" aria-label="Permalink">#</a></h2>
+<h3 id="postgres-schema-overview">Postgres schema overview<a class="anchor" href="#postgres-schema-overview" aria-label="Permalink">#</a></h3>
+<p>Tables are organized around content types and user state.</p>
+<p><strong>Content tables</strong> (per content type, post-M2 generalization):</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-sql">content_staging (
+  content_id text primary key,
+  content_type text not null,  -- 'lesson' | 'tip' | 'reference' | 'path_node'
+  content jsonb not null,
+  updated_at timestamptz not null default now()
+)
+
+content_published (
+  content_id text primary key,
+  content_type text not null,
+  content jsonb not null,
+  current_version int not null,
+  updated_at timestamptz not null default now()
+)
+
+content_versions (
+  id uuid primary key default gen_random_uuid(),
+  content_id text not null,
+  content_type text not null,
+  version_number int not null,
+  content jsonb not null,
+  created_at timestamptz not null default now(),
+  created_by text,  -- 'promote' | 'rollback' | user_id for manual edits
+  source_version int,  -- for rollbacks, points to the version restored
+  unique (content_id, version_number)
+)
+</code></pre></div>
+<p><strong>Glossary table</strong> (single managed table feeding both in-drill drawer and Library):</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-sql">glossary_entries (
+  term_id text primary key,
+  term text not null,
+  definition text not null,
+  importance text,  -- 'core' | 'reference' | etc.
+  example text,
+  usage text,
+  related_terms text[]  -- term_ids of related glossary entries
+)
+</code></pre></div>
+<p><strong>User state tables</strong> (added M3-M4):</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-sql">users (managed by Supabase Auth)
+
+entitlements (
+  user_id uuid references auth.users,
+  entitlement_key text not null,  -- 'quiz_app_access' | future product keys
+  granted_at timestamptz not null default now(),
+  expires_at timestamptz,
+  source text,  -- 'stripe_sub_&lt;id&gt;' | 'manual' | 'ghl_&lt;id&gt;'
+  primary key (user_id, entitlement_key)
+)
+
+user_progress (
+  user_id uuid references auth.users,
+  lesson_id text not null,
+  questions_answered int default 0,
+  questions_correct int default 0,
+  last_attempt_at timestamptz,
+  completed_at timestamptz,
+  primary key (user_id, lesson_id)
+)
+
+user_streaks (
+  user_id uuid references auth.users primary key,
+  current_streak int default 0,
+  longest_streak int default 0,
+  last_active_date date
+)
+
+user_saved_questions (
+  user_id uuid references auth.users,
+  question_id text not null,
+  lesson_id text not null,
+  saved_at timestamptz default now(),
+  primary key (user_id, question_id)
+)
+
+user_saved_tips (user_id, tip_id, saved_at, primary key (user_id, tip_id))
+
+user_badges (
+  user_id uuid references auth.users,
+  badge_key text not null,
+  earned_at timestamptz default now(),
+  decayed boolean default false,  -- for badge decay logic
+  primary key (user_id, badge_key)
+)
+
+answer_events (
+  id bigserial primary key,
+  user_id uuid references auth.users,
+  question_id text not null,
+  lesson_id text not null,
+  is_correct boolean not null,
+  selected_answer int not null,
+  time_taken_ms int,
+  created_at timestamptz default now()
+)
+</code></pre></div>
+<p><code>answer_events</code> is append-only and powers progress stats plus future AI features. Never delete from this table.</p>
+<h3 id="row-level-security-rls-policies">Row Level Security (RLS) policies<a class="anchor" href="#row-level-security-rls-policies" aria-label="Permalink">#</a></h3>
+<p>Every user-data table has RLS enabled. The default policy pattern:</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-sql">-- Members can read their own data
+create policy &quot;Users read own progress&quot; on user_progress
+  for select using (auth.uid() = user_id);
+
+-- Members can write their own data
+create policy &quot;Users update own progress&quot; on user_progress
+  for insert with check (auth.uid() = user_id);
+
+-- Service role bypasses RLS (used by Edge Functions only)
+</code></pre></div>
+<p>Content tables (<code>content_staging</code>, <code>content_published</code>, <code>glossary_entries</code>):</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-sql">-- All authenticated users can read published content (anonymous browsers cannot)
+create policy &quot;Authenticated read published&quot; on content_published
+  for select using (auth.role() = 'authenticated');
+
+-- Only service role writes published content (via Edge Functions)
+-- No public write policy
+</code></pre></div>
+<p>Staging is more permissive in dev/test (anon read) and admin-gated in production (M2).</p>
+<h3 id="edge-function-inventory">Edge Function inventory<a class="anchor" href="#edge-function-inventory" aria-label="Permalink">#</a></h3>
+<table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Purpose</th>
+<th>Hosted in</th>
+<th>Auth</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>promote-to-prod</code></td>
+<td>Read staging → snapshot to versions → write production</td>
+<td>Production project</td>
+<td>Service role (M1 test); admin auth (M2)</td>
+</tr>
+<tr>
+<td><code>rollback-to-version</code></td>
+<td>Restore prior version to production, log as new version</td>
+<td>Production project</td>
+<td>Service role (M1 test); admin auth (M2)</td>
+</tr>
+<tr>
+<td><code>stripe-webhook</code></td>
+<td>Receive Stripe subscription events → update entitlements → forward to GHL sync</td>
+<td>Production project</td>
+<td>Stripe signature verification</td>
+</tr>
+<tr>
+<td><code>ghl-sync</code></td>
+<td>Push subscription state to GHL custom fields/tags</td>
+<td>Production project</td>
+<td>Called by <code>stripe-webhook</code>; GHL API key in secrets</td>
+</tr>
+<tr>
+<td><code>push-streak-reminder</code></td>
+<td>Scheduled function: send web push to users at risk of breaking streak</td>
+<td>Production project</td>
+<td>Cron-invoked, service role</td>
+</tr>
+</tbody>
+</table>
+<p>Functions are deployed via the CLI:</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash">supabase functions deploy &lt;function-name&gt; --project-ref &lt;prod-ref&gt;
+</code></pre></div>
+<p>Secrets are set per-project:</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash">supabase secrets set STRIPE_WEBHOOK_SECRET=... GHL_API_KEY=... \
+  STAGING_SUPABASE_URL=... STAGING_SUPABASE_SERVICE_ROLE_KEY=...
+</code></pre></div>
+<p>The production project's own URL and service role key are auto-injected as <code>SUPABASE_URL</code> and <code>SUPABASE_SERVICE_ROLE_KEY</code>.</p>
+<hr />
+<h2 id="validation-pattern-zod-single-source-of-truth"><span class="sec-num">8.</span><span class="sec-text">Validation pattern (Zod, single source of truth)</span><a class="anchor" href="#validation-pattern-zod-single-source-of-truth" aria-label="Permalink">#</a></h2>
+<p>Every content type has a Zod schema in <code>shared/schemas/</code>. TypeScript types derive from the schema:</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-ts">// shared/schemas/lesson.ts
+import { z } from &quot;zod&quot;;
+
+export const AnswerSchema = z.object({
+  text: z.string().min(1, &quot;Answer text is required&quot;),
+  is_correct: z.boolean(),
+  explanation: z.string().min(1, &quot;Explanation is required for every answer&quot;),
+});
+
+export const QuestionSchema = z.discriminatedUnion(&quot;type&quot;, [
+  // multiple_choice and hand_scenario variants
+]);
+
+export const LessonSchema = z.object({
+  lesson_id: z.string().min(1),
+  title: z.string().min(1),
+  principle_tag: z.string().min(1),
+  concept: z.string().min(1),
+  difficulty: z.enum([&quot;beginner&quot;, &quot;intermediate&quot;, &quot;advanced&quot;]).optional(),
+  questions: z.array(QuestionSchema).min(1),
+});
+
+export type Lesson = z.infer&lt;typeof LessonSchema&gt;;
+</code></pre></div>
+<p><strong>Rules:</strong></p>
+<ol>
+<li>Schemas are the source of truth. Types are derived with <code>z.infer</code>. Don't maintain parallel TypeScript types.</li>
+<li>Every error message is user-facing. Write them like a tester wrote them, not a developer. Bad: "Invalid enum value." Good: "type must be either 'multiple_choice' or 'hand_scenario'."</li>
+<li>Use <code>.refine()</code> for cross-field rules (e.g., "exactly one answer must have is_correct=true").</li>
+<li>Always use <code>safeParse</code>, not <code>parse</code>, when handling untrusted input.</li>
+<li>The validation utility lives in <code>src/lib/validate.ts</code> and returns a discriminated union: <code>{ ok: true, data } | { ok: false, errors }</code>.</li>
+</ol>
+<p>The <code>formatPath</code> helper produces human-readable paths like <code>"question 3, answers, answer 2, explanation"</code> instead of Zod's default <code>["questions", 2, "answers", 1, "explanation"]</code>. It suppresses redundant parent segments when followed by a numeric index.</p>
+<hr />
+<h2 id="the-content-pipeline"><span class="sec-num">9.</span><span class="sec-text">The content pipeline</span><a class="anchor" href="#the-content-pipeline" aria-label="Permalink">#</a></h2>
+<p>The pipeline is content-type-agnostic. Every content type goes through the same flow:</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code>   Author the content              Validator catches errors
+   (Claude bulk or wizard)         before they reach staging
+        │
+        ▼
+   ┌─────────────┐
+   │ Validate    │ ─── errors ──&gt; show to author
+   └─────────────┘
+        │ valid
+        ▼
+   ┌─────────────┐
+   │ Save to     │  Staging is a real Supabase
+   │ Staging     │  project. Author can preview.
+   └─────────────┘
+        │
+        ▼
+   ┌─────────────┐  Edge Function: promote-to-prod
+   │ Promote to  │  - Re-validates (server-side, M2)
+   │ Production  │  - Snapshots to content_versions
+   └─────────────┘  - Upserts content_published
+        │           - Returns new version_number
+        ▼
+   Live content (members see it)
+        │
+        ▼ (anytime)
+   ┌─────────────┐  Edge Function: rollback-to-version
+   │ Rollback to │  - Reads a prior version
+   │ Any Version │  - Appends as a NEW version (with source_version)
+   └─────────────┘  - Upserts content_published to the rolled-back content
+                    - Versions are append-only; nothing is destroyed
+</code></pre></div>
+<p><strong>Key design choices:</strong></p>
+<ul>
+<li><strong>Versioning is append-only.</strong> Rollbacks don't delete history; they add a new version that points back at the restored one. This makes the audit trail complete.</li>
+<li><strong>Staging and production are separate Supabase projects.</strong> Not separate schemas in one database. This isolates staging accidents from production users completely.</li>
+<li><strong>The validator runs at three points</strong> (M2): in the wizard before save, on bulk upload before save, and server-side inside the promote Edge Function as a final gate.</li>
+<li><strong>Content type discriminator</strong> (<code>content_type</code> column) added in M2 generalizes the pipeline. Pre-M2, only <code>lessons_*</code> tables exist. Post-M2, the tables are <code>content_*</code> with a discriminator.</li>
+</ul>
+<hr />
+<h2 id="authentication-and-entitlements"><span class="sec-num">10.</span><span class="sec-text">Authentication and entitlements</span><a class="anchor" href="#authentication-and-entitlements" aria-label="Permalink">#</a></h2>
+<h3 id="auth-flow">Auth flow<a class="anchor" href="#auth-flow" aria-label="Permalink">#</a></h3>
+<ol>
+<li><strong>Subscription purchase</strong> triggers Stripe checkout</li>
+<li><strong>Stripe webhook</strong> fires on successful payment</li>
+<li><strong>Edge Function <code>stripe-webhook</code></strong> receives the event, verifies the signature, and:
+   - Creates or updates the user record (if new)
+   - Grants the <code>quiz_app_access</code> entitlement
+   - Calls <code>ghl-sync</code> to update the CRM</li>
+<li><strong>Member receives a magic link or password setup link</strong> via Supabase Auth</li>
+<li><strong>Subsequent logins</strong> use password (preferred) or magic link (fallback/recovery)</li>
+</ol>
+<h3 id="entitlements-model">Entitlements model<a class="anchor" href="#entitlements-model" aria-label="Permalink">#</a></h3>
+<p>The app checks entitlements, not raw Stripe subscription status. This decouples access from billing source.</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-ts">// Conceptual gating check
+const { data: entitlements } = await supabase
+  .from(&quot;entitlements&quot;)
+  .select(&quot;entitlement_key&quot;)
+  .eq(&quot;user_id&quot;, userId)
+  .is(&quot;expires_at&quot;, null);  // or .gt(&quot;expires_at&quot;, now)
+
+const hasAccess = entitlements?.some(e =&gt; e.entitlement_key === &quot;quiz_app_access&quot;);
+</code></pre></div>
+<p>Why this matters:
+- Multiple Stripe price points (e.g., $27/mo, $47/mo, annual) all map to the same <code>quiz_app_access</code> entitlement.
+- Future products (Masterclass, etc.) get their own entitlement keys without touching the existing model.
+- Admin-granted access (e.g., for support cases) uses <code>source: 'manual'</code>.
+- GHL-purchased subscriptions grant the same entitlement.</p>
+<h3 id="admin-gating">Admin gating<a class="anchor" href="#admin-gating" aria-label="Permalink">#</a></h3>
+<p>The <code>/admin/*</code> routes check for a special entitlement: <code>admin_access</code> (or similar). This is granted manually in the database for the client (Steve) and any admins. M2 adds this gate to the validator UI and other admin pages.</p>
+<hr />
+<h2 id="pwa-and-push-notifications"><span class="sec-num">11.</span><span class="sec-text">PWA and push notifications</span><a class="anchor" href="#pwa-and-push-notifications" aria-label="Permalink">#</a></h2>
+<h3 id="manifest-publicmanifestjson">Manifest (<code>public/manifest.json</code>)<a class="anchor" href="#manifest-publicmanifestjson" aria-label="Permalink">#</a></h3>
+<p>Standard PWA manifest with:
+- App name, short name
+- Icons in multiple sizes (192, 512)
+- <code>display: "standalone"</code> for app-like full-screen
+- <code>theme_color</code> and <code>background_color</code> matching the brand
+- Start URL: <code>/</code></p>
+<h3 id="service-worker">Service worker<a class="anchor" href="#service-worker" aria-label="Permalink">#</a></h3>
+<p>Custom service worker handles:
+- Install: cache the app shell (HTML, CSS, JS bundle)
+- Activate: clean up old caches
+- Fetch: cache-first for static assets, network-first for API calls
+- Push: receive web push events and show notifications
+- Notification click: open the relevant app URL</p>
+<p>The caching strategy is coordinated with the content publish flow. The app uses a "stale-while-revalidate" pattern for content reads, with a version hint in the response so the SW invalidates when content updates.</p>
+<h3 id="web-push-added-m4">Web push (added M4)<a class="anchor" href="#web-push-added-m4" aria-label="Permalink">#</a></h3>
+<p>VAPID keys generated once and stored:
+- Public key: in the app source (Vite env)
+- Private key: in Supabase Edge Function secrets</p>
+<p>Push subscription flow:
+1. Member opts in via a settings toggle
+2. Frontend calls <code>pushManager.subscribe()</code> with the VAPID public key
+3. Push subscription endpoint stored in <code>user_push_subscriptions</code> table
+4. Scheduled Edge Function (<code>push-streak-reminder</code>) runs daily, queries users with active streaks at risk, sends push via Web Push protocol</p>
+<p>iOS PWA caveat: web push works on iOS 16.4+ but only for installed PWAs (not safari tabs). Account for this in copy.</p>
+<hr />
+<h2 id="branching-commits-and-prs"><span class="sec-num">12.</span><span class="sec-text">Branching, commits, and PRs</span><a class="anchor" href="#branching-commits-and-prs" aria-label="Permalink">#</a></h2>
+<h3 id="branch-strategy">Branch strategy<a class="anchor" href="#branch-strategy" aria-label="Permalink">#</a></h3>
+<ul>
+<li><code>master</code> → production deploys (Vercel auto-deploys from this branch)</li>
+<li><code>dev</code> → preview deploys (Vercel auto-deploys from this branch)</li>
+<li><code>feat/&lt;feature-name&gt;</code> → feature branches, branched from <code>dev</code></li>
+<li><code>fix/&lt;bug-name&gt;</code> → bugfix branches</li>
+<li><code>chore/&lt;task&gt;</code> → housekeeping</li>
+</ul>
+<p>PR target: feature branches PR into <code>dev</code>. Once <code>dev</code> is verified, PR <code>dev</code> into <code>master</code> for production.</p>
+<h3 id="commit-messages">Commit messages<a class="anchor" href="#commit-messages" aria-label="Permalink">#</a></h3>
+<p>Conventional commits style:</p>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code>feat: add nested glossary linking to drawer
+fix: validator clears state on textarea edit
+chore: bump zod to 4.0.5
+docs: update schema spec with locked player type codes
+test: add edge cases for hand_scenario validation
+refactor: extract formatPath helper from validate.ts
+</code></pre></div>
+<h3 id="pull-requests">Pull requests<a class="anchor" href="#pull-requests" aria-label="Permalink">#</a></h3>
+<p>Every PR includes:
+- A clear title summarizing the change
+- A description with: what changed, why, how to test, screenshots if UI
+- Linked GitHub issue if applicable
+- A passing <code>npm run build</code> and <code>npm run lint</code>
+- For UI changes: a deploy preview URL</p>
+<p>Self-review before requesting review: check the diff, run the app locally, verify the change works.</p>
+<hr />
+<h2 id="how-to-add-a-new-content-type"><span class="sec-num">13.</span><span class="sec-text">How to add a new content type</span><a class="anchor" href="#how-to-add-a-new-content-type" aria-label="Permalink">#</a></h2>
+<p>Walk-through example: adding <code>Tip</code> content.</p>
+<ol>
+<li><strong>Add the Zod schema</strong> in <code>shared/schemas/tip.ts</code>:</li>
+</ol>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-ts">import { z } from &quot;zod&quot;;
+
+export const TipSchema = z.object({
+  tip_id: z.string().min(1),
+  title: z.string().min(1),
+  body: z.string().min(1),
+  concept: z.string().min(1),
+  related_glossary_terms: z.array(z.string()).optional(),
+});
+
+export type Tip = z.infer&lt;typeof TipSchema&gt;;
+</code></pre></div>
+<ol start="2">
+<li><strong>Update the validator</strong> to handle the new type. The validator is generic and dispatches by <code>content_type</code>. Add the new schema to its dispatch map:</li>
+</ol>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-ts">// src/lib/validate.ts
+import { LessonSchema } from &quot;@/shared/schemas/lesson&quot;;
+import { TipSchema } from &quot;@/shared/schemas/tip&quot;;
+
+const SCHEMAS = {
+  lesson: LessonSchema,
+  tip: TipSchema,
+  // ...
+} as const;
+
+export function validateContent(type: ContentType, raw: unknown) {
+  const schema = SCHEMAS[type];
+  return schema.safeParse(raw);
+}
+</code></pre></div>
+<ol start="3">
+<li>
+<p><strong>Update the Edge Functions</strong> (<code>promote-to-prod</code>, <code>rollback-to-version</code>) to accept the <code>content_type</code> parameter and route to the right validator (M2 server-side re-validation).</p>
+</li>
+<li>
+<p><strong>Add sample content</strong> in <code>samples/valid-tip.json</code> and <code>samples/invalid-tip.json</code> covering edge cases.</p>
+</li>
+<li>
+<p><strong>Add the schema section to <code>docs/schema-spec.md</code></strong> so the client can generate Tips with Claude.</p>
+</li>
+<li>
+<p><strong>Add a UI surface</strong> in the CMS wizard (M2) and the member-facing app (Today's Tip rotation, Saved Tips list, M2).</p>
+</li>
+<li>
+<p><strong>Write tests</strong> (see Testing approach below).</p>
+</li>
+<li>
+<p><strong>Update the build log</strong> in <code>docs/build-prompts.md</code> with the chunk that added this content type.</p>
+</li>
+</ol>
+<p>The point of the content pipeline is that you do NOT need to write new Edge Functions, new database tables, or new versioning logic. The existing pipeline handles all of it.</p>
+<hr />
+<h2 id="how-to-add-a-new-edge-function"><span class="sec-num">14.</span><span class="sec-text">How to add a new Edge Function</span><a class="anchor" href="#how-to-add-a-new-edge-function" aria-label="Permalink">#</a></h2>
+<p>Walk-through: a hypothetical <code>send-welcome-email</code> function.</p>
+<ol>
+<li>
+<p><strong>Create the folder</strong>: <code>supabase/functions/send-welcome-email/</code></p>
+</li>
+<li>
+<p><strong>Add <code>index.ts</code></strong>:</p>
+</li>
+</ol>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-ts">import { serve } from &quot;https://deno.land/std@0.168.0/http/server.ts&quot;;
+import { createClient } from &quot;https://esm.sh/@supabase/supabase-js@2.39.0&quot;;
+
+const corsHeaders = {
+  &quot;Access-Control-Allow-Origin&quot;: &quot;*&quot;,  // tighten in M2
+  &quot;Access-Control-Allow-Headers&quot;: &quot;authorization, x-client-info, apikey, content-type&quot;,
+};
+
+serve(async (req) =&gt; {
+  if (req.method === &quot;OPTIONS&quot;) {
+    return new Response(&quot;ok&quot;, { headers: corsHeaders });
+  }
+
+  try {
+    const { user_id } = await req.json();
+
+    const supabase = createClient(
+      Deno.env.get(&quot;SUPABASE_URL&quot;)!,
+      Deno.env.get(&quot;SUPABASE_SERVICE_ROLE_KEY&quot;)!
+    );
+
+    // Function logic here
+
+    return new Response(
+      JSON.stringify({ ok: true }),
+      { headers: { ...corsHeaders, &quot;Content-Type&quot;: &quot;application/json&quot; } }
+    );
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ ok: false, message: error.message }),
+      { status: 500, headers: { ...corsHeaders, &quot;Content-Type&quot;: &quot;application/json&quot; } }
+    );
+  }
+});
+</code></pre></div>
+<ol start="3">
+<li><strong>Deploy</strong>:</li>
+</ol>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash">supabase link --project-ref &lt;prod-ref&gt;
+supabase functions deploy send-welcome-email
+</code></pre></div>
+<ol start="4">
+<li><strong>Set any required secrets</strong>:</li>
+</ol>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash">supabase secrets set RESEND_API_KEY=...
+</code></pre></div>
+<ol start="5">
+<li><strong>Verify</strong>:</li>
+</ol>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash">curl -X POST https://&lt;project-ref&gt;.supabase.co/functions/v1/send-welcome-email \
+  -H &quot;Authorization: Bearer &lt;anon-key&gt;&quot; \
+  -H &quot;Content-Type: application/json&quot; \
+  -d '{&quot;user_id&quot;: &quot;abc&quot;}'
+</code></pre></div>
+<ol start="6">
+<li><strong>Call from the client</strong> (if needed) via the Supabase client:</li>
+</ol>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-ts">const { data, error } = await supabase.functions.invoke(&quot;send-welcome-email&quot;, {
+  body: { user_id: &quot;abc&quot; },
+});
+</code></pre></div>
+<hr />
+<h2 id="how-to-add-a-new-react-component"><span class="sec-num">15.</span><span class="sec-text">How to add a new React component</span><a class="anchor" href="#how-to-add-a-new-react-component" aria-label="Permalink">#</a></h2>
+<p>Walk-through: adding a <code>StreakBadge</code> component.</p>
+<ol>
+<li>
+<p><strong>Decide where it goes.</strong> A standalone UI primitive goes in <code>src/components/</code>. A feature-grouped one goes in <code>src/components/&lt;feature&gt;/</code>. For <code>StreakBadge</code>, since it's tied to gamification UI, use <code>src/components/gamification/StreakBadge.tsx</code>.</p>
+</li>
+<li>
+<p><strong>Write the component</strong>:</p>
+</li>
+</ol>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-tsx">// src/components/gamification/StreakBadge.tsx
+type StreakBadgeProps = {
+  streak: number;
+  size?: &quot;sm&quot; | &quot;md&quot; | &quot;lg&quot;;
+};
+
+const SIZE_CLASSES = {
+  sm: &quot;text-sm px-2 py-1&quot;,
+  md: &quot;text-base px-3 py-1.5&quot;,
+  lg: &quot;text-lg px-4 py-2&quot;,
+} as const;
+
+export function StreakBadge({ streak, size = &quot;md&quot; }: StreakBadgeProps) {
+  if (streak === 0) return null;
+
+  return (
+    &lt;span
+      className={`inline-flex items-center gap-1 rounded-full bg-orange-100 text-orange-700 font-semibold ${SIZE_CLASSES[size]}`}
+      aria-label={`Current streak: ${streak} days`}
+    &gt;
+      &lt;span aria-hidden&gt;🔥&lt;/span&gt;
+      &lt;span&gt;{streak}&lt;/span&gt;
+    &lt;/span&gt;
+  );
+}
+</code></pre></div>
+<ol start="3">
+<li>
+<p><strong>Use it</strong> in a page or another component. No global registration needed.</p>
+</li>
+<li>
+<p><strong>Consider</strong> if it deserves a test (see Testing).</p>
+</li>
+<li>
+<p><strong>Avoid</strong> premature abstraction. If you find yourself adding 5+ props for variations, you might be over-engineering. Start with one use case and generalize when needed.</p>
+</li>
+</ol>
+<hr />
+<h2 id="how-to-add-a-database-migration"><span class="sec-num">16.</span><span class="sec-text">How to add a database migration</span><a class="anchor" href="#how-to-add-a-database-migration" aria-label="Permalink">#</a></h2>
+<ol>
+<li><strong>Create the migration</strong>:</li>
+</ol>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash">supabase migration new add_user_saved_tips_table
+</code></pre></div>
+<p>This creates <code>supabase/migrations/&lt;timestamp&gt;_add_user_saved_tips_table.sql</code>.</p>
+<ol start="2">
+<li><strong>Write the SQL</strong>:</li>
+</ol>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-sql">-- Up: add table and RLS
+create table public.user_saved_tips (
+  user_id uuid references auth.users on delete cascade,
+  tip_id text not null,
+  saved_at timestamptz not null default now(),
+  primary key (user_id, tip_id)
+);
+
+alter table public.user_saved_tips enable row level security;
+
+create policy &quot;users_read_own_saved_tips&quot; on public.user_saved_tips
+  for select using (auth.uid() = user_id);
+
+create policy &quot;users_write_own_saved_tips&quot; on public.user_saved_tips
+  for insert with check (auth.uid() = user_id);
+
+create policy &quot;users_delete_own_saved_tips&quot; on public.user_saved_tips
+  for delete using (auth.uid() = user_id);
+</code></pre></div>
+<ol start="3">
+<li><strong>Apply to staging first</strong>:</li>
+</ol>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash">supabase link --project-ref &lt;staging-ref&gt;
+supabase db push
+</code></pre></div>
+<ol start="4">
+<li>
+<p><strong>Verify in the staging dashboard</strong>: the table exists, RLS is on, policies are correct.</p>
+</li>
+<li>
+<p><strong>Apply to production</strong>:</p>
+</li>
+</ol>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash">supabase link --project-ref &lt;prod-ref&gt;
+supabase db push
+</code></pre></div>
+<ol start="6">
+<li><strong>Commit the migration file</strong>. Never edit a migration that's been applied to production; write a new one to make changes.</li>
+</ol>
+<hr />
+<h2 id="testing-approach"><span class="sec-num">17.</span><span class="sec-text">Testing approach</span><a class="anchor" href="#testing-approach" aria-label="Permalink">#</a></h2>
+<p>This codebase prioritizes:</p>
+<ol>
+<li><strong>Type safety as a first defense.</strong> TypeScript strict mode catches a large class of bugs at compile time.</li>
+<li><strong>Zod validation as a runtime contract.</strong> Every external input passes through a schema.</li>
+<li><strong>End-to-end manual testing</strong> for the content pipeline (paid test verification checklist).</li>
+<li><strong>Targeted unit tests</strong> for utility functions and validation logic.</li>
+<li><strong>Selective integration tests</strong> for Edge Functions and critical user flows.</li>
+</ol>
+<h3 id="what-we-test">What we test<a class="anchor" href="#what-we-test" aria-label="Permalink">#</a></h3>
+<p><strong>Always:</strong>
+- Zod schema validation (positive and negative cases for every content type)
+- Utility functions (<code>formatPath</code>, ID generators, date formatters)
+- Edge Function happy paths and key error paths
+- The content pipeline round-trip (validate → stage → promote → rollback)
+- Critical user flows (subscribe → access; drill completion → progress saved)</p>
+<p><strong>Sometimes:</strong>
+- React component rendering (when there's branching logic worth testing)
+- Custom hooks (when state transitions are non-trivial)</p>
+<p><strong>Rarely:</strong>
+- Static UI components without behavior
+- Tailwind class application
+- Framework code</p>
+<h3 id="test-stack">Test stack<a class="anchor" href="#test-stack" aria-label="Permalink">#</a></h3>
+<ul>
+<li><strong>Unit tests:</strong> Vitest (Vite-native, fast)</li>
+<li><strong>Component tests:</strong> React Testing Library (where applicable)</li>
+<li><strong>E2E:</strong> Playwright (added in M4 for QA milestone)</li>
+<li><strong>API/Edge Function tests:</strong> Deno's built-in test runner</li>
+</ul>
+<h3 id="running-tests">Running tests<a class="anchor" href="#running-tests" aria-label="Permalink">#</a></h3>
+<div class="code-wrap"><button class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-bash">npm run test           # Run all unit/component tests
+npm run test:watch     # Watch mode for active development
+npm run test:e2e       # Playwright E2E suite (M4)
+</code></pre></div>
+<h3 id="test-file-location">Test file location<a class="anchor" href="#test-file-location" aria-label="Permalink">#</a></h3>
+<ul>
+<li>Unit tests next to source: <code>src/lib/validate.ts</code> → <code>src/lib/validate.test.ts</code></li>
+<li>Edge Function tests inside the function folder: <code>supabase/functions/promote-to-prod/index.test.ts</code></li>
+<li>E2E tests in <code>tests/e2e/</code></li>
+</ul>
+<h3 id="coverage-targets">Coverage targets<a class="anchor" href="#coverage-targets" aria-label="Permalink">#</a></h3>
+<ul>
+<li>Validators (Zod schemas): 95%+ coverage of validation rules (each rule has at least one negative test)</li>
+<li>Edge Functions: happy path + at least 3 error paths each</li>
+<li>Critical utility functions: 100%</li>
+<li>React components: tested when they have non-trivial behavior; no coverage target for pure UI components</li>
+</ul>
+<hr />
+<h2 id="common-pitfalls"><span class="sec-num">18.</span><span class="sec-text">Common pitfalls</span><a class="anchor" href="#common-pitfalls" aria-label="Permalink">#</a></h2>
+<p><strong>1. Forgetting <code>safeParse</code> vs <code>parse</code>.</strong> Always use <code>safeParse</code> for untrusted input. <code>parse</code> throws, which is rarely what you want.</p>
+<p><strong>2. Editing existing migrations.</strong> Never. If a migration has been applied anywhere, write a new one to change things.</p>
+<p><strong>3. Hard-coding the Supabase URL.</strong> Always use the env-driven client from <code>src/lib/supabase.ts</code>. If you find yourself creating a new client somewhere, check first whether that's really needed.</p>
+<p><strong>4. Forgetting RLS on user tables.</strong> Every new user-data table gets RLS enabled in its migration. The default deny stance means missing policies block all access, not the other way around.</p>
+<p><strong>5. Service role keys leaking.</strong> Service role keys live ONLY in Supabase Edge Function secrets. Never in Vercel env vars, never in client code, never in git.</p>
+<p><strong>6. Optimistic assumptions about Vercel rollback.</strong> Vercel's one-click rollback rolls back CODE, not CONTENT. Content rollback is a separate mechanism in Supabase. They're independent.</p>
+<p><strong>7. Mixing staging and production data.</strong> Always confirm which Supabase project is linked before running migrations or destructive queries. The CLI shows the current ref; check it.</p>
+<p><strong>8. Em dashes.</strong> This project's style avoids em dashes in code comments and user-facing strings. Use commas, colons, semicolons, periods, or parentheses instead.</p>
+<p><strong>9. Building a new pipeline for a new content type.</strong> Don't. The pipeline is content-type-agnostic. Add a Zod schema, register it in the validator, done.</p>
+<p><strong>10. Over-testing UI.</strong> Component snapshot tests on every render is noise. Test behavior (clicks, state changes, accessibility), not output.</p>
+  </main>
+
+</div>
+
+<footer class="site-footer">
+  <div>Developer Guide · Poker Trainer V1</div>
+  <div>
+    <a href="DEVELOPER_GUIDE.md">View as Markdown</a>
+    <span style="margin: 0 12px; color: var(--ink-faint);">·</span>
+    Last updated June 2026
+  </div>
+</footer>
+
+<button class="toc-toggle" id="tocToggle" aria-label="Open table of contents">Contents</button>
+
+<script>
+(function () {
+  // Copy buttons
+  document.querySelectorAll('.copy-btn').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var code = btn.parentElement.querySelector('code') || btn.parentElement.querySelector('pre');
+      if (!code) return;
+      var text = code.innerText;
+      navigator.clipboard.writeText(text).then(function () {
+        btn.textContent = 'Copied';
+        btn.classList.add('copied');
+        setTimeout(function () {
+          btn.textContent = 'Copy';
+          btn.classList.remove('copied');
+        }, 1400);
+      });
+    });
+  });
+
+  // Mobile TOC toggle
+  var toc = document.getElementById('toc');
+  var toggle = document.getElementById('tocToggle');
+  var closeBtn = document.querySelector('.toc-close');
+  toggle && toggle.addEventListener('click', function () { toc.classList.add('open'); });
+  closeBtn && closeBtn.addEventListener('click', function () { toc.classList.remove('open'); });
+  toc.addEventListener('click', function (e) {
+    if (e.target.tagName === 'A' && window.innerWidth <= 960) {
+      toc.classList.remove('open');
+    }
+  });
+
+  // Scroll-spy
+  var sections = document.querySelectorAll('.content h2[id]');
+  var tocLinks = document.querySelectorAll('.toc-list a');
+  var linkMap = {};
+  tocLinks.forEach(function (link) {
+    var target = link.getAttribute('data-target');
+    if (target) linkMap[target] = link;
+  });
+
+  function setActive(id) {
+    tocLinks.forEach(function (l) { l.classList.remove('active'); });
+    if (linkMap[id]) linkMap[id].classList.add('active');
+  }
+
+  if ('IntersectionObserver' in window) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          setActive(entry.target.id);
+        }
+      });
+    }, { rootMargin: '-30% 0px -65% 0px', threshold: 0 });
+    sections.forEach(function (s) { observer.observe(s); });
+  }
+})();
+</script>
+
+</body>
+</html>

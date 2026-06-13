@@ -87,6 +87,7 @@ export function LessonValidator({
 
   async function handleSave(): Promise<void> {
     if (validationResult?.ok !== true) return
+    if (saveStatus === 'saving') return
     const lesson = validationResult.data
     setSaveStatus('saving')
     const { error } = await supabase.from('lessons_staging').upsert({
@@ -100,6 +101,7 @@ export function LessonValidator({
 
   async function handlePromote(): Promise<void> {
     if (validationResult?.ok !== true) return
+    if (promoteStatus === 'promoting') return
     const lesson = validationResult.data
     setPromoteStatus('promoting')
     const { data, error } = await supabaseProd.functions.invoke(
