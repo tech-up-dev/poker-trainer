@@ -56,7 +56,7 @@ Using the schema above, generate 10 multiple_choice questions on pre-flop
 opening ranges from UTG in 9-max live cash. Each question should test a
 different aspect of UTG play (opening hand selection, position-aware sizing,
 response to 3-bets, isolating limpers, etc.). Use varied villain player types
-from this set: old_man_coffee, calling_station, maniac, nit, whale, pro.
+from this set: OMC, PLF, Y2K, GTO, DWM, STP.
 
 Each question must:
 - have a unique question_id
@@ -83,8 +83,7 @@ position with top pair. For every question, populate table_state fully:
 - pot_size (in dollars, $1/$2 live cash, realistic post-3bet or post-raise pot)
 - stack_sizes (object with at least hero and the active villain; 100bb to 200bb)
 - villain_player_types (object mapping the active villain's position to a
-  player type identifier from: old_man_coffee, calling_station, maniac, nit,
-  whale, pro)
+  player type identifier from: OMC, PLF, Y2K, GTO, DWM, STP)
 
 Every answer needs a teaching-quality explanation. Include glossary_terms for
 any term a recreational player might want defined (c-bet, overpair, draw,
@@ -169,21 +168,23 @@ Examples:
 
 ### `principle_tag`
 
-One of the five core teaching principles the founder has codified for the
-program. The five tags are populated by the founder; this document uses
-placeholder values for illustration. When you generate lessons, ask Claude
-explicitly for variety across principles. Placeholder values used in samples
-and the prompts above:
+One of the five core teaching principles of the Controlled Chaos system.
+**This is a closed set** — these five values are the canonical list. When
+generating lessons, ask Claude explicitly for variety across principles, and
+pick the one that most directly maps to the lesson's intent.
 
-- `"controlled_chaos"`
-- `"position_aware_aggression"`
-- `"player_type_exploitation"`
-- `"bet_sizing_discipline"`
-- `"emotional_control"`
+The five principles, in snake_case identifier form:
 
-The validator only requires that `principle_tag` be a non-empty string. The
-controlled list above is enforced editorially, not by the schema, because the
-founder may rename or expand the list before V1.
+- `"character_mapping"` — reading player types and exploiting their tendencies
+- `"strategic_3_betting"` — when, why, and how to 3-bet (sizing, ranges, light vs value)
+- `"simple_math_for_big_stacks"` — equity, pot odds, implied odds, SPR-aware math
+- `"floating_and_equity_flow"` — postflop float strategy and how equity moves between streets
+- `"building_and_winning_huge_pots"` — constructing and capturing the pots that matter
+
+The validator only requires `principle_tag` to be a non-empty string. The
+five-value closed list above is enforced editorially. If a lesson does not
+map cleanly to one principle, pick the closest fit and note the gap in the
+PR description so the taxonomy can be revisited.
 
 ### `concept`
 
@@ -191,15 +192,48 @@ The specific poker concept this lesson teaches. Think of `principle_tag` as
 the broad teaching frame and `concept` as the narrow topic. A single principle
 can power many concepts.
 
-Examples:
+**Concepts are an open, editable taxonomy.** Unlike `principle_tag` and
+player-type codes, the concept list grows as the founder authors content. New
+concepts are added through the CMS at author time, not by editing this doc.
+Use a snake_case identifier derived from the concept's display name.
 
-- `"opening_ranges_utg"` (under `position_aware_aggression`)
-- `"cbet_sizing_dry_boards"` (under `bet_sizing_discipline`)
-- `"3bet_response_in_position"` (under `position_aware_aggression`)
-- `"tilt_recovery_after_setup"` (under `emotional_control`)
-- `"isolating_limpers_late_position"` (under `player_type_exploitation`)
+Seed concepts (the founder will extend this list over time):
 
-Convention: snake_case, descriptive, no spaces.
+- `"3bet_sizing"` — 3-Bet Sizing
+- `"core_34"` — Core 34
+- `"3betting_light"` — 3-Betting Light
+- `"value_3betting"` — Value 3-Betting
+- `"isolating_limpers"` — Isolating Limpers
+- `"building_table_image"` — Building Table Image
+- `"character_mapping"` — Character Mapping
+- `"implied_odds"` — Implied Odds
+- `"pot_odds"` — Pot Odds
+- `"equity_flow"` — Equity Flow
+- `"floating"` — Floating
+- `"hand_reading"` — Hand Reading
+- `"value_betting"` — Value Betting
+- `"bet_sizing"` — Bet Sizing
+- `"pot_control"` — Pot Control
+- `"blockers"` — Blockers
+- `"in_position"` — In Position
+- `"out_of_position"` — Out of Position
+- `"spr"` — Stack to Pot Ratio (SPR)
+- `"continuation_betting"` — Continuation Betting
+- `"table_image"` — Table Image
+
+Convention: snake_case, lowercase, descriptive, no spaces, hyphens dropped
+(so "3-Bet Sizing" becomes `"3bet_sizing"`, not `"3-bet_sizing"`).
+
+### Closed sets vs. open taxonomies
+
+A quick rule the validator does not enforce but content authoring depends on:
+
+| Field                                  | Set type | Rule                                                                  |
+|----------------------------------------|----------|-----------------------------------------------------------------------|
+| `principle_tag`                         | **Closed** | One of the five values listed above. New principles require a doc + schema update. |
+| player-type codes in `villain_player_types` | **Closed** | One of the six codes listed in the HandScenarioState section below. New codes require a doc update. |
+| `concept`                              | **Open**   | Any snake_case identifier the author chooses. New concepts are added through the CMS as content is authored. |
+| `difficulty`                           | **Closed** | One of `"beginner"`, `"intermediate"`, `"advanced"`. Enforced by the validator. |
 
 ### `difficulty`
 
@@ -219,7 +253,7 @@ the next section for the shape of each.
 {
   "lesson_id": "preflop-opens-utg-9max",
   "title": "Pre-flop Opens from UTG (9-max)",
-  "principle_tag": "position_aware_aggression",
+  "principle_tag": "character_mapping",
   "concept": "opening_ranges_utg",
   "difficulty": "intermediate",
   "questions": [
@@ -328,7 +362,7 @@ context). See the HandScenarioState subschema for the full shape.
       "BB": 194
     },
     "villain_player_types": {
-      "BB": "calling_station"
+      "BB": "PLF"
     },
     "notes": "Villain has been calling wide preflop and folding turn often when missed."
   },
@@ -446,17 +480,18 @@ tighter; include them if the read on them is part of the scenario.
 
 #### `villain_player_types`
 
-An optional map from position string to a player type identifier. The
-identifiers are placeholders the founder will refine. Use snake_case strings.
+An optional map from position string to a player type code. **This is a
+closed set** — the six codes below are the canonical identifiers for the
+Character Mapping system. Use the uppercase code as the value.
 
-A non-exhaustive starting set:
+The six Character Mapping player types:
 
-- `"old_man_coffee"` — passive, tight, calls down with showdown value
-- `"calling_station"` — calls too wide, almost never folds top pair
-- `"maniac"` — over-aggressive, bluff-heavy, sizes large
-- `"nit"` — very tight ranges, easy to put on a hand, folds to pressure
-- `"whale"` — bad recreational player who plays many hands and pays off second-best
-- `"pro"` — strong regular, balanced ranges, exploits population leaks
+- `"OMC"` — Old Man Coffee: traditional, passive, tight; only bets with strong hands; folds to pressure
+- `"PLF"` — Passive Loose Fish: plays many hands preflop, plays them passively postflop; calls down with marginal showdown value
+- `"Y2K"` — Y2K Tag: early-2000s tight-aggressive style; solid by old standards but predictable; can be exploited with modern lines
+- `"GTO"` — GTO Boy: plays balanced, theory-driven ranges; hard to exploit, but predictable in unbalanced spots
+- `"DWM"` — Drunk Whale Maniac: aggressive recreational; plays too many hands, bets too much, doesn't fold; value-bet thin
+- `"STP"` — Solid Thinking Player: strong adaptive opponent; balanced ranges, reads hand histories, exploits population leaks
 
 If hero is the only character in the scenario (a pure decision question with
 no villain read), omit `villain_player_types` entirely.
@@ -569,8 +604,8 @@ pattern-match against when generating new content.
 {
   "lesson_id": "cbet-sizing-dry-boards",
   "title": "C-bet Sizing on Dry Boards",
-  "principle_tag": "bet_sizing_discipline",
-  "concept": "cbet_sizing_dry_boards",
+  "principle_tag": "simple_math_for_big_stacks",
+  "concept": "continuation_betting",
   "difficulty": "intermediate",
   "questions": [
     {
@@ -722,7 +757,7 @@ pattern-match against when generating new content.
           "BB": 194
         },
         "villain_player_types": {
-          "BB": "calling_station"
+          "BB": "PLF"
         },
         "notes": "BB has been calling preflop wide and folding turn often when no obvious draw completes."
       },
@@ -765,7 +800,7 @@ pattern-match against when generating new content.
           "BB": 190
         },
         "villain_player_types": {
-          "BB": "old_man_coffee"
+          "BB": "OMC"
         },
         "notes": "Villain has been call-call-fold passive on dry boards all session."
       },
