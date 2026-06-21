@@ -56,10 +56,16 @@ Validate-and-publish round trip on a sample lesson. Code carries into M1.
 - [ ] MCQ interface (four answers, exactly one correct) — *design-blocked*
 - [ ] Slide-up feedback drawer (correct/incorrect + teaching commentary) — *design-blocked*
 - [ ] Tap-to-define glossary drawer with nested linking + navigation stack — *design-blocked*
-- [ ] Bulk import flow: paste JSON batch → validate → save to staging (admin tool)
-- [ ] PWA scaffold: manifest, service worker, version-aware caching strategy
+- [~] Bulk import flow: paste JSON batch → validate → save to staging (admin tool) — **in review, [PR #81](https://github.com/tech-up-dev/poker-trainer/pull/81)**
+- [~] PWA scaffold: manifest, service worker, version-aware caching strategy — **in review, [PR #82](https://github.com/tech-up-dev/poker-trainer/pull/82)**
 - [~] Entitlements + auth schema design (V2-ready) — **in review, [PR #76](https://github.com/tech-up-dev/poker-trainer/pull/76)**
-- [ ] *(early-pull)* Server-side re-validation in promote/rollback Edge Functions
+- [~] *(early-pull)* Server-side re-validation in promote/rollback Edge Functions — **in review, [PR #79](https://github.com/tech-up-dev/poker-trainer/pull/79)**
+
+**M1 supporting PRs (in review):**
+- Shared content schemas (glossary/tip/reference/path-node + registry) — [PR #78](https://github.com/tech-up-dev/poker-trainer/pull/78)
+- Admin routing shell (react-router) — bundled with [PR #81](https://github.com/tech-up-dev/poker-trainer/pull/81)
+- Edge admin-auth gate + CORS allow-list (groundwork, flag-gated) — bundled with [PR #79](https://github.com/tech-up-dev/poker-trainer/pull/79)
+- CI workflow (lint + build on PRs) — [PR #80](https://github.com/tech-up-dev/poker-trainer/pull/80)
 
 ### M2 — Quiz Engine + CMS Backbone + Tips/References — `Not started`
 **Goal:** heaviest milestone; client becomes self-sufficient on content. $5,850.
@@ -156,6 +162,7 @@ $4,200.
 
 ## 8. Next actions
 
-1. Land PR #76 (entitlements/auth schema), apply migration to staging.
-2. Continue M1 backend: shared content schemas → edge server-side re-validation → admin auth gate → admin bulk-import → PWA scaffold → CI/routing (each its own PR).
-3. Prepare the Thursday 2026-06-25 recovery demo with visible progress.
+1. Review/merge the open M1 PRs (#76–#82). All are conflict-free and can merge in any order.
+2. Deploy steps after merge (need Supabase access): apply migration #76 to staging then prod (`supabase db push`); deploy the hardened Edge Functions #79 to staging (`supabase functions deploy`) to confirm the shared-schema import bundles under Deno.
+3. Member-facing UI (static table, card, MCQ, feedback drawer, glossary drawer) remains held pending design direction.
+4. Prepare the Thursday 2026-06-25 recovery demo with visible progress (bulk import + admin shell are demoable now).
