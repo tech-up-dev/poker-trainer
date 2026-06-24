@@ -2,7 +2,7 @@ import { useState } from 'react'
 import type { JSX } from 'react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
-import { supabase } from '../lib/supabase'
+import { supabaseProd } from '../lib/supabase-prod'
 import { validateLesson, type FieldError } from '../lib/validate'
 
 // Bulk import is the client's main content workflow: he generates large batches
@@ -86,14 +86,15 @@ export function BulkImport(): JSX.Element {
     let saved = 0
     const failures: { lessonId: string; message: string }[] = []
     for (const item of validItems) {
-      const { error } = await supabase.from('content_staging').upsert({
-        content_id: item.lesson.lesson_id,
-        content_type: 'lesson',
-        content: item.lesson,
-        updated_at: new Date().toISOString(),
+      const { data, error } = await supabaseProd.functions.invoke('save-to-staging', {
+        body: { content_id: item.lesson.lesson_id, content_type: 'lesson', content: item.lesson },
       })
-      if (error) failures.push({ lessonId: item.lesson.lesson_id, message: error.message })
-      else saved++
+      const result = data as { ok: boolean; message?: string } | null
+      if (error || !result?.ok) {
+        failures.push({ lessonId: item.lesson.lesson_id, message: result?.message ?? error?.message ?? 'Unknown error' })
+      } else {
+        saved++
+      }
     }
 
     setSaveState({ kind: 'done', saved, failures })

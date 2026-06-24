@@ -1,7 +1,7 @@
 import type { JSX } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 
-import { supabase } from '../lib/supabase'
+import { supabaseProd } from '../lib/supabase-prod'
 import { useAuth } from '../lib/auth-context'
 
 // Route guard for the CMS. Sends anyone without a session to the login page, and
@@ -28,7 +28,7 @@ export function RequireAuth(): JSX.Element {
         <p className="text-slate-300">This account doesn&apos;t have admin access.</p>
         <button
           type="button"
-          onClick={() => void supabase.auth.signOut()}
+          onClick={() => void supabaseProd.auth.signOut()}
           className="px-4 py-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium"
         >
           Sign out
