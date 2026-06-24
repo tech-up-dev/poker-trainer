@@ -37,6 +37,9 @@ export function AdminLayout(): JSX.Element {
             <NavLink to="/admin/references" className={navClass}>
               References
             </NavLink>
+            <NavLink to="/admin/glossary" className={navClass}>
+              Glossary
+            </NavLink>
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm text-slate-400">
             {session?.user.email ? <span>{session.user.email}</span> : null}

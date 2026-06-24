@@ -1,6 +1,7 @@
 import { LessonSchema, type Lesson } from "../../shared/schemas/lesson";
 import { TipSchema, type Tip } from "../../shared/schemas/tip";
 import { ReferenceSchema, type Reference } from "../../shared/schemas/reference";
+import { GlossaryEntrySchema, type GlossaryEntry } from "../../shared/schemas/glossary";
 
 export type FieldError = { path: string; message: string };
 
@@ -14,6 +15,10 @@ export type TipValidationResult =
 
 export type ReferenceValidationResult =
   | { ok: true; data: Reference }
+  | { ok: false; errors: FieldError[] };
+
+export type GlossaryValidationResult =
+  | { ok: true; data: GlossaryEntry }
   | { ok: false; errors: FieldError[] };
 
 export function validateLesson(input: unknown): ValidationResult {
@@ -40,6 +45,17 @@ export function validateTip(input: unknown): TipValidationResult {
 
 export function validateReference(input: unknown): ReferenceValidationResult {
   const result = ReferenceSchema.safeParse(input);
+  if (result.success) return { ok: true, data: result.data };
+
+  const errors: FieldError[] = result.error.issues.map((issue) => ({
+    path: formatPath(issue.path),
+    message: issue.message,
+  }));
+  return { ok: false, errors };
+}
+
+export function validateGlossary(input: unknown): GlossaryValidationResult {
+  const result = GlossaryEntrySchema.safeParse(input);
   if (result.success) return { ok: true, data: result.data };
 
   const errors: FieldError[] = result.error.issues.map((issue) => ({
