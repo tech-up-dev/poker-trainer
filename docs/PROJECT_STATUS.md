@@ -12,7 +12,7 @@
 > [REACT_FEATURE_IMPLEMENTATION_GUIDE.md](./REACT_FEATURE_IMPLEMENTATION_GUIDE.md). PM playbook:
 > [PROJECT_MANAGEMENT.md](./PROJECT_MANAGEMENT.md).
 
-**Last updated:** 2026-06-21
+**Last updated:** 2026-06-24
 
 ---
 
@@ -22,15 +22,16 @@
 |---|---|
 | **Total V1** | $16,250 fixed, 10–14 weeks @ 25–35 hrs/wk, 4 milestones |
 | **Paid test** | ✅ Delivered & approved ($500, credited to M1) |
-| **Current milestone** | **M1 — Foundation + Member UI** ($3,100 balance) — in progress, backend-first |
+| **Current milestone** | **M2 — Quiz Engine + CMS Backbone + Tips/References** ($5,850) — in progress, backend-first |
 | **Working repo** | `tech-up-dev/poker-trainer` (mine). `dev` → Vercel Preview, `master` → Production |
 | **Client mirror** | `beatsmallstakes/beat-small-stakes-app` (Steve's) — commits/PRs copied over later, approach TBD |
 | **Live preview** | https://poker-trainer-olive-rho.vercel.app |
 | **Next client checkpoint** | Thursday 2026-06-25, 5 PM Skopje (recovery demo) |
 
-**Where we really are:** the paid-test pipeline (validator → save-to-staging → versioned
-promote → rollback, plus published-content viewer) is shipped and carries into M1. No
-member-facing UI exists yet. M1 backend foundation is underway.
+**Where we really are:** M1 backend is complete. M2 started 2026-06-24. Content pipeline
+generalized to `content_*` tables with `content_type` discriminator. Admin auth gate live
+(`REQUIRE_ADMIN=true`). Staging writes routed through `save-to-staging` Edge Function.
+Member-facing UI (quiz engine, table, glossary) remains design-blocked.
 
 ---
 
@@ -50,36 +51,35 @@ Validate-and-publish round trip on a sample lesson. Code carries into M1.
 - [x] Two Supabase projects (staging + prod), migrations applied to both
 
 ### M1 — Foundation, Static Table, Q&A, Glossary (nested), PWA Scaffold — `In progress`
-**Goal:** "Visible, tangible product on screen by end of M1." $3,100 balance. Backend-first while member design is pending.
-- [ ] Custom static 9-max table layout (positions, stacks, dealer button, blinds, pot, board, hole cards), mobile-first — *design-blocked*
-- [ ] Lightweight card-rendering component (no animation) — *design-blocked*
-- [ ] MCQ interface (four answers, exactly one correct) — *design-blocked*
-- [ ] Slide-up feedback drawer (correct/incorrect + teaching commentary) — *design-blocked*
-- [ ] Tap-to-define glossary drawer with nested linking + navigation stack — *design-blocked*
-- [~] Bulk import flow: paste JSON batch → validate → save to staging (admin tool) — **in review, [PR #81](https://github.com/tech-up-dev/poker-trainer/pull/81)**
-- [~] PWA scaffold: manifest, service worker, version-aware caching strategy — **in review, [PR #82](https://github.com/tech-up-dev/poker-trainer/pull/82)**
-- [~] Entitlements + auth schema design (V2-ready) — **in review, [PR #76](https://github.com/tech-up-dev/poker-trainer/pull/76)**
-- [~] *(early-pull)* Server-side re-validation in promote/rollback Edge Functions — **in review, [PR #79](https://github.com/tech-up-dev/poker-trainer/pull/79)**
+**Goal:** "Visible, tangible product on screen by end of M1." $3,100 balance. Backend complete; member UI held pending design.
+- [ ] Custom static 9-max table layout — *design-blocked*
+- [ ] Lightweight card-rendering component — *design-blocked*
+- [ ] MCQ interface — *design-blocked*
+- [ ] Slide-up feedback drawer — *design-blocked*
+- [ ] Tap-to-define glossary drawer — *design-blocked*
+- [x] Bulk import flow: paste JSON batch → validate → save to staging
+- [x] PWA scaffold: manifest, service worker, version-aware caching
+- [x] Entitlements + auth schema (user_profiles, entitlements, answer_events)
+- [x] Server-side re-validation in promote/rollback Edge Functions
+- [x] Admin routing shell, login, route guard, RLS lockdown
+- [x] Shared Zod schemas (lesson, tip, glossary, reference, path-node, content registry)
+- [x] CI workflow (lint + build on PRs)
+- [x] Seed admin user (staging + production)
 
-**M1 supporting PRs (in review):**
-- Shared content schemas (glossary/tip/reference/path-node + registry) — [PR #78](https://github.com/tech-up-dev/poker-trainer/pull/78)
-- Admin routing shell (react-router) — bundled with [PR #81](https://github.com/tech-up-dev/poker-trainer/pull/81)
-- Edge admin-auth gate + CORS allow-list (groundwork, flag-gated) — bundled with [PR #79](https://github.com/tech-up-dev/poker-trainer/pull/79)
-- CI workflow (lint + build on PRs) — [PR #80](https://github.com/tech-up-dev/poker-trainer/pull/80)
-
-### M2 — Quiz Engine + CMS Backbone + Tips/References — `Not started`
+### M2 — Quiz Engine + CMS Backbone + Tips/References — `In progress`
 **Goal:** heaviest milestone; client becomes self-sufficient on content. $5,850.
-- [ ] Quiz/lesson engine: sequencing, scoring, session completion, randomized order, review missed
-- [ ] Starred/saved questions (persistent)
-- [ ] Wizard authoring UI (branches by question type)
-- [ ] Visual interactive table builder for hand scenarios
-- [ ] Bulk import/export (CSV, JSON, Markdown) + paste-into-Claude markdown spec
-- [ ] Zod validation engine with field-path-precise errors
-- [ ] Staging/prod isolation, write-to-staging preview, versioned publish, one-click rollback
-- [ ] **Content-type generalization**: `content_type` discriminator across staging/published/versions (rename to `content_*`); one pipeline for Lessons/Tips/References/Path nodes
-- [ ] Pipeline hardening: server-side re-validation; admin auth gate on validator; CORS allow-list tightening
-- [ ] Today's Tip + Saved Tips + References Library (+$750)
-- [ ] Shared scenario data model across wizard, bulk upload, validator, member app
+- [ ] Quiz/lesson engine: sequencing, scoring, session completion, randomized order, review missed — *design-blocked*
+- [ ] Starred/saved questions (persistent) — *design-blocked*
+- [ ] Wizard authoring UI (branches by question type) — *design-blocked*
+- [ ] Visual interactive table builder for hand scenarios — *design-blocked*
+- [ ] Bulk import/export: CSV + Markdown parsers (JSON already works)
+- [x] Zod validation engine with field-path-precise errors
+- [x] Staging/prod isolation, write-to-staging preview, versioned publish, one-click rollback
+- [x] **Content-type generalization**: `content_type` discriminator; `content_staging/published/versions`; one pipeline for all content types (2026-06-24)
+- [x] Pipeline hardening: server-side re-validation ✓; admin auth gate (`REQUIRE_ADMIN=true`) ✓; CORS tightening ☐
+- [ ] CORS tightening — Edge Functions still allow `*`; needs Vercel domain allow-list
+- [ ] Today's Tip + Saved Tips + References Library (+$750) — backend pipeline ready; admin UI not built
+- [ ] Shared scenario data model — *design-blocked*
 
 ### M3 — Auth, Entitlements, Stripe, GHL Sync, Event Logging — `Not started`
 $2,600.
@@ -145,9 +145,9 @@ $4,200.
 
 | Item | Lands in | Status |
 |------|----------|--------|
-| Server-side re-validation (Zod in Edge Function) | M2 (earliest M1) | Pending |
-| Admin auth on the validator | M2 | Pending |
-| Bulk-import file upload (client's main workflow) | M1 | Pending |
+| Server-side re-validation (Zod in Edge Function) | M2 | ✅ Done 2026-06-24 |
+| Admin auth on the validator | M2 | ✅ Done 2026-06-24 (`REQUIRE_ADMIN=true`) |
+| Bulk-import file upload (client's main workflow) | M1 | JSON done; CSV/Markdown pending |
 | CORS tightening to Vercel domains | M2 | Pending |
 
 ## 7. Risks (live)
@@ -162,7 +162,8 @@ $4,200.
 
 ## 8. Next actions
 
-1. Review/merge the open M1 PRs (#76–#82). All are conflict-free and can merge in any order.
-2. Deploy steps after merge (need Supabase access): apply migration #76 to staging then prod (`supabase db push`); deploy the hardened Edge Functions #79 to staging (`supabase functions deploy`) to confirm the shared-schema import bundles under Deno.
-3. Member-facing UI (static table, card, MCQ, feedback drawer, glossary drawer) remains held pending design direction.
-4. Prepare the Thursday 2026-06-25 recovery demo with visible progress (bulk import + admin shell are demoable now).
+1. **CORS tightening** — replace `*` in Edge Function CORS headers with explicit Vercel + localhost allow-list.
+2. **CSV + Markdown bulk import parsers** — extend the existing bulk import UI to accept `.csv` and `.md` files in addition to JSON paste.
+3. **Today's Tip admin UI** — the backend pipeline already handles `tip` and `reference` content types; build the admin view to create/manage them.
+4. **Member-facing UI** — quiz engine, table, feedback drawer, glossary drawer — held pending design from Steve.
+5. **Rotate admin credentials** before any client demo — `admin@domain.com` placeholder and `Administrator1!` must be replaced on both staging and production.
