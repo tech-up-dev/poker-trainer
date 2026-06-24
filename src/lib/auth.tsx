@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 
-import { supabase } from './supabase'
+import { supabaseProd } from './supabase-prod'
 import { AuthContext } from './auth-context'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -20,7 +20,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (active) setIsAdmin(false)
         return
       }
-      const { data } = await supabase
+      const { data } = await supabaseProd
         .from('entitlements')
         .select('entitlement_key')
         .eq('entitlement_key', 'admin_access')
@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (active) setIsAdmin(data !== null)
     }
 
-    supabase.auth.getSession().then(async ({ data }) => {
+    supabaseProd.auth.getSession().then(async ({ data }) => {
       if (!active) return
       setSession(data.session)
       await resolveAdmin(data.session)
@@ -38,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, next) => {
+    } = supabaseProd.auth.onAuthStateChange((_event, next) => {
       setSession(next)
       void resolveAdmin(next)
     })
