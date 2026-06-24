@@ -1,4 +1,5 @@
 import { LessonSchema, type Lesson } from "../../shared/schemas/lesson";
+import { GlossaryEntrySchema, type GlossaryEntry } from "../../shared/schemas/glossary";
 
 export type FieldError = { path: string; message: string };
 
@@ -6,8 +7,23 @@ export type ValidationResult =
   | { ok: true; data: Lesson }
   | { ok: false; errors: FieldError[] };
 
+export type GlossaryValidationResult =
+  | { ok: true; data: GlossaryEntry }
+  | { ok: false; errors: FieldError[] };
+
 export function validateLesson(input: unknown): ValidationResult {
   const result = LessonSchema.safeParse(input);
+  if (result.success) return { ok: true, data: result.data };
+
+  const errors: FieldError[] = result.error.issues.map((issue) => ({
+    path: formatPath(issue.path),
+    message: issue.message,
+  }));
+  return { ok: false, errors };
+}
+
+export function validateGlossary(input: unknown): GlossaryValidationResult {
+  const result = GlossaryEntrySchema.safeParse(input);
   if (result.success) return { ok: true, data: result.data };
 
   const errors: FieldError[] = result.error.issues.map((issue) => ({

@@ -1,0 +1,9 @@
+{
+  "term_id": "pot-odds",
+  "term": "Pot Odds",
+  "definition": "The ratio of the current pot size to the cost of a contemplated call. Used to determine whether a call is profitable given your equity in the hand.",
+  "importance": "core",
+  "example": "Pot is $100, villain bets $50. You must call $50 to win $150, giving you 3:1 pot odds (25% equity needed).",
+  "usage": "Use pot odds to decide borderline calls on the flop and turn when you have a drawing hand.",
+  "related_terms": ["equity", "implied-odds", "break-even-percentage"]
+}
