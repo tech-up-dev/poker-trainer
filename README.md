@@ -56,28 +56,62 @@ samples/         Sample lesson fixtures
 
 Prerequisites: Node.js LTS (CI uses Node 22) and npm.
 
+### 1. Install dependencies
+
 ```bash
 npm install
-cp .env.example .env.local   # then fill in the values below
-npm run dev                  # http://localhost:5173
 ```
 
-### Environment variables
-
-Create `.env.local` (gitignored). Use the **staging** project's values locally —
-this mirrors the Vercel Preview environment.
+### 2. Set up environment variables
 
 ```bash
-VITE_SUPABASE_URL=https://<staging-project>.supabase.co
-VITE_SUPABASE_ANON_KEY=<staging-anon-key>
+cp .env.example .env.local
 ```
 
-Vercel injects different values per branch (staging on Preview, production on
-`master`), so the same build targets the right project automatically.
+Open `.env.local` and fill in the values from the Supabase dashboard
+(Project Settings → API) for both projects:
+
+```bash
+# Supabase staging project (local dev + Vercel Preview)
+VITE_SUPABASE_URL=https://ewjrgauqdlmleyqwqprs.supabase.co
+VITE_SUPABASE_ANON_KEY=<staging-anon-key>
+
+# Supabase production project (used by promote-to-prod / rollback)
+VITE_SUPABASE_PROD_URL=https://ypbgytbdowfzyfikesfg.supabase.co
+VITE_SUPABASE_PROD_ANON_KEY=<prod-anon-key>
+```
 
 > **Never put a service-role key in a `VITE_` variable.** Anything prefixed
 > `VITE_` is bundled into the client and visible to users. Service-role keys live
 > only in Supabase Edge Function secrets.
+
+### 3. Apply database migrations
+
+```bash
+supabase login
+supabase link --project-ref ewjrgauqdlmleyqwqprs   # staging
+supabase db push
+```
+
+This applies all pending migrations including seeding the bootstrap admin account.
+
+### 4. Start the dev server
+
+```bash
+npm run dev   # http://localhost:5173
+```
+
+### 5. Log in
+
+Navigate to `/login` and sign in with the bootstrap admin:
+
+- **Email:** `admin@domain.com`
+- **Password:** `Administrator1!`
+
+> **Rotate this password** on first login in any real environment — it lives in
+> the migration and is not a secret. Swap the email placeholder before going live.
+
+The CMS is at `/admin` (lesson validator) and `/admin/import` (bulk import).
 
 ---
 
