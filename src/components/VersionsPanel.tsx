@@ -25,7 +25,7 @@ type VersionsPanelProps = {
   contentId: string
   contentType: string
   refreshSignal: number
-  onAfterRollback?: () => void
+  onAfterRollback?: (content: unknown) => void
 }
 
 export function VersionsPanel({
@@ -108,7 +108,14 @@ export function VersionsPanel({
         version_number: result.version_number,
       },
     })
-    onAfterRollback?.()
+
+    const { data: pubData } = await supabaseProd
+      .from('content_published')
+      .select('content')
+      .eq('content_id', contentId)
+      .eq('content_type', contentType)
+      .single()
+    onAfterRollback?.(pubData?.content ?? null)
   }
 
   const rollbackInFlight =
