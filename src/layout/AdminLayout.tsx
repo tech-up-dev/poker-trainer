@@ -1,7 +1,7 @@
 import type { JSX } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 
-import { supabase } from '../lib/supabase'
+import { supabaseProd } from '../lib/supabase-prod'
 import { useAuth } from '../lib/auth-context'
 
 const linkBase = 'px-3 py-1.5 rounded text-sm font-medium transition-colors'
@@ -36,7 +36,7 @@ export function AdminLayout(): JSX.Element {
             {session?.user.email ? <span>{session.user.email}</span> : null}
             <button
               type="button"
-              onClick={() => void supabase.auth.signOut()}
+              onClick={() => void supabaseProd.auth.signOut()}
               className="px-3 py-1.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium"
             >
               Sign out

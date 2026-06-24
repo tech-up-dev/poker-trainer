@@ -2,7 +2,6 @@ import { useState } from 'react'
 import type { FormEvent, JSX } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 
-import { supabase } from '../lib/supabase'
 import { supabaseProd } from '../lib/supabase-prod'
 import { useAuth } from '../lib/auth-context'
 
@@ -25,22 +24,16 @@ export function LoginPage(): JSX.Element {
     setSubmitting(true)
     setError(null)
 
-    const { error: signInError } = await supabase.auth.signInWithPassword({
+    const { error: signInError } = await supabaseProd.auth.signInWithPassword({
       email,
       password,
     })
 
+    setSubmitting(false)
     if (signInError) {
-      setSubmitting(false)
       setError(signInError.message)
       return
     }
-
-    // Also authenticate against production so supabaseProd.functions.invoke()
-    // sends a production-signed JWT, which the Edge Function can verify.
-    await supabaseProd.auth.signInWithPassword({ email, password })
-
-    setSubmitting(false)
     navigate('/admin', { replace: true })
   }
 

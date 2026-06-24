@@ -3,7 +3,6 @@ import type { JSX } from 'react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 
-import { supabase } from '../lib/supabase'
 import { supabaseProd } from '../lib/supabase-prod'
 import { validateLesson, type FieldError } from '../lib/validate'
 import validSample from '../../samples/valid-lesson.json'
@@ -90,12 +89,15 @@ export function LessonValidator({
     if (saveStatus === 'saving') return
     const lesson = validationResult.data
     setSaveStatus('saving')
-    const { error } = await supabase.from('lessons_staging').upsert({
-      lesson_id: lesson.lesson_id,
-      content: lesson,
-      updated_at: new Date().toISOString(),
+    const { data, error } = await supabaseProd.functions.invoke('save-to-staging', {
+      body: { content_id: lesson.lesson_id, content_type: 'lesson', content: lesson },
     })
-    if (error) setSaveStatus({ error: error.message })
+    if (error) {
+      setSaveStatus({ error: error.message })
+      return
+    }
+    const result = data as { ok: boolean; message?: string }
+    if (!result.ok) setSaveStatus({ error: result.message ?? 'Unknown error' })
     else setSaveStatus('saved')
   }
 
