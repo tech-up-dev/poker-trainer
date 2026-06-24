@@ -25,7 +25,8 @@ type PromoteStatus =
 
 type LessonValidatorProps = {
   onPublishedContextChange: (ctx: {
-    lessonId: string | null
+    contentId: string | null
+    contentType: string | null
     refreshSignal: number
   }) => void
 }
@@ -40,9 +41,9 @@ export function LessonValidator({
   const [versionsRefresh, setVersionsRefresh] = useState(0)
 
   useEffect(() => {
-    const lessonId =
+    const contentId =
       validationResult?.ok === true ? validationResult.data.lesson_id : null
-    onPublishedContextChange({ lessonId, refreshSignal: versionsRefresh })
+    onPublishedContextChange({ contentId, contentType: contentId ? 'lesson' : null, refreshSignal: versionsRefresh })
   }, [validationResult, versionsRefresh, onPublishedContextChange])
 
   const canSave = validationResult?.ok === true
@@ -108,13 +109,13 @@ export function LessonValidator({
     setPromoteStatus('promoting')
     const { data, error } = await supabaseProd.functions.invoke(
       'promote-to-prod',
-      { body: { lesson_id: lesson.lesson_id } }
+      { body: { content_id: lesson.lesson_id, content_type: 'lesson' } }
     )
     if (error) {
       setPromoteStatus({ error: error.message })
       return
     }
-    type PromoteOk = { ok: true; lesson_id: string; version_number: number }
+    type PromoteOk = { ok: true; content_id: string; content_type: string; version_number: number }
     type PromoteErr = { ok: false; message: string }
     const result = data as PromoteOk | PromoteErr
     if (!result.ok) {
@@ -198,7 +199,7 @@ export function LessonValidator({
         {isSaving ? <p className="text-sm text-slate-400">Saving…</p> : null}
         {saveStatus === 'saved' && validationResult?.ok === true ? (
           <p className="text-sm text-green-400">
-            Saved to staging as lesson_id: {validationResult.data.lesson_id}
+            Saved to staging as {validationResult.data.lesson_id}
           </p>
         ) : null}
         {typeof saveStatus === 'object' ? (
@@ -222,7 +223,8 @@ export function LessonValidator({
 
       {validatedLessonId !== null ? (
         <VersionsPanel
-          lessonId={validatedLessonId}
+          contentId={validatedLessonId}
+          contentType="lesson"
           refreshSignal={versionsRefresh}
           onAfterRollback={() => setVersionsRefresh((s) => s + 1)}
         />

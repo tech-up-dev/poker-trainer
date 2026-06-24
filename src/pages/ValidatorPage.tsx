@@ -4,14 +4,15 @@ import type { JSX } from 'react'
 import { LessonValidator } from '../components/LessonValidator'
 import { PublishedContent } from '../components/PublishedContent'
 
-type PublishedContext = { lessonId: string | null; refreshSignal: number }
+type PublishedContext = { contentId: string | null; contentType: string | null; refreshSignal: number }
 
 // The single-lesson validator on the left, the current production content for
 // whatever lesson is loaded on the right. This is the view App used to render
 // directly, now a route under the admin shell.
 export function ValidatorPage(): JSX.Element {
   const [published, setPublished] = useState<PublishedContext>({
-    lessonId: null,
+    contentId: null,
+    contentType: null,
     refreshSignal: 0,
   })
 
@@ -21,9 +22,10 @@ export function ValidatorPage(): JSX.Element {
         <LessonValidator onPublishedContextChange={setPublished} />
       </div>
       <div>
-        {published.lessonId !== null ? (
+        {published.contentId !== null && published.contentType !== null ? (
           <PublishedContent
-            lessonId={published.lessonId}
+            contentId={published.contentId}
+            contentType={published.contentType}
             refreshSignal={published.refreshSignal}
           />
         ) : (
