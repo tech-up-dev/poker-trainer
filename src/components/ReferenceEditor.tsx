@@ -221,7 +221,13 @@ export function ReferenceEditor({ onPublishedContextChange }: ReferenceEditorPro
           contentId={validatedReferenceId}
           contentType="reference"
           refreshSignal={versionsRefresh}
-          onAfterRollback={() => setVersionsRefresh((s) => s + 1)}
+          onAfterRollback={(content) => {
+            setVersionsRefresh((s) => s + 1)
+            if (content != null) {
+              setInputText(JSON.stringify(content, null, 2))
+              resetTransientState()
+            }
+          }}
         />
       ) : null}
     </section>
