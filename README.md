@@ -156,9 +156,9 @@ Edge Function secrets in use:
 
 | Secret | Where | Purpose |
 |--------|-------|---------|
-| `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_SERVICE_ROLE_KEY` | prod project | promote reads staging cross-project |
+| `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_SERVICE_ROLE_KEY` | prod project | promote reads staging cross-project — **set** |
 | `ALLOWED_ORIGINS` | prod project | comma-separated CORS allow-list (falls back to `*` if unset) |
-| `REQUIRE_ADMIN` | prod project | set `true` to enforce the admin gate on promote/rollback |
+| `REQUIRE_ADMIN` | prod project | set `true` to enforce the admin gate on promote/rollback — **set (M2+)** |
 | `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | auto-injected | hosting project access |
 
 (Stripe and GoHighLevel secrets are added in M3.)
