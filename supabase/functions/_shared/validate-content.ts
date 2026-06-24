@@ -1,4 +1,4 @@
-import { LessonSchema } from "../../../shared/schemas/lesson.ts";
+import { contentRegistry, isContentType } from "../../../shared/schemas/content.ts";
 
 export type RevalidationResult =
   | { ok: true }
@@ -12,8 +12,19 @@ export type RevalidationResult =
 // Only promotion runs this. Rollback restores a prior snapshot that already
 // passed at promote time, and re-validating there would let a later schema
 // change block recovery to a known-good version.
-export function revalidateLesson(content: unknown): RevalidationResult {
-  const result = LessonSchema.safeParse(content);
+export function revalidateContent(
+  contentType: unknown,
+  content: unknown
+): RevalidationResult {
+  if (!isContentType(contentType)) {
+    return {
+      ok: false,
+      errors: [{ path: "content_type", message: `Unknown content type: ${contentType}` }],
+    };
+  }
+
+  const { schema } = contentRegistry[contentType];
+  const result = schema.safeParse(content);
   if (result.success) return { ok: true };
 
   return {

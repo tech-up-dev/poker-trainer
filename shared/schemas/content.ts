@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-import { LessonSchema } from "./lesson";
-import { GlossaryEntrySchema } from "./glossary";
-import { TipSchema } from "./tip";
-import { ReferenceSchema } from "./reference";
-import { PathNodeSchema } from "./path-node";
+import { LessonSchema } from "./lesson.ts";
+import { GlossaryEntrySchema } from "./glossary.ts";
+import { TipSchema } from "./tip.ts";
+import { ReferenceSchema } from "./reference.ts";
+import { PathNodeSchema } from "./path-node.ts";
 
 // Content-type registry. This is the seam the M2 pipeline generalization hangs
 // off: the validate -> stage -> publish -> rollback machinery stops caring about
