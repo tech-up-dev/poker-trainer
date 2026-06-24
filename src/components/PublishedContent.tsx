@@ -8,7 +8,7 @@ import { supabaseProd } from '../lib/supabase-prod'
 type LoadState =
   | { kind: 'loading' }
   | { kind: 'empty' }
-  | { kind: 'loaded'; lesson: Lesson }
+  | { kind: 'loaded'; content: unknown; contentType: string }
   | { kind: 'error'; message: string }
 
 type PublishedContentProps = {
@@ -45,7 +45,7 @@ export function PublishedContent({
         setState({ kind: 'empty' })
         return
       }
-      setState({ kind: 'loaded', lesson: data.content as Lesson })
+      setState({ kind: 'loaded', content: data.content, contentType })
     }
 
     fetchPublished()
@@ -76,27 +76,37 @@ function renderBody(state: LoadState): JSX.Element {
   if (state.kind === 'empty') {
     return (
       <p className="text-sm text-slate-400">
-        No production version for this lesson yet.
+        No production version yet.
       </p>
     )
   }
 
-  const { lesson } = state
-  return (
-    <div className="space-y-3">
-      <div className="text-sm text-slate-400">
-        <span className="text-slate-200">{lesson.title}</span> ·{' '}
-        {lesson.questions.length} questions
-        {lesson.difficulty !== undefined ? ` · ${lesson.difficulty}` : ''}
+  const { content, contentType } = state
+
+  if (contentType === 'lesson') {
+    const lesson = content as Lesson
+    return (
+      <div className="space-y-3">
+        <div className="text-sm text-slate-400">
+          <span className="text-slate-200">{lesson.title}</span> ·{' '}
+          {lesson.questions.length} questions
+          {lesson.difficulty !== undefined ? ` · ${lesson.difficulty}` : ''}
+        </div>
+        <ul className="space-y-3">
+          {lesson.questions.map((question, index) => (
+            <li key={question.question_id}>
+              <QuestionCard question={question} index={index} />
+            </li>
+          ))}
+        </ul>
       </div>
-      <ul className="space-y-3">
-        {lesson.questions.map((question, index) => (
-          <li key={question.question_id}>
-            <QuestionCard question={question} index={index} />
-          </li>
-        ))}
-      </ul>
-    </div>
+    )
+  }
+
+  return (
+    <pre className="text-xs text-slate-300 bg-slate-950 border border-slate-700 rounded p-4 overflow-x-auto whitespace-pre-wrap break-words">
+      {JSON.stringify(content, null, 2)}
+    </pre>
   )
 }
 
