@@ -86,8 +86,9 @@ export function BulkImport(): JSX.Element {
     let saved = 0
     const failures: { lessonId: string; message: string }[] = []
     for (const item of validItems) {
-      const { error } = await supabase.from('lessons_staging').upsert({
-        lesson_id: item.lesson.lesson_id,
+      const { error } = await supabase.from('content_staging').upsert({
+        content_id: item.lesson.lesson_id,
+        content_type: 'lesson',
         content: item.lesson,
         updated_at: new Date().toISOString(),
       })

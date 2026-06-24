@@ -7,7 +7,8 @@ import { ConfirmDialog } from './ConfirmDialog'
 
 type Version = {
   id: string
-  lesson_id: string
+  content_id: string
+  content_type: string
   version_number: number
   created_at: string
   created_by: string | null
@@ -21,13 +22,15 @@ type RollbackStatus =
   | { error: string }
 
 type VersionsPanelProps = {
-  lessonId: string
+  contentId: string
+  contentType: string
   refreshSignal: number
   onAfterRollback?: () => void
 }
 
 export function VersionsPanel({
-  lessonId,
+  contentId,
+  contentType,
   refreshSignal,
   onAfterRollback,
 }: VersionsPanelProps): JSX.Element {
@@ -42,11 +45,12 @@ export function VersionsPanel({
     async function fetchVersions(): Promise<void> {
       setLoadError(null)
       const { data, error } = await supabaseProd
-        .from('lesson_versions')
+        .from('content_versions')
         .select(
-          'id, lesson_id, version_number, created_at, created_by, source_version'
+          'id, content_id, content_type, version_number, created_at, created_by, source_version'
         )
-        .eq('lesson_id', lessonId)
+        .eq('content_id', contentId)
+        .eq('content_type', contentType)
         .order('version_number', { ascending: false })
 
       if (cancelled) return
@@ -62,7 +66,7 @@ export function VersionsPanel({
     return () => {
       cancelled = true
     }
-  }, [lessonId, refreshSignal])
+  }, [contentId, contentType, refreshSignal])
 
   function requestRollback(targetVersion: number): void {
     setConfirmTarget(targetVersion)
@@ -76,7 +80,7 @@ export function VersionsPanel({
     setRollbackStatus({ running: targetVersion })
     const { data, error } = await supabaseProd.functions.invoke(
       'rollback-to-version',
-      { body: { lesson_id: lessonId, target_version: targetVersion } }
+      { body: { content_id: contentId, content_type: contentType, target_version: targetVersion } }
     )
 
     if (error) {
@@ -86,7 +90,8 @@ export function VersionsPanel({
 
     type RollbackOk = {
       ok: true
-      lesson_id: string
+      content_id: string
+      content_type: string
       version_number: number
       rolled_back_from: number
     }
