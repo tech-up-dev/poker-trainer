@@ -24,12 +24,18 @@ export function AdminLayout(): JSX.Element {
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6">
           <span className="font-semibold">Poker Trainer · Content Ops</span>
           <nav className="flex gap-2">
-            {/* `end` so /admin isn't highlighted while on /admin/import */}
+            {/* `end` so /admin isn't highlighted while on /admin/import etc. */}
             <NavLink to="/admin" end className={navClass}>
-              Validator
+              Lessons
             </NavLink>
             <NavLink to="/admin/import" className={navClass}>
               Bulk Import
+            </NavLink>
+            <NavLink to="/admin/tips" className={navClass}>
+              Tips
+            </NavLink>
+            <NavLink to="/admin/references" className={navClass}>
+              References
             </NavLink>
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm text-slate-400">

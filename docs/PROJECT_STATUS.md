@@ -78,7 +78,7 @@ Validate-and-publish round trip on a sample lesson. Code carries into M1.
 - [x] **Content-type generalization**: `content_type` discriminator; `content_staging/published/versions`; one pipeline for all content types (2026-06-24)
 - [x] Pipeline hardening: server-side re-validation ✓; admin auth gate (`REQUIRE_ADMIN=true`) ✓; CORS tightening ☐
 - [ ] CORS tightening — Edge Functions still allow `*`; needs Vercel domain allow-list
-- [ ] Today's Tip + Saved Tips + References Library (+$750) — backend pipeline ready; admin UI not built
+- [x] Today's Tip + Saved Tips + References Library (+$750) — admin UI built: `/admin/tips` (TipEditor) + `/admin/references` (ReferenceEditor) + `get-from-staging` Edge Function (2026-06-24)
 - [ ] Shared scenario data model — *design-blocked*
 
 ### M3 — Auth, Entitlements, Stripe, GHL Sync, Event Logging — `Not started`
@@ -162,8 +162,7 @@ $4,200.
 
 ## 8. Next actions
 
-1. **CORS tightening** — replace `*` in Edge Function CORS headers with explicit Vercel + localhost allow-list.
+1. **CORS tightening** — replace `*` in Edge Function CORS headers with explicit Vercel + localhost allow-list (deferred to pre-production).
 2. **CSV + Markdown bulk import parsers** — extend the existing bulk import UI to accept `.csv` and `.md` files in addition to JSON paste.
-3. **Today's Tip admin UI** — the backend pipeline already handles `tip` and `reference` content types; build the admin view to create/manage them.
-4. **Member-facing UI** — quiz engine, table, feedback drawer, glossary drawer — held pending design from Steve.
-5. **Rotate admin credentials** before any client demo — `admin@domain.com` placeholder and `Administrator1!` must be replaced on both staging and production.
+3. **Member-facing UI** — quiz engine, table, feedback drawer, glossary drawer — held pending design from Steve.
+4. **Rotate admin credentials** before any client demo — `admin@domain.com` placeholder and `Administrator1!` must be replaced on both staging and production.

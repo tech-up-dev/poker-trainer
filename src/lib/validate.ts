@@ -1,4 +1,6 @@
 import { LessonSchema, type Lesson } from "../../shared/schemas/lesson";
+import { TipSchema, type Tip } from "../../shared/schemas/tip";
+import { ReferenceSchema, type Reference } from "../../shared/schemas/reference";
 
 export type FieldError = { path: string; message: string };
 
@@ -6,8 +8,38 @@ export type ValidationResult =
   | { ok: true; data: Lesson }
   | { ok: false; errors: FieldError[] };
 
+export type TipValidationResult =
+  | { ok: true; data: Tip }
+  | { ok: false; errors: FieldError[] };
+
+export type ReferenceValidationResult =
+  | { ok: true; data: Reference }
+  | { ok: false; errors: FieldError[] };
+
 export function validateLesson(input: unknown): ValidationResult {
   const result = LessonSchema.safeParse(input);
+  if (result.success) return { ok: true, data: result.data };
+
+  const errors: FieldError[] = result.error.issues.map((issue) => ({
+    path: formatPath(issue.path),
+    message: issue.message,
+  }));
+  return { ok: false, errors };
+}
+
+export function validateTip(input: unknown): TipValidationResult {
+  const result = TipSchema.safeParse(input);
+  if (result.success) return { ok: true, data: result.data };
+
+  const errors: FieldError[] = result.error.issues.map((issue) => ({
+    path: formatPath(issue.path),
+    message: issue.message,
+  }));
+  return { ok: false, errors };
+}
+
+export function validateReference(input: unknown): ReferenceValidationResult {
+  const result = ReferenceSchema.safeParse(input);
   if (result.success) return { ok: true, data: result.data };
 
   const errors: FieldError[] = result.error.issues.map((issue) => ({
