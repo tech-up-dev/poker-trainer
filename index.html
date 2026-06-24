@@ -19,9 +19,11 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
 
-    <!-- Register the service worker after load so it never blocks first paint -->
+    <!-- Register the service worker after load so it never blocks first paint.
+         Skip on localhost — the SW caches Vite's dynamic module graph and
+         causes stale-bundle errors on normal refresh during development. -->
     <script>
-      if ('serviceWorker' in navigator) {
+      if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').catch(() => {})
         })
