@@ -12,12 +12,14 @@ type LoadState =
   | { kind: 'error'; message: string }
 
 type PublishedContentProps = {
-  lessonId: string
+  contentId: string
+  contentType: string
   refreshSignal: number
 }
 
 export function PublishedContent({
-  lessonId,
+  contentId,
+  contentType,
   refreshSignal,
 }: PublishedContentProps): JSX.Element {
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
@@ -28,9 +30,10 @@ export function PublishedContent({
     async function fetchPublished(): Promise<void> {
       setState({ kind: 'loading' })
       const { data, error } = await supabaseProd
-        .from('lessons_published')
+        .from('content_published')
         .select('content')
-        .eq('lesson_id', lessonId)
+        .eq('content_id', contentId)
+        .eq('content_type', contentType)
         .maybeSingle()
 
       if (cancelled) return
@@ -49,7 +52,7 @@ export function PublishedContent({
     return () => {
       cancelled = true
     }
-  }, [lessonId, refreshSignal])
+  }, [contentId, contentType, refreshSignal])
 
   return (
     <section className="space-y-3" aria-live="polite">
