@@ -25,17 +25,22 @@ export type ContentType = (typeof CONTENT_TYPES)[number];
 // Each content type knows its own Zod schema and which field holds its stable,
 // author-set id. The pipeline reads idField to derive the content_id it stores a
 // row under, without hard-coding "lesson_id" everywhere.
+//
+// labelField is the human-readable field the pipeline slugifies into a content
+// id when the author omits the id. Tips have no title, so they fall back to a
+// generated suffix when concept is absent too.
 type ContentTypeDef = {
   schema: z.ZodTypeAny;
   idField: string;
+  labelField?: string;
 };
 
 export const contentRegistry: Record<ContentType, ContentTypeDef> = {
-  lesson: { schema: LessonSchema, idField: "lesson_id" },
-  glossary: { schema: GlossaryEntrySchema, idField: "term_id" },
-  tip: { schema: TipSchema, idField: "tip_id" },
-  reference: { schema: ReferenceSchema, idField: "reference_id" },
-  path_node: { schema: PathNodeSchema, idField: "node_id" },
+  lesson: { schema: LessonSchema, idField: "lesson_id", labelField: "title" },
+  glossary: { schema: GlossaryEntrySchema, idField: "term_id", labelField: "term" },
+  tip: { schema: TipSchema, idField: "tip_id", labelField: "concept" },
+  reference: { schema: ReferenceSchema, idField: "reference_id", labelField: "title" },
+  path_node: { schema: PathNodeSchema, idField: "node_id", labelField: "title" },
 };
 
 export function isContentType(value: unknown): value is ContentType {

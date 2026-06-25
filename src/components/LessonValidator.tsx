@@ -39,24 +39,35 @@ export function LessonValidator({
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [promoteStatus, setPromoteStatus] = useState<PromoteStatus>('idle')
   const [versionsRefresh, setVersionsRefresh] = useState(0)
+  // The id assigned by the server when the author omits lesson_id. Versions and
+  // promotion key off this once a save has happened.
+  const [savedId, setSavedId] = useState<string | null>(null)
+
+  // The id provided in the JSON, if any; null when the author left it out.
+  const explicitId =
+    validationResult?.ok === true ? validationResult.data.lesson_id ?? null : null
+  // What versions/promote/published actually operate on: the author's id, or the
+  // server-assigned one after a save.
+  const effectiveId = explicitId ?? savedId
 
   useEffect(() => {
-    const contentId =
-      validationResult?.ok === true ? validationResult.data.lesson_id : null
-    onPublishedContextChange({ contentId, contentType: contentId ? 'lesson' : null, refreshSignal: versionsRefresh })
-  }, [validationResult, versionsRefresh, onPublishedContextChange])
+    onPublishedContextChange({
+      contentId: effectiveId,
+      contentType: effectiveId ? 'lesson' : null,
+      refreshSignal: versionsRefresh,
+    })
+  }, [effectiveId, versionsRefresh, onPublishedContextChange])
 
   const canSave = validationResult?.ok === true
   const isSaving = saveStatus === 'saving'
   const isPromoting = promoteStatus === 'promoting'
   const operationInFlight = isSaving || isPromoting
-  const validatedLessonId =
-    validationResult?.ok === true ? validationResult.data.lesson_id : null
 
   function resetTransientState(): void {
     setValidationResult(null)
     setSaveStatus('idle')
     setPromoteStatus('idle')
+    setSavedId(null)
   }
 
   function loadSample(sample: unknown): void {
@@ -97,19 +108,22 @@ export function LessonValidator({
       setSaveStatus({ error: error.message })
       return
     }
-    const result = data as { ok: boolean; message?: string }
+    const result = data as { ok: boolean; content_id?: string; message?: string }
     if (!result.ok) setSaveStatus({ error: result.message ?? 'Unknown error' })
-    else setSaveStatus('saved')
+    else {
+      setSaveStatus('saved')
+      if (result.content_id) setSavedId(result.content_id)
+    }
   }
 
   async function handlePromote(): Promise<void> {
     if (validationResult?.ok !== true) return
     if (promoteStatus === 'promoting') return
-    const lesson = validationResult.data
+    if (effectiveId === null) return
     setPromoteStatus('promoting')
     const { data, error } = await supabaseProd.functions.invoke(
       'promote-to-prod',
-      { body: { content_id: lesson.lesson_id, content_type: 'lesson' } }
+      { body: { content_id: effectiveId, content_type: 'lesson' } }
     )
     if (error) {
       setPromoteStatus({ error: error.message })
@@ -186,20 +200,26 @@ export function LessonValidator({
         <button
           type="button"
           onClick={handlePromote}
-          disabled={!canSave || operationInFlight}
+          disabled={!canSave || operationInFlight || effectiveId === null}
           className="px-4 py-2 rounded bg-green-700 hover:bg-green-600 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Promote to Production
         </button>
       </div>
 
+      {canSave && effectiveId === null ? (
+        <p className="text-sm text-slate-400">
+          No lesson_id provided — save to staging first to generate one, then promote.
+        </p>
+      ) : null}
+
       <div aria-live="polite" className="space-y-3">
         {validationResult !== null && renderValidationPanel(validationResult)}
 
         {isSaving ? <p className="text-sm text-slate-400">Saving…</p> : null}
-        {saveStatus === 'saved' && validationResult?.ok === true ? (
+        {saveStatus === 'saved' && effectiveId !== null ? (
           <p className="text-sm text-green-400">
-            Saved to staging as {validationResult.data.lesson_id}
+            Saved to staging as {effectiveId}
           </p>
         ) : null}
         {typeof saveStatus === 'object' ? (
@@ -221,9 +241,9 @@ export function LessonValidator({
         ) : null}
       </div>
 
-      {validatedLessonId !== null ? (
+      {effectiveId !== null ? (
         <VersionsPanel
-          contentId={validatedLessonId}
+          contentId={effectiveId}
           contentType="lesson"
           refreshSignal={versionsRefresh}
           onAfterRollback={(content) => {
