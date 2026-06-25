@@ -20,8 +20,9 @@ type LoadState =
 // Per-item promote status, keyed by `${type}:${id}`.
 type PromoteStatus = 'idle' | 'promoting' | { version: number } | { error: string }
 
-// Content types that have an editor route on this build. Items of a type not in
-// this map still show and promote; they just don't get an Edit button.
+// Content types this build exposes, mapped to their editor route. The Staging
+// list only shows these types (others stay hidden — e.g. unreleased types on M1),
+// and each gets an Edit button to its route.
 const EDITOR_ROUTE: Partial<Record<ContentType, string>> = {
   lesson: '/admin',
   glossary: '/admin/glossary',
