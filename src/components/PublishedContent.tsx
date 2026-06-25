@@ -67,7 +67,9 @@ export function PublishedContent({
       ) : state.kind === 'empty' ? (
         <p className="text-sm text-slate-400">No production version yet.</p>
       ) : (
-        <ContentBody content={state.content} contentType={contentType} />
+        <div className="max-h-[28rem] overflow-y-auto pr-1">
+          <ContentBody content={state.content} contentType={contentType} />
+        </div>
       )}
     </section>
   )
