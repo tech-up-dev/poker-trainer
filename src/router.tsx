@@ -6,6 +6,7 @@ import { ValidatorPage } from './pages/ValidatorPage'
 import { LoginPage } from './pages/LoginPage'
 import { BulkImport } from './components/BulkImport'
 import { GlossaryEditorPage } from './pages/GlossaryEditorPage'
+import { StagingBrowser } from './components/StagingBrowser'
 
 // /login is public; everything under the admin shell sits behind RequireAuth. The
 // member-facing app (table, quiz, glossary) gets its own routes once the design
@@ -23,6 +24,7 @@ export const router = createBrowserRouter([
           { path: 'admin', element: <ValidatorPage /> },
           { path: 'admin/import', element: <BulkImport /> },
           { path: 'admin/glossary', element: <GlossaryEditorPage /> },
+          { path: 'admin/staging', element: <StagingBrowser /> },
           { path: '*', element: <Navigate to="/admin" replace /> },
         ],
       },
