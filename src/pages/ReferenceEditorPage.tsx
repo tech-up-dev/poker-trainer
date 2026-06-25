@@ -3,6 +3,7 @@ import type { JSX } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { ReferenceEditor } from '../components/ReferenceEditor'
+import { StagingContent } from '../components/StagingContent'
 import { PublishedContent } from '../components/PublishedContent'
 
 type PublishedContext = { contentId: string | null; contentType: string | null; refreshSignal: number }
@@ -24,16 +25,23 @@ export function ReferenceEditorPage(): JSX.Element {
       <div>
         <ReferenceEditor onPublishedContextChange={setPublished} initialText={initialText} />
       </div>
-      <div>
+      <div className="space-y-8">
         {published.contentId !== null && published.contentType !== null ? (
-          <PublishedContent
-            contentId={published.contentId}
-            contentType={published.contentType}
-            refreshSignal={published.refreshSignal}
-          />
+          <>
+            <StagingContent
+              contentId={published.contentId}
+              contentType={published.contentType}
+              refreshSignal={published.refreshSignal}
+            />
+            <PublishedContent
+              contentId={published.contentId}
+              contentType={published.contentType}
+              refreshSignal={published.refreshSignal}
+            />
+          </>
         ) : (
           <p className="text-sm text-slate-500">
-            Validate a reference to see its current production content.
+            Validate a reference to see its staging and production copies.
           </p>
         )}
       </div>
