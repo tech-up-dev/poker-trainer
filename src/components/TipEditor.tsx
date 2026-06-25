@@ -108,6 +108,8 @@ export function TipEditor({ onPublishedContextChange, initialText }: TipEditorPr
     else {
       setSaveStatus('saved')
       if (result.content_id) setSavedId(result.content_id)
+      // Refresh the side panels so the Staging copy reflects what we just saved.
+      setVersionsRefresh((s) => s + 1)
     }
   }
 
