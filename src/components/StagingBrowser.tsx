@@ -25,6 +25,8 @@ type PromoteStatus = 'idle' | 'promoting' | { version: number } | { error: strin
 const EDITOR_ROUTE: Partial<Record<ContentType, string>> = {
   lesson: '/admin',
   glossary: '/admin/glossary',
+  tip: '/admin/tips',
+  reference: '/admin/references',
 }
 
 function key(item: StagedItem): string {

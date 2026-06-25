@@ -27,10 +27,12 @@ type TipEditorProps = {
     contentType: string | null
     refreshSignal: number
   }) => void
+  // Pre-fill the editor (e.g. when opening a staged item to edit).
+  initialText?: string
 }
 
-export function TipEditor({ onPublishedContextChange }: TipEditorProps): JSX.Element {
-  const [inputText, setInputText] = useState('')
+export function TipEditor({ onPublishedContextChange, initialText }: TipEditorProps): JSX.Element {
+  const [inputText, setInputText] = useState(initialText ?? '')
   const [validationResult, setValidationResult] = useState<ValidationState | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [promoteStatus, setPromoteStatus] = useState<PromoteStatus>('idle')

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { JSX } from 'react'
+import { useLocation } from 'react-router-dom'
 
 import { ReferenceEditor } from '../components/ReferenceEditor'
 import { PublishedContent } from '../components/PublishedContent'
@@ -7,6 +8,11 @@ import { PublishedContent } from '../components/PublishedContent'
 type PublishedContext = { contentId: string | null; contentType: string | null; refreshSignal: number }
 
 export function ReferenceEditorPage(): JSX.Element {
+  const location = useLocation()
+  const preload = (location.state as { preloadContent?: unknown } | null)?.preloadContent
+  const initialText =
+    preload !== undefined ? JSON.stringify(preload, null, 2) : undefined
+
   const [published, setPublished] = useState<PublishedContext>({
     contentId: null,
     contentType: null,
@@ -16,7 +22,7 @@ export function ReferenceEditorPage(): JSX.Element {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <div>
-        <ReferenceEditor onPublishedContextChange={setPublished} />
+        <ReferenceEditor onPublishedContextChange={setPublished} initialText={initialText} />
       </div>
       <div>
         {published.contentId !== null && published.contentType !== null ? (
