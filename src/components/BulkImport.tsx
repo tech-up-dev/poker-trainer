@@ -1,20 +1,21 @@
 import { useState } from 'react'
 import type { JSX } from 'react'
 
-import type { Lesson } from '../../shared/schemas/lesson'
 import { supabaseProd } from '../lib/supabase-prod'
-import { validateLesson, type FieldError } from '../lib/validate'
+import { detectAndValidate, type FieldError } from '../lib/validate'
+import type { ContentType } from '../../shared/schemas/content'
 
 // Bulk import is the client's main content workflow: he generates large batches
-// of lessons with Claude using the schema doc, then loads them here. We accept a
-// JSON array (or a single object), validate every item against the same Zod
-// schema the single-lesson validator uses, and let him save all the valid ones
-// to staging in one go. Invalid items are listed with field-path errors so he
-// can fix them without a developer.
+// with Claude using the schema doc, then loads them here. We accept a JSON array,
+// a single object, or a one-key wrapper like { "glossary": [ … ] }. Each item is
+// auto-detected against the content types this build supports, validated, and the
+// valid ones saved to staging in one go. Ids are assigned server-side when the
+// author omits them.
+const CANDIDATE_TYPES: ContentType[] = ['lesson', 'glossary']
 
 type ItemResult =
-  | { index: number; ok: true; lesson: Lesson }
-  | { index: number; ok: false; lessonId: string | null; errors: FieldError[] }
+  | { index: number; ok: true; contentType: ContentType; data: unknown }
+  | { index: number; ok: false; errors: FieldError[] }
 
 type ParseState =
   | { kind: 'idle' }
@@ -24,14 +25,26 @@ type ParseState =
 type SaveState =
   | { kind: 'idle' }
   | { kind: 'saving' }
-  | { kind: 'done'; saved: number; failures: { lessonId: string; message: string }[] }
+  | {
+      kind: 'done'
+      saved: { contentType: ContentType; contentId: string }[]
+      failures: { index: number; message: string }[]
+    }
 
-function readLessonId(item: unknown): string | null {
-  if (typeof item === 'object' && item !== null && 'lesson_id' in item) {
-    const value = (item as Record<string, unknown>).lesson_id
-    return typeof value === 'string' ? value : null
+// Array as-is; a one-key object whose value is an array is unwrapped (handles
+// { "glossary": [ … ] }); anything else is treated as a single item. The
+// one-key rule avoids mistaking a lesson's "questions" array for the batch.
+function toBatch(parsed: unknown): unknown[] {
+  if (Array.isArray(parsed)) return parsed
+  if (parsed !== null && typeof parsed === 'object') {
+    const keys = Object.keys(parsed as Record<string, unknown>)
+    if (keys.length === 1) {
+      const only = (parsed as Record<string, unknown>)[keys[0]]
+      if (Array.isArray(only)) return only
+    }
+    return [parsed]
   }
-  return null
+  return [parsed]
 }
 
 export function BulkImport(): JSX.Element {
@@ -69,11 +82,10 @@ export function BulkImport(): JSX.Element {
       return
     }
 
-    const batch = Array.isArray(parsed) ? parsed : [parsed]
-    const items: ItemResult[] = batch.map((item, index) => {
-      const result = validateLesson(item)
-      if (result.ok) return { index, ok: true, lesson: result.data }
-      return { index, ok: false, lessonId: readLessonId(item), errors: result.errors }
+    const items: ItemResult[] = toBatch(parsed).map((item, index) => {
+      const result = detectAndValidate(item, CANDIDATE_TYPES)
+      if (result.ok) return { index, ok: true, contentType: result.contentType, data: result.data }
+      return { index, ok: false, errors: result.errors }
     })
 
     setParseState({ kind: 'validated', items })
@@ -83,17 +95,17 @@ export function BulkImport(): JSX.Element {
     if (validItems.length === 0 || isSaving) return
     setSaveState({ kind: 'saving' })
 
-    let saved = 0
-    const failures: { lessonId: string; message: string }[] = []
+    const saved: { contentType: ContentType; contentId: string }[] = []
+    const failures: { index: number; message: string }[] = []
     for (const item of validItems) {
       const { data, error } = await supabaseProd.functions.invoke('save-to-staging', {
-        body: { content_id: item.lesson.lesson_id, content_type: 'lesson', content: item.lesson },
+        body: { content_type: item.contentType, content: item.data },
       })
-      const result = data as { ok: boolean; message?: string } | null
+      const result = data as { ok: boolean; content_id?: string; message?: string } | null
       if (error || !result?.ok) {
-        failures.push({ lessonId: item.lesson.lesson_id, message: result?.message ?? error?.message ?? 'Unknown error' })
+        failures.push({ index: item.index, message: result?.message ?? error?.message ?? 'Unknown error' })
       } else {
-        saved++
+        saved.push({ contentType: item.contentType, contentId: result.content_id ?? '(unknown)' })
       }
     }
 
@@ -105,21 +117,24 @@ export function BulkImport(): JSX.Element {
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold">Bulk Import</h1>
         <p className="text-slate-400">
-          Paste a JSON array of lessons (or a single lesson). Validate the batch,
-          then save every valid lesson to staging in one step.
+          Paste a JSON array, a single object, or a wrapper like{' '}
+          <code className="text-slate-300">{'{ "glossary": [ … ] }'}</code>. Each
+          item's type is detected automatically ({CANDIDATE_TYPES.join(', ')}).
+          Validate the batch, then save every valid item to staging in one step.
+          Missing ids are generated for you.
         </p>
       </header>
 
       <div>
         <label htmlFor="bulk-json" className="sr-only">
-          Lessons JSON
+          Content JSON
         </label>
         <textarea
           id="bulk-json"
           rows={20}
           value={inputText}
           onChange={(e) => handleTextChange(e.target.value)}
-          placeholder='[ { "lesson_id": "...", "title": "...", ... }, { ... } ]'
+          placeholder='[ { … }, { … } ]  or  { "glossary": [ … ] }'
           className="w-full font-mono text-sm bg-slate-950 text-slate-100 placeholder-slate-500 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           spellCheck={false}
         />
@@ -136,13 +151,11 @@ export function BulkImport(): JSX.Element {
         </button>
         <button
           type="button"
-          onClick={handleSaveValid}
+          onClick={() => void handleSaveValid()}
           disabled={!canSave}
           className="px-4 py-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {isSaving
-            ? 'Saving…'
-            : `Save ${validItems.length} Valid to Staging`}
+          {isSaving ? 'Saving…' : `Save ${validItems.length} Valid to Staging`}
         </button>
       </div>
 
@@ -154,17 +167,24 @@ export function BulkImport(): JSX.Element {
         ) : null}
 
         {parseState.kind === 'validated' ? (
-          <div className="rounded border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm">
-            <span className="text-green-400 font-medium">{validItems.length} valid</span>
-            <span className="text-slate-500"> · </span>
-            <span className={invalidItems.length > 0 ? 'text-red-400 font-medium' : 'text-slate-400'}>
-              {invalidItems.length} invalid
-            </span>
-            <span className="text-slate-500">
-              {' '}
-              of {parseState.items.length} item
-              {parseState.items.length === 1 ? '' : 's'}
-            </span>
+          <div className="rounded border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm space-y-1">
+            <div>
+              <span className="text-green-400 font-medium">{validItems.length} valid</span>
+              <span className="text-slate-500"> · </span>
+              <span className={invalidItems.length > 0 ? 'text-red-400 font-medium' : 'text-slate-400'}>
+                {invalidItems.length} invalid
+              </span>
+              <span className="text-slate-500">
+                {' '}
+                of {parseState.items.length} item
+                {parseState.items.length === 1 ? '' : 's'}
+              </span>
+            </div>
+            {validItems.length > 0 ? (
+              <div className="text-slate-400">
+                {summarizeByType(validItems)}
+              </div>
+            ) : null}
           </div>
         ) : null}
 
@@ -174,8 +194,7 @@ export function BulkImport(): JSX.Element {
             className="rounded border border-red-600 bg-red-600/10 px-4 py-3 space-y-1"
           >
             <p className="text-red-200 text-sm font-medium">
-              Item {item.index + 1}
-              {item.lessonId !== null ? ` (lesson_id: ${item.lessonId})` : ' (no lesson_id)'}
+              Item {item.index + 1} — no matching content type
             </p>
             <ul className="space-y-1">
               {item.errors.map((err, i) => (
@@ -192,11 +211,22 @@ export function BulkImport(): JSX.Element {
         {saveState.kind === 'done' ? (
           <div className="space-y-2">
             <p className="text-sm text-green-400">
-              Saved {saveState.saved} lesson{saveState.saved === 1 ? '' : 's'} to staging.
+              Saved {saveState.saved.length} item
+              {saveState.saved.length === 1 ? '' : 's'} to staging.
             </p>
+            {saveState.saved.length > 0 ? (
+              <ul className="text-xs text-slate-400 space-y-0.5">
+                {saveState.saved.map((s, i) => (
+                  <li key={i}>
+                    <span className="text-slate-500">{s.contentType}</span>{' '}
+                    <span className="font-mono text-slate-300">{s.contentId}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
             {saveState.failures.map((failure) => (
-              <p key={failure.lessonId} className="text-sm text-red-400">
-                {failure.lessonId}: {failure.message}
+              <p key={failure.index} className="text-sm text-red-400">
+                Item {failure.index + 1}: {failure.message}
               </p>
             ))}
           </div>
@@ -204,4 +234,14 @@ export function BulkImport(): JSX.Element {
       </div>
     </section>
   )
+}
+
+function summarizeByType(
+  items: Extract<ItemResult, { ok: true }>[]
+): string {
+  const counts = new Map<ContentType, number>()
+  for (const item of items) {
+    counts.set(item.contentType, (counts.get(item.contentType) ?? 0) + 1)
+  }
+  return [...counts.entries()].map(([type, n]) => `${n} ${type}`).join(' · ')
 }

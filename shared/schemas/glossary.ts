@@ -8,9 +8,12 @@ import { z } from "zod";
 // nested-linking navigation stack: tapping a linked term pushes its entry onto
 // the drawer's back-stack.
 export const GlossaryEntrySchema = z.object({
+  // Optional: if the author omits it, the pipeline auto-generates a unique
+  // slug from the term at save time. When provided it must be non-empty.
   term_id: z
-    .string({ error: "term_id is required" })
-    .min(1, "term_id is required"),
+    .string()
+    .min(1, "term_id cannot be empty")
+    .optional(),
   term: z
     .string({ error: "term is required" })
     .min(1, "term is required"),
