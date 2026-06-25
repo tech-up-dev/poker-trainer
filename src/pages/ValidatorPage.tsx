@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { JSX } from 'react'
+import { useLocation } from 'react-router-dom'
 
 import { LessonValidator } from '../components/LessonValidator'
 import { PublishedContent } from '../components/PublishedContent'
@@ -10,6 +11,11 @@ type PublishedContext = { contentId: string | null; contentType: string | null; 
 // whatever lesson is loaded on the right. This is the view App used to render
 // directly, now a route under the admin shell.
 export function ValidatorPage(): JSX.Element {
+  const location = useLocation()
+  const preload = (location.state as { preloadContent?: unknown } | null)?.preloadContent
+  const initialText =
+    preload !== undefined ? JSON.stringify(preload, null, 2) : undefined
+
   const [published, setPublished] = useState<PublishedContext>({
     contentId: null,
     contentType: null,
@@ -19,7 +25,7 @@ export function ValidatorPage(): JSX.Element {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <div>
-        <LessonValidator onPublishedContextChange={setPublished} />
+        <LessonValidator onPublishedContextChange={setPublished} initialText={initialText} />
       </div>
       <div>
         {published.contentId !== null && published.contentType !== null ? (
