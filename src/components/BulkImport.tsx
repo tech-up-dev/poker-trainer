@@ -22,14 +22,21 @@ type ParseState =
   | { kind: 'parseError'; message: string }
   | { kind: 'validated'; items: ItemResult[] }
 
+type Saved = { contentType: ContentType; contentId: string }
+
 type SaveState =
   | { kind: 'idle' }
   | { kind: 'saving' }
   | {
       kind: 'done'
-      saved: { contentType: ContentType; contentId: string }[]
+      saved: Saved[]
       failures: { index: number; message: string }[]
     }
+
+type PromoteState =
+  | { kind: 'idle' }
+  | { kind: 'promoting'; done: number; total: number }
+  | { kind: 'done'; promoted: number; failures: { contentId: string; message: string }[] }
 
 // Array as-is; a one-key object whose value is an array is unwrapped (handles
 // { "glossary": [ … ] }); anything else is treated as a single item. The
@@ -51,6 +58,7 @@ export function BulkImport(): JSX.Element {
   const [inputText, setInputText] = useState('')
   const [parseState, setParseState] = useState<ParseState>({ kind: 'idle' })
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
+  const [promoteState, setPromoteState] = useState<PromoteState>({ kind: 'idle' })
 
   const validItems =
     parseState.kind === 'validated'
@@ -68,10 +76,12 @@ export function BulkImport(): JSX.Element {
     setInputText(value)
     setParseState({ kind: 'idle' })
     setSaveState({ kind: 'idle' })
+    setPromoteState({ kind: 'idle' })
   }
 
   function handleValidate(): void {
     setSaveState({ kind: 'idle' })
+    setPromoteState({ kind: 'idle' })
 
     let parsed: unknown
     try {
@@ -110,6 +120,29 @@ export function BulkImport(): JSX.Element {
     }
 
     setSaveState({ kind: 'done', saved, failures })
+  }
+
+  async function handlePromoteAll(saved: Saved[]): Promise<void> {
+    if (saved.length === 0 || promoteState.kind === 'promoting') return
+    setPromoteState({ kind: 'promoting', done: 0, total: saved.length })
+
+    let promoted = 0
+    const failures: { contentId: string; message: string }[] = []
+    for (let i = 0; i < saved.length; i++) {
+      const item = saved[i]
+      const { data, error } = await supabaseProd.functions.invoke('promote-to-prod', {
+        body: { content_id: item.contentId, content_type: item.contentType },
+      })
+      const result = data as { ok: boolean; message?: string } | null
+      if (error || !result?.ok) {
+        failures.push({ contentId: item.contentId, message: result?.message ?? error?.message ?? 'Unknown error' })
+      } else {
+        promoted++
+      }
+      setPromoteState({ kind: 'promoting', done: i + 1, total: saved.length })
+    }
+
+    setPromoteState({ kind: 'done', promoted, failures })
   }
 
   return (
@@ -229,6 +262,35 @@ export function BulkImport(): JSX.Element {
                 Item {failure.index + 1}: {failure.message}
               </p>
             ))}
+
+            {saveState.saved.length > 0 ? (
+              <div className="pt-2 space-y-2">
+                <button
+                  type="button"
+                  onClick={() => void handlePromoteAll(saveState.saved)}
+                  disabled={promoteState.kind === 'promoting'}
+                  className="px-4 py-2 rounded bg-green-700 hover:bg-green-600 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {promoteState.kind === 'promoting'
+                    ? `Promoting… ${promoteState.done}/${promoteState.total}`
+                    : `Promote ${saveState.saved.length} to Production`}
+                </button>
+
+                {promoteState.kind === 'done' ? (
+                  <div className="space-y-1">
+                    <p className="text-sm text-green-400">
+                      Promoted {promoteState.promoted} item
+                      {promoteState.promoted === 1 ? '' : 's'} to production.
+                    </p>
+                    {promoteState.failures.map((failure, i) => (
+                      <p key={i} className="text-sm text-red-400">
+                        <span className="font-mono">{failure.contentId}</span>: {failure.message}
+                      </p>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
           </div>
         ) : null}
       </div>
