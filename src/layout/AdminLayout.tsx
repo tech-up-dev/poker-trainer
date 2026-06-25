@@ -24,12 +24,12 @@ export function AdminLayout(): JSX.Element {
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6">
           <span className="font-semibold">Poker Trainer · Content Ops</span>
           <nav className="flex gap-2">
-            {/* `end` so /admin isn't highlighted while on /admin/import */}
-            <NavLink to="/admin" end className={navClass}>
-              Validator
-            </NavLink>
             <NavLink to="/admin/import" className={navClass}>
               Bulk Import
+            </NavLink>
+            {/* `end` so the Lesson tab (/admin) isn't highlighted on other routes */}
+            <NavLink to="/admin" end className={navClass}>
+              Lesson
             </NavLink>
             <NavLink to="/admin/glossary" className={navClass}>
               Glossary
