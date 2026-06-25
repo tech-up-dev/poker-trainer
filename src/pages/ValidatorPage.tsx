@@ -3,13 +3,13 @@ import type { JSX } from 'react'
 import { useLocation } from 'react-router-dom'
 
 import { LessonValidator } from '../components/LessonValidator'
+import { StagingContent } from '../components/StagingContent'
 import { PublishedContent } from '../components/PublishedContent'
 
 type PublishedContext = { contentId: string | null; contentType: string | null; refreshSignal: number }
 
-// The single-lesson validator on the left, the current production content for
-// whatever lesson is loaded on the right. This is the view App used to render
-// directly, now a route under the admin shell.
+// The single-lesson validator on the left; the staging and production copies of
+// whatever lesson is loaded on the right.
 export function ValidatorPage(): JSX.Element {
   const location = useLocation()
   const preload = (location.state as { preloadContent?: unknown } | null)?.preloadContent
@@ -27,16 +27,23 @@ export function ValidatorPage(): JSX.Element {
       <div>
         <LessonValidator onPublishedContextChange={setPublished} initialText={initialText} />
       </div>
-      <div>
+      <div className="space-y-8">
         {published.contentId !== null && published.contentType !== null ? (
-          <PublishedContent
-            contentId={published.contentId}
-            contentType={published.contentType}
-            refreshSignal={published.refreshSignal}
-          />
+          <>
+            <StagingContent
+              contentId={published.contentId}
+              contentType={published.contentType}
+              refreshSignal={published.refreshSignal}
+            />
+            <PublishedContent
+              contentId={published.contentId}
+              contentType={published.contentType}
+              refreshSignal={published.refreshSignal}
+            />
+          </>
         ) : (
           <p className="text-sm text-slate-500">
-            Validate a lesson to see its current production content.
+            Validate a lesson to see its staging and production copies.
           </p>
         )}
       </div>

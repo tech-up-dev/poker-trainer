@@ -1,7 +1,8 @@
 // Get-from-staging Edge Function.
 // Hosted on the production Supabase project. Validates the caller is an admin
-// (production auth), then reads a single content row from the staging DB using
-// the staging service-role key. Used by the admin UI to pre-fill editors.
+// (production auth), then reads a single staged row by content_id + content_type
+// using the staging service-role key. Lets the editor's Staging panel show the
+// staged copy of an item without the frontend touching the staging DB directly.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -23,6 +24,7 @@ Deno.serve(async (req) => {
   }
 
   const prod = createClient(prodUrl, prodKey);
+
   try {
     await assertAdmin(req, prod);
   } catch (err) {
@@ -48,19 +50,17 @@ Deno.serve(async (req) => {
   }
 
   const staging = createClient(stagingUrl, stagingKey);
+
   const { data, error } = await staging
     .from("content_staging")
     .select("content")
     .eq("content_id", content_id)
     .eq("content_type", content_type)
-    .single();
+    .maybeSingle();
 
   if (error) {
-    if (error.code === "PGRST116") {
-      return jsonResponse(req, { ok: false, message: "Not found in staging" }, 404);
-    }
     return jsonResponse(req, { ok: false, message: error.message }, 500);
   }
 
-  return jsonResponse(req, { ok: true, content_id, content_type, content: data.content });
+  return jsonResponse(req, { ok: true, content: data?.content ?? null });
 });
