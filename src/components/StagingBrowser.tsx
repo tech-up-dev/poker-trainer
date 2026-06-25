@@ -33,6 +33,31 @@ function key(item: StagedItem): string {
   return `${item.content_type}:${item.content_id}`
 }
 
+// Human-readable label for a staged item, by type. Falls back to the id when the
+// expected field is missing. Tips have no title, so we show the tip body.
+function labelFor(item: StagedItem): string {
+  const c = item.content
+  if (c === null || typeof c !== 'object') return item.content_id
+  const pick = (field: string): string | undefined => {
+    const v = (c as Record<string, unknown>)[field]
+    return typeof v === 'string' && v.length > 0 ? v : undefined
+  }
+  switch (item.content_type) {
+    case 'lesson':
+    case 'reference':
+      return pick('title') ?? item.content_id
+    case 'glossary':
+      return pick('term') ?? item.content_id
+    case 'tip': {
+      const body = pick('body')
+      if (body) return body.length > 80 ? `${body.slice(0, 80)}…` : body
+      return pick('concept') ?? item.content_id
+    }
+    default:
+      return item.content_id
+  }
+}
+
 export function StagingBrowser(): JSX.Element {
   const navigate = useNavigate()
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
@@ -128,12 +153,17 @@ export function StagingBrowser(): JSX.Element {
         <p className="text-sm text-red-400">Failed to load staging: {state.message}</p>
       )
     }
-    if (state.items.length === 0) {
+    // Only surface content types this build exposes (have an editor route). On
+    // M1 that's lesson + glossary, so tips/references staged by later builds stay
+    // hidden — the client shouldn't see types that aren't released yet.
+    const visibleItems = state.items.filter((item) => EDITOR_ROUTE[item.content_type])
+
+    if (visibleItems.length === 0) {
       return <p className="text-sm text-slate-400">Nothing in staging.</p>
     }
 
     const groups = new Map<ContentType, StagedItem[]>()
-    for (const item of state.items) {
+    for (const item of visibleItems) {
       const list = groups.get(item.content_type) ?? []
       list.push(item)
       groups.set(item.content_type, list)
@@ -144,11 +174,11 @@ export function StagingBrowser(): JSX.Element {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            onClick={() => void promoteAll(state.items)}
+            onClick={() => void promoteAll(visibleItems)}
             disabled={promotingAll}
             className="px-4 py-2 rounded bg-green-700 hover:bg-green-600 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {promotingAll ? 'Promoting all…' : `Promote all ${state.items.length} to Production`}
+            {promotingAll ? 'Promoting all…' : `Promote all ${visibleItems.length} to Production`}
           </button>
           <span className="text-sm text-slate-500">
             {[...groups.entries()].map(([t, l]) => `${l.length} ${t}`).join(' · ')}
@@ -166,8 +196,11 @@ export function StagingBrowser(): JSX.Element {
                   <li key={key(item)} className="px-4 py-3 space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <span className="font-mono text-sm text-slate-200">{item.content_id}</span>
-                        <span className="text-xs text-slate-500"> · {formatRelative(item.updated_at)}</span>
+                        <div className="text-sm text-slate-100 truncate">{labelFor(item)}</div>
+                        <div className="text-xs text-slate-500">
+                          <span className="font-mono">{item.content_id}</span>
+                          <span> · {formatRelative(item.updated_at)}</span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <button
