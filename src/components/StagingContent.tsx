@@ -11,45 +11,49 @@ type LoadState =
   | { kind: 'loaded'; content: unknown }
   | { kind: 'error'; message: string }
 
-type PublishedContentProps = {
+type StagingContentProps = {
   contentId: string
   contentType: string
   refreshSignal: number
 }
 
-// The production copy of a piece of content, read straight from content_published.
-export function PublishedContent({
+// The staging copy of a piece of content, fetched through get-from-staging (the
+// frontend can't read the staging DB directly). Shown alongside the production
+// panel so the author can see what's staged vs what's live.
+export function StagingContent({
   contentId,
   contentType,
   refreshSignal,
-}: PublishedContentProps): JSX.Element {
+}: StagingContentProps): JSX.Element {
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
 
   useEffect(() => {
     let cancelled = false
 
-    async function fetchPublished(): Promise<void> {
+    async function fetchStaged(): Promise<void> {
       setState({ kind: 'loading' })
-      const { data, error } = await supabaseProd
-        .from('content_published')
-        .select('content')
-        .eq('content_id', contentId)
-        .eq('content_type', contentType)
-        .maybeSingle()
+      const { data, error } = await supabaseProd.functions.invoke('get-from-staging', {
+        body: { content_id: contentId, content_type: contentType },
+      })
 
       if (cancelled) return
       if (error) {
         setState({ kind: 'error', message: error.message })
         return
       }
-      if (data === null) {
+      const result = data as { ok: boolean; content?: unknown; message?: string }
+      if (!result.ok) {
+        setState({ kind: 'error', message: result.message ?? 'Unknown error' })
+        return
+      }
+      if (result.content === undefined || result.content === null) {
         setState({ kind: 'empty' })
         return
       }
-      setState({ kind: 'loaded', content: data.content })
+      setState({ kind: 'loaded', content: result.content })
     }
 
-    fetchPublished()
+    fetchStaged()
     return () => {
       cancelled = true
     }
@@ -57,15 +61,15 @@ export function PublishedContent({
 
   return (
     <section className="space-y-3" aria-live="polite">
-      <h2 className="text-lg font-semibold">Production (Published)</h2>
+      <h2 className="text-lg font-semibold">Staging</h2>
       {state.kind === 'loading' ? (
         <p className="text-sm text-slate-400">Loading…</p>
       ) : state.kind === 'error' ? (
         <p className="text-sm text-red-400">
-          Failed to load published content: {state.message}
+          Failed to load staging content: {state.message}
         </p>
       ) : state.kind === 'empty' ? (
-        <p className="text-sm text-slate-400">No production version yet.</p>
+        <p className="text-sm text-slate-400">Not in staging.</p>
       ) : (
         <div className="max-h-[28rem] overflow-y-auto pr-1">
           <ContentBody content={state.content} contentType={contentType} />

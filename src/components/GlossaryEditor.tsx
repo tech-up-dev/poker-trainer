@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 
-import type { Lesson } from '../../shared/schemas/lesson'
-
+import type { GlossaryEntry } from '../../shared/schemas/glossary'
 import { supabaseProd } from '../lib/supabase-prod'
-import { validateLesson, type FieldError } from '../lib/validate'
-import validSample from '../../samples/valid-lesson.json'
-import invalidSample from '../../samples/invalid-lesson.json'
-
+import { validateGlossary, type FieldError } from '../lib/validate'
+import validSample from '../../samples/valid-glossary.json'
+import invalidSample from '../../samples/invalid-glossary.json'
 import { VersionsPanel } from './VersionsPanel'
 
 type ValidationState =
-  | { ok: true; data: Lesson }
+  | { ok: true; data: GlossaryEntry }
   | { ok: false; errors: FieldError[] }
   | { ok: false; parseError: string }
 
@@ -23,7 +21,7 @@ type PromoteStatus =
   | { promoted: number }
   | { error: string }
 
-type LessonValidatorProps = {
+type GlossaryEditorProps = {
   onPublishedContextChange: (ctx: {
     contentId: string | null
     contentType: string | null
@@ -33,30 +31,24 @@ type LessonValidatorProps = {
   initialText?: string
 }
 
-export function LessonValidator({
-  onPublishedContextChange,
-  initialText,
-}: LessonValidatorProps): JSX.Element {
+export function GlossaryEditor({ onPublishedContextChange, initialText }: GlossaryEditorProps): JSX.Element {
   const [inputText, setInputText] = useState(initialText ?? '')
   const [validationResult, setValidationResult] = useState<ValidationState | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [promoteStatus, setPromoteStatus] = useState<PromoteStatus>('idle')
   const [versionsRefresh, setVersionsRefresh] = useState(0)
-  // The id assigned by the server when the author omits lesson_id. Versions and
+  // The id assigned by the server when the author omits term_id. Versions and
   // promotion key off this once a save has happened.
   const [savedId, setSavedId] = useState<string | null>(null)
 
-  // The id provided in the JSON, if any; null when the author left it out.
   const explicitId =
-    validationResult?.ok === true ? validationResult.data.lesson_id ?? null : null
-  // What versions/promote/published actually operate on: the author's id, or the
-  // server-assigned one after a save.
+    validationResult?.ok === true ? validationResult.data.term_id ?? null : null
   const effectiveId = explicitId ?? savedId
 
   useEffect(() => {
     onPublishedContextChange({
       contentId: effectiveId,
-      contentType: effectiveId ? 'lesson' : null,
+      contentType: effectiveId ? 'glossary' : null,
       refreshSignal: versionsRefresh,
     })
   }, [effectiveId, versionsRefresh, onPublishedContextChange])
@@ -94,7 +86,7 @@ export function LessonValidator({
       setPromoteStatus('idle')
       return
     }
-    setValidationResult(validateLesson(parsed))
+    setValidationResult(validateGlossary(parsed))
     setSaveStatus('idle')
     setPromoteStatus('idle')
   }
@@ -102,10 +94,10 @@ export function LessonValidator({
   async function handleSave(): Promise<void> {
     if (validationResult?.ok !== true) return
     if (saveStatus === 'saving') return
-    const lesson = validationResult.data
+    const entry = validationResult.data
     setSaveStatus('saving')
     const { data, error } = await supabaseProd.functions.invoke('save-to-staging', {
-      body: { content_id: lesson.lesson_id, content_type: 'lesson', content: lesson },
+      body: { content_id: entry.term_id, content_type: 'glossary', content: entry },
     })
     if (error) {
       setSaveStatus({ error: error.message })
@@ -128,10 +120,9 @@ export function LessonValidator({
     // saved to staging first — otherwise we'd promote a stale version.
     if (saveStatus !== 'saved' || effectiveId === null) return
     setPromoteStatus('promoting')
-    const { data, error } = await supabaseProd.functions.invoke(
-      'promote-to-prod',
-      { body: { content_id: effectiveId, content_type: 'lesson' } }
-    )
+    const { data, error } = await supabaseProd.functions.invoke('promote-to-prod', {
+      body: { content_id: effectiveId, content_type: 'glossary' },
+    })
     if (error) {
       setPromoteStatus({ error: error.message })
       return
@@ -150,9 +141,9 @@ export function LessonValidator({
   return (
     <section className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold">Lesson Validator</h1>
+        <h1 className="text-2xl font-semibold">Glossary Editor</h1>
         <p className="text-slate-400">
-          Paste a lesson JSON, validate, save to staging, and promote to production.
+          Paste a glossary entry JSON, validate, save to staging, and promote to production.
         </p>
       </header>
 
@@ -174,15 +165,15 @@ export function LessonValidator({
       </div>
 
       <div>
-        <label htmlFor="lesson-json" className="sr-only">
-          Lesson JSON
+        <label htmlFor="glossary-json" className="sr-only">
+          Glossary Entry JSON
         </label>
         <textarea
-          id="lesson-json"
-          rows={20}
+          id="glossary-json"
+          rows={16}
           value={inputText}
           onChange={(e) => handleTextChange(e.target.value)}
-          placeholder="Paste lesson JSON here..."
+          placeholder="Paste glossary entry JSON here..."
           className="w-full font-mono text-sm bg-slate-950 text-slate-100 placeholder-slate-500 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           spellCheck={false}
         />
@@ -198,7 +189,7 @@ export function LessonValidator({
         </button>
         <button
           type="button"
-          onClick={handleSave}
+          onClick={() => void handleSave()}
           disabled={!canSave || operationInFlight}
           className="px-4 py-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium disabled:opacity-40 disabled:cursor-not-allowed"
         >
@@ -206,7 +197,7 @@ export function LessonValidator({
         </button>
         <button
           type="button"
-          onClick={handlePromote}
+          onClick={() => void handlePromote()}
           disabled={!canSave || operationInFlight || saveStatus !== 'saved'}
           className="px-4 py-2 rounded bg-green-700 hover:bg-green-600 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"
         >
@@ -251,7 +242,7 @@ export function LessonValidator({
       {effectiveId !== null ? (
         <VersionsPanel
           contentId={effectiveId}
-          contentType="lesson"
+          contentType="glossary"
           refreshSignal={versionsRefresh}
           onAfterRollback={(content) => {
             setVersionsRefresh((s) => s + 1)
@@ -270,9 +261,10 @@ function renderValidationPanel(state: ValidationState): JSX.Element {
   if (state.ok) {
     return (
       <div className="rounded border border-green-600 bg-green-600/10 text-green-300 px-4 py-3">
-        <strong className="text-green-200">✓ Valid lesson</strong>
+        <strong className="text-green-200">✓ Valid glossary entry</strong>
         {' — '}
-        {state.data.title} · {state.data.questions.length} questions
+        {state.data.term}
+        {state.data.importance ? ` · ${state.data.importance}` : ''}
       </div>
     )
   }

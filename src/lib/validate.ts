@@ -1,9 +1,15 @@
 import { LessonSchema, type Lesson } from "../../shared/schemas/lesson";
+import { GlossaryEntrySchema, type GlossaryEntry } from "../../shared/schemas/glossary";
+import { contentRegistry, type ContentType } from "../../shared/schemas/content";
 
 export type FieldError = { path: string; message: string };
 
 export type ValidationResult =
   | { ok: true; data: Lesson }
+  | { ok: false; errors: FieldError[] };
+
+export type GlossaryValidationResult =
+  | { ok: true; data: GlossaryEntry }
   | { ok: false; errors: FieldError[] };
 
 export function validateLesson(input: unknown): ValidationResult {
@@ -15,6 +21,50 @@ export function validateLesson(input: unknown): ValidationResult {
     message: issue.message,
   }));
   return { ok: false, errors };
+}
+
+export function validateGlossary(input: unknown): GlossaryValidationResult {
+  const result = GlossaryEntrySchema.safeParse(input);
+  if (result.success) return { ok: true, data: result.data };
+
+  const errors: FieldError[] = result.error.issues.map((issue) => ({
+    path: formatPath(issue.path),
+    message: issue.message,
+  }));
+  return { ok: false, errors };
+}
+
+export type DetectResult =
+  | { ok: true; contentType: ContentType; data: unknown }
+  | { ok: false; errors: FieldError[] };
+
+// Auto-detect which content type an item is by trying each candidate schema in
+// order. The schemas' required fields are discriminating enough that a real item
+// matches at most one. On no match we surface the errors from the closest
+// candidate (fewest issues) so the author sees the most useful message.
+export function detectAndValidate(
+  input: unknown,
+  candidates: readonly ContentType[]
+): DetectResult {
+  let best: { count: number; errors: FieldError[] } | null = null;
+
+  for (const contentType of candidates) {
+    const result = contentRegistry[contentType].schema.safeParse(input);
+    if (result.success) return { ok: true, contentType, data: result.data };
+
+    const issues = result.error.issues;
+    if (best === null || issues.length < best.count) {
+      best = {
+        count: issues.length,
+        errors: issues.map((issue) => ({
+          path: formatPath(issue.path),
+          message: issue.message,
+        })),
+      };
+    }
+  }
+
+  return { ok: false, errors: best?.errors ?? [] };
 }
 
 // Convert Zod paths like ["questions", 2, "answers"] into "question 3, answers"

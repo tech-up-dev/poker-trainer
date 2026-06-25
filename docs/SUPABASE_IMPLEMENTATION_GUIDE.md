@@ -407,10 +407,10 @@ Use the built-in `onAuthStateChange` listener — never manually manage session 
 
 ```typescript
 // core/auth/auth.store.ts (Zustand)
-import { prodSupabase } from '../../../supabase/supabase-prod';
+import { supabaseProd } from '../../lib/supabase-prod';
 
 useEffect(() => {
-  const { data: { subscription } } = prodSupabase.auth.onAuthStateChange(
+  const { data: { subscription } } = supabaseProd.auth.onAuthStateChange(
     async (event, session) => {
       if (session) {
         useAuthStore.getState().setSession(session);
@@ -539,7 +539,7 @@ export function useHasAccess(key: string): boolean {
 }
 
 // Usage
-const hasQuizAccess = useHasAccess('quiz_access');
+const hasQuizAccess = useHasAccess('quiz_app_access');
 ```
 
 ### Checking Access in Edge Functions
