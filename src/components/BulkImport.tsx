@@ -11,7 +11,7 @@ import type { ContentType } from '../../shared/schemas/content'
 // auto-detected against the content types this build supports, validated, and the
 // valid ones saved to staging in one go. Ids are assigned server-side when the
 // author omits them.
-const CANDIDATE_TYPES: ContentType[] = ['lesson', 'glossary']
+const CANDIDATE_TYPES: ContentType[] = ['lesson', 'glossary', 'tip', 'reference']
 
 type ItemResult =
   | { index: number; ok: true; contentType: ContentType; data: unknown }

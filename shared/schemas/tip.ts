@@ -4,9 +4,12 @@ import { z } from "zod";
 // can save them to a personal list. Authored and versioned through the same
 // pipeline as lessons (M2), so it follows the same id + tag conventions.
 export const TipSchema = z.object({
+  // Optional: if the author omits it, the pipeline auto-generates a unique id at
+  // save time (slugged from concept, else a generated suffix). Non-empty when set.
   tip_id: z
-    .string({ error: "tip_id is required" })
-    .min(1, "tip_id is required"),
+    .string()
+    .min(1, "tip_id cannot be empty")
+    .optional(),
   body: z
     .string({ error: "tip body is required" })
     .min(1, "tip body is required"),

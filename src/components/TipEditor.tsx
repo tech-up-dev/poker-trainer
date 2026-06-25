@@ -35,24 +35,32 @@ export function TipEditor({ onPublishedContextChange }: TipEditorProps): JSX.Ele
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [promoteStatus, setPromoteStatus] = useState<PromoteStatus>('idle')
   const [versionsRefresh, setVersionsRefresh] = useState(0)
+  // The id assigned by the server when the author omits tip_id. Versions and
+  // promotion key off this once a save has happened.
+  const [savedId, setSavedId] = useState<string | null>(null)
+
+  const explicitId =
+    validationResult?.ok === true ? validationResult.data.tip_id ?? null : null
+  const effectiveId = explicitId ?? savedId
 
   useEffect(() => {
-    const contentId =
-      validationResult?.ok === true ? validationResult.data.tip_id : null
-    onPublishedContextChange({ contentId, contentType: contentId ? 'tip' : null, refreshSignal: versionsRefresh })
-  }, [validationResult, versionsRefresh, onPublishedContextChange])
+    onPublishedContextChange({
+      contentId: effectiveId,
+      contentType: effectiveId ? 'tip' : null,
+      refreshSignal: versionsRefresh,
+    })
+  }, [effectiveId, versionsRefresh, onPublishedContextChange])
 
   const canSave = validationResult?.ok === true
   const isSaving = saveStatus === 'saving'
   const isPromoting = promoteStatus === 'promoting'
   const operationInFlight = isSaving || isPromoting
-  const validatedTipId =
-    validationResult?.ok === true ? validationResult.data.tip_id : null
 
   function resetTransientState(): void {
     setValidationResult(null)
     setSaveStatus('idle')
     setPromoteStatus('idle')
+    setSavedId(null)
   }
 
   function loadSample(sample: unknown): void {
@@ -93,18 +101,21 @@ export function TipEditor({ onPublishedContextChange }: TipEditorProps): JSX.Ele
       setSaveStatus({ error: error.message })
       return
     }
-    const result = data as { ok: boolean; message?: string }
+    const result = data as { ok: boolean; content_id?: string; message?: string }
     if (!result.ok) setSaveStatus({ error: result.message ?? 'Unknown error' })
-    else setSaveStatus('saved')
+    else {
+      setSaveStatus('saved')
+      if (result.content_id) setSavedId(result.content_id)
+    }
   }
 
   async function handlePromote(): Promise<void> {
     if (validationResult?.ok !== true) return
     if (promoteStatus === 'promoting') return
-    const tip = validationResult.data
+    if (effectiveId === null) return
     setPromoteStatus('promoting')
     const { data, error } = await supabaseProd.functions.invoke('promote-to-prod', {
-      body: { content_id: tip.tip_id, content_type: 'tip' },
+      body: { content_id: effectiveId, content_type: 'tip' },
     })
     if (error) {
       setPromoteStatus({ error: error.message })
@@ -181,20 +192,26 @@ export function TipEditor({ onPublishedContextChange }: TipEditorProps): JSX.Ele
         <button
           type="button"
           onClick={() => void handlePromote()}
-          disabled={!canSave || operationInFlight}
+          disabled={!canSave || operationInFlight || effectiveId === null}
           className="px-4 py-2 rounded bg-green-700 hover:bg-green-600 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Promote to Production
         </button>
       </div>
 
+      {canSave && effectiveId === null ? (
+        <p className="text-sm text-slate-400">
+          No tip_id provided — save to staging first to generate one, then promote.
+        </p>
+      ) : null}
+
       <div aria-live="polite" className="space-y-3">
         {validationResult !== null && renderValidationPanel(validationResult)}
 
         {isSaving ? <p className="text-sm text-slate-400">Saving…</p> : null}
-        {saveStatus === 'saved' && validationResult?.ok === true ? (
+        {saveStatus === 'saved' && effectiveId !== null ? (
           <p className="text-sm text-green-400">
-            Saved to staging as {validationResult.data.tip_id}
+            Saved to staging as {effectiveId}
           </p>
         ) : null}
         {typeof saveStatus === 'object' ? (
@@ -216,9 +233,9 @@ export function TipEditor({ onPublishedContextChange }: TipEditorProps): JSX.Ele
         ) : null}
       </div>
 
-      {validatedTipId !== null ? (
+      {effectiveId !== null ? (
         <VersionsPanel
-          contentId={validatedTipId}
+          contentId={effectiveId}
           contentType="tip"
           refreshSignal={versionsRefresh}
           onAfterRollback={(content) => {

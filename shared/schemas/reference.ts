@@ -5,9 +5,12 @@ import { z } from "zod";
 // without us building a bespoke editor. Rendered read-only in the member app, so
 // the renderer must sanitize before injecting any HTML.
 export const ReferenceSchema = z.object({
+  // Optional: if the author omits it, the pipeline auto-generates a unique slug
+  // from the title at save time. Non-empty when provided.
   reference_id: z
-    .string({ error: "reference_id is required" })
-    .min(1, "reference_id is required"),
+    .string()
+    .min(1, "reference_id cannot be empty")
+    .optional(),
   title: z
     .string({ error: "title is required" })
     .min(1, "title is required"),
