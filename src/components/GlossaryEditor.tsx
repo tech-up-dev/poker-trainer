@@ -27,10 +27,12 @@ type GlossaryEditorProps = {
     contentType: string | null
     refreshSignal: number
   }) => void
+  // Pre-fill the editor (e.g. when opening a staged item to edit).
+  initialText?: string
 }
 
-export function GlossaryEditor({ onPublishedContextChange }: GlossaryEditorProps): JSX.Element {
-  const [inputText, setInputText] = useState('')
+export function GlossaryEditor({ onPublishedContextChange, initialText }: GlossaryEditorProps): JSX.Element {
+  const [inputText, setInputText] = useState(initialText ?? '')
   const [validationResult, setValidationResult] = useState<ValidationState | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
   const [promoteStatus, setPromoteStatus] = useState<PromoteStatus>('idle')
