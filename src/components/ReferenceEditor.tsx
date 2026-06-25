@@ -114,7 +114,9 @@ export function ReferenceEditor({ onPublishedContextChange, initialText }: Refer
   async function handlePromote(): Promise<void> {
     if (validationResult?.ok !== true) return
     if (promoteStatus === 'promoting') return
-    if (effectiveId === null) return
+    // Promotion publishes the staged copy, so the editor content must have been
+    // saved to staging first — otherwise we'd promote a stale version.
+    if (saveStatus !== 'saved' || effectiveId === null) return
     setPromoteStatus('promoting')
     const { data, error } = await supabaseProd.functions.invoke('promote-to-prod', {
       body: { content_id: effectiveId, content_type: 'reference' },
@@ -194,16 +196,16 @@ export function ReferenceEditor({ onPublishedContextChange, initialText }: Refer
         <button
           type="button"
           onClick={() => void handlePromote()}
-          disabled={!canSave || operationInFlight || effectiveId === null}
+          disabled={!canSave || operationInFlight || saveStatus !== 'saved'}
           className="px-4 py-2 rounded bg-green-700 hover:bg-green-600 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Promote to Production
         </button>
       </div>
 
-      {canSave && effectiveId === null ? (
+      {canSave && saveStatus !== 'saved' ? (
         <p className="text-sm text-slate-400">
-          No reference_id provided — save to staging first to generate one, then promote.
+          Save to staging first — promotion publishes the staged copy.
         </p>
       ) : null}
 
