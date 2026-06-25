@@ -71,7 +71,9 @@ export function StagingContent({
       ) : state.kind === 'empty' ? (
         <p className="text-sm text-slate-400">Not in staging.</p>
       ) : (
-        <ContentBody content={state.content} contentType={contentType} />
+        <div className="max-h-[28rem] overflow-y-auto pr-1">
+          <ContentBody content={state.content} contentType={contentType} />
+        </div>
       )}
     </section>
   )
