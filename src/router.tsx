@@ -9,6 +9,7 @@ import { LoginPage } from './pages/LoginPage'
 import { BulkImport } from './components/BulkImport'
 import { GlossaryEditorPage } from './pages/GlossaryEditorPage'
 import { StagingBrowser } from './components/StagingBrowser'
+import { TablePreviewPage } from './pages/TablePreviewPage'
 import { MemberHomePage } from './pages/MemberHomePage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
@@ -16,6 +17,7 @@ import { MemberHomePage } from './pages/MemberHomePage'
 // RequireSession (any signed-in account, since member entitlements land in M3).
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  { path: '/table-preview', element: <TablePreviewPage /> },
   {
     element: <RequireAuth />,
     children: [
