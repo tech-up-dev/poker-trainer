@@ -9,17 +9,11 @@ import invalidSample from '../../samples/invalid-tip.json'
 import { VersionsPanel } from './VersionsPanel'
 
 type ValidationState =
-  | { ok: true; data: Tip }
-  | { ok: false; errors: FieldError[] }
-  | { ok: false; parseError: string }
+  { ok: true; data: Tip } | { ok: false; errors: FieldError[] } | { ok: false; parseError: string }
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | { error: string }
 
-type PromoteStatus =
-  | 'idle'
-  | 'promoting'
-  | { promoted: number }
-  | { error: string }
+type PromoteStatus = 'idle' | 'promoting' | { promoted: number } | { error: string }
 
 type TipEditorProps = {
   onPublishedContextChange: (ctx: {
@@ -41,8 +35,7 @@ export function TipEditor({ onPublishedContextChange, initialText }: TipEditorPr
   // promotion key off this once a save has happened.
   const [savedId, setSavedId] = useState<string | null>(null)
 
-  const explicitId =
-    validationResult?.ok === true ? validationResult.data.tip_id ?? null : null
+  const explicitId = validationResult?.ok === true ? (validationResult.data.tip_id ?? null) : null
   const effectiveId = explicitId ?? savedId
 
   useEffect(() => {
@@ -216,26 +209,20 @@ export function TipEditor({ onPublishedContextChange, initialText }: TipEditorPr
 
         {isSaving ? <p className="text-sm text-slate-400">Saving…</p> : null}
         {saveStatus === 'saved' && effectiveId !== null ? (
-          <p className="text-sm text-green-400">
-            Saved to staging as {effectiveId}
-          </p>
+          <p className="text-sm text-green-400">Saved to staging as {effectiveId}</p>
         ) : null}
         {typeof saveStatus === 'object' ? (
           <p className="text-sm text-red-400">Save failed: {saveStatus.error}</p>
         ) : null}
 
-        {isPromoting ? (
-          <p className="text-sm text-slate-400">Promoting…</p>
-        ) : null}
+        {isPromoting ? <p className="text-sm text-slate-400">Promoting…</p> : null}
         {typeof promoteStatus === 'object' && 'promoted' in promoteStatus ? (
           <p className="text-sm text-green-400">
             Promoted to production as v{promoteStatus.promoted}
           </p>
         ) : null}
         {typeof promoteStatus === 'object' && 'error' in promoteStatus ? (
-          <p className="text-sm text-red-400">
-            Promote failed: {promoteStatus.error}
-          </p>
+          <p className="text-sm text-red-400">Promote failed: {promoteStatus.error}</p>
         ) : null}
       </div>
 

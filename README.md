@@ -19,14 +19,14 @@ Two workstreams over one shared data model:
 
 ## Tech stack
 
-| Layer | Choice |
-|------|------|
-| Frontend | Vite + React + TypeScript + Tailwind |
-| Routing | React Router |
-| Validation | Zod (schemas in `shared/schemas/`, types via `z.infer`) |
+| Layer          | Choice                                                   |
+| -------------- | -------------------------------------------------------- |
+| Frontend       | Vite + React + TypeScript + Tailwind                     |
+| Routing        | React Router                                             |
+| Validation     | Zod (schemas in `shared/schemas/`, types via `z.infer`)  |
 | Backend / data | Supabase — Postgres + RLS + Auth + Edge Functions (Deno) |
-| Hosting | Vercel (`dev` → Preview, `master` → Production) |
-| Payments / CRM | Stripe → GoHighLevel via Edge Function (M3) |
+| Hosting        | Vercel (`dev` → Preview, `master` → Production)          |
+| Payments / CRM | Stripe → GoHighLevel via Edge Function (M3)              |
 
 New dependencies require explicit client confirmation before install.
 
@@ -117,12 +117,12 @@ The CMS is at `/admin` (lesson validator) and `/admin/import` (bulk import).
 
 ## Common commands
 
-| Command | What it does |
-|---------|--------------|
-| `npm run dev` | Start the dev server with HMR |
-| `npm run build` | Type-check (`tsc -b`) and build for production |
-| `npm run lint` | Run ESLint |
-| `npm run preview` | Serve the production build locally |
+| Command           | What it does                                   |
+| ----------------- | ---------------------------------------------- |
+| `npm run dev`     | Start the dev server with HMR                  |
+| `npm run build`   | Type-check (`tsc -b`) and build for production |
+| `npm run lint`    | Run ESLint                                     |
+| `npm run preview` | Serve the production build locally             |
 
 CI runs `npm ci`, `npm run lint`, and `npm run build` on every PR.
 
@@ -154,12 +154,12 @@ anything destructive.
 
 Edge Function secrets in use:
 
-| Secret | Where | Purpose |
-|--------|-------|---------|
-| `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_SERVICE_ROLE_KEY` | prod project | promote reads staging cross-project — **set** |
-| `ALLOWED_ORIGINS` | prod project | comma-separated CORS allow-list (falls back to `*` if unset) |
-| `REQUIRE_ADMIN` | prod project | set `true` to enforce the admin gate on promote/rollback — **set (M2+)** |
-| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` | auto-injected | hosting project access |
+| Secret                                                      | Where         | Purpose                                                                  |
+| ----------------------------------------------------------- | ------------- | ------------------------------------------------------------------------ |
+| `STAGING_SUPABASE_URL`, `STAGING_SUPABASE_SERVICE_ROLE_KEY` | prod project  | promote reads staging cross-project — **set**                            |
+| `ALLOWED_ORIGINS`                                           | prod project  | comma-separated CORS allow-list (falls back to `*` if unset)             |
+| `REQUIRE_ADMIN`                                             | prod project  | set `true` to enforce the admin gate on promote/rollback — **set (M2+)** |
+| `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`                 | auto-injected | hosting project access                                                   |
 
 (Stripe and GoHighLevel secrets are added in M3.)
 
@@ -220,12 +220,12 @@ on conflict do nothing;
 
 ## Documentation
 
-| Doc | What |
-|-----|------|
-| [`docs/PROJECT_BRIEF.md`](docs/PROJECT_BRIEF.md) | Client, product, commercial terms, locked decisions |
-| [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md) | Live milestone progress tracker |
-| [`docs/poker-trainer-v3-dev-spec.html`](docs/poker-trainer-v3-dev-spec.html) | Engineering spec |
-| [`docs/schema-spec.md`](docs/schema-spec.md) | Canonical content schema (for AI bulk generation) |
-| [`docs/DEVELOPER_GUIDE.md`](docs/DEVELOPER_GUIDE.md) | Architecture and how-to-extend |
-| [`docs/REACT_FEATURE_IMPLEMENTATION_GUIDE.md`](docs/REACT_FEATURE_IMPLEMENTATION_GUIDE.md) · [`docs/SUPABASE_IMPLEMENTATION_GUIDE.md`](docs/SUPABASE_IMPLEMENTATION_GUIDE.md) | Coding conventions |
-| [`docs/QA_GUIDE.md`](docs/QA_GUIDE.md) · [`docs/DEVOPS_GUIDE.md`](docs/DEVOPS_GUIDE.md) · [`docs/PROJECT_MANAGEMENT.md`](docs/PROJECT_MANAGEMENT.md) | QA, ops, PM playbooks |
+| Doc                                                                                                                                                                           | What                                                |
+| ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| [`docs/PROJECT_BRIEF.md`](docs/PROJECT_BRIEF.md)                                                                                                                              | Client, product, commercial terms, locked decisions |
+| [`docs/PROJECT_STATUS.md`](docs/PROJECT_STATUS.md)                                                                                                                            | Live milestone progress tracker                     |
+| [`docs/poker-trainer-v3-dev-spec.html`](docs/poker-trainer-v3-dev-spec.html)                                                                                                  | Engineering spec                                    |
+| [`docs/schema-spec.md`](docs/schema-spec.md)                                                                                                                                  | Canonical content schema (for AI bulk generation)   |
+| [`docs/DEVELOPER_GUIDE.md`](docs/DEVELOPER_GUIDE.md)                                                                                                                          | Architecture and how-to-extend                      |
+| [`docs/REACT_FEATURE_IMPLEMENTATION_GUIDE.md`](docs/REACT_FEATURE_IMPLEMENTATION_GUIDE.md) · [`docs/SUPABASE_IMPLEMENTATION_GUIDE.md`](docs/SUPABASE_IMPLEMENTATION_GUIDE.md) | Coding conventions                                  |
+| [`docs/QA_GUIDE.md`](docs/QA_GUIDE.md) · [`docs/DEVOPS_GUIDE.md`](docs/DEVOPS_GUIDE.md) · [`docs/PROJECT_MANAGEMENT.md`](docs/PROJECT_MANAGEMENT.md)                          | QA, ops, PM playbooks                               |

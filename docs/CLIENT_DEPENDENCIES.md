@@ -8,13 +8,13 @@ This is a living document: items get checked off as they land, new items get add
 
 ## Quick reference (by status)
 
-| Status | Count |
-|--------|-------|
-| Done | _populate as items land_ |
-| In progress | _populate_ |
-| Pending (not yet needed) | _populate_ |
-| Pending (needed soon) | _populate_ |
-| Blocked (delaying work) | _populate_ |
+| Status                   | Count                    |
+| ------------------------ | ------------------------ |
+| Done                     | _populate as items land_ |
+| In progress              | _populate_               |
+| Pending (not yet needed) | _populate_               |
+| Pending (needed soon)    | _populate_               |
+| Blocked (delaying work)  | _populate_               |
 
 Review this status table at every weekly call.
 
@@ -23,6 +23,7 @@ Review this status table at every weekly call.
 ## Accounts and access
 
 ### GitHub repository
+
 - **What:** A GitHub repository under the client's account, with developer added as a collaborator
 - **Why:** Source of truth for all code, PRs, issues, and version history
 - **When needed:** Pre-M1 kickoff (already provided)
@@ -30,6 +31,7 @@ Review this status table at every weekly call.
 - **Notes:** Developer pushed all branches and history. Steve has US developer friends with collaborator access for review.
 
 ### Supabase accounts
+
 - **What:** Access to two Supabase projects (staging and production) with admin privileges for both
 - **Why:** Database, auth, edge functions, storage all live here. Two projects from day one for staging-first safety.
 - **When needed:** Already established for development; client access for verification
@@ -40,6 +42,7 @@ Review this status table at every weekly call.
   - Both projects in the same region (recommended: us-east-1 or closest US region)
 
 ### Vercel account
+
 - **What:** Vercel account with the project imported, builds running, and the custom domain attached
 - **Why:** Hosts the deployed app, handles SSL, provides one-click code rollback
 - **When needed:** Custom domain attachment by M4 deploy; earlier if staging subdomain is wanted
@@ -50,6 +53,7 @@ Review this status table at every weekly call.
   - Vercel automatically handles SSL via Let's Encrypt
 
 ### Stripe account
+
 - **What:** Stripe account with test mode keys (for development) and live mode keys (for production)
 - **Why:** Subscription billing
 - **When needed:** M3 start
@@ -61,6 +65,7 @@ Review this status table at every weekly call.
   - Stripe webhook secret to be provided to developer
 
 ### GoHighLevel account
+
 - **What:** GHL account with API access enabled
 - **Why:** Real-time CRM sync of subscription events
 - **When needed:** M3 start
@@ -72,6 +77,7 @@ Review this status table at every weekly call.
   - Tag taxonomy in GHL should be agreed (e.g., quiz_app_subscriber, quiz_app_cancelled)
 
 ### Domain and DNS
+
 - **What:** A registered domain name plus DNS access (or willingness to add records when needed)
 - **Why:** The app needs to live somewhere members can reach it
 - **When needed:** M4 production deploy (or earlier if staging subdomain is desired)
@@ -83,6 +89,7 @@ Review this status table at every weekly call.
   - If using a brand-new domain, register with at least 1-year auto-renewal
 
 ### Email sender (transactional)
+
 - **What:** A transactional email provider account (Resend, SendGrid, Postmark, or similar) configured with the brand domain for sending password reset and notification emails
 - **Why:** Supabase's default email sender works but uses a Supabase-branded "from" address. For production, members should receive emails from the brand domain.
 - **When needed:** M3 (when auth flows go live)
@@ -97,6 +104,7 @@ Review this status table at every weekly call.
 ## Credentials and keys
 
 ### Stripe keys
+
 - Publishable key (test mode): for development
 - Secret key (test mode): for Edge Function secrets in development
 - Publishable key (live mode): for production
@@ -114,11 +122,13 @@ STRIPE_WEBHOOK_SECRET=whsec_...
 ```
 
 ### Stripe product/price IDs
+
 - Each Stripe product (price) the client wants to offer needs a Price ID shared with the developer
 - Example: `price_1AbC...` for $27/mo, `price_2XyZ...` for $47/mo
 - All map to the same `quiz_app_access` entitlement; no code change needed when new prices are added in Stripe later
 
 ### GoHighLevel keys and IDs
+
 - API key (from GHL → Settings → Business Profile → API)
 - Location ID (visible in GHL URL)
 - Pipeline IDs (if subscription stages map to pipeline stages)
@@ -131,12 +141,15 @@ GHL_LOCATION_ID=...
 ```
 
 ### Supabase keys
+
 - Already in hand for both projects (developer manages these via the Supabase dashboards). Client doesn't need to share; client has access to view via the dashboards.
 
 ### Email sender credentials
+
 - SMTP host, port, username, password (or API key, depending on provider)
 
 ### VAPID keys (web push)
+
 - Generated once by the developer for M4
 - Public key goes in client-facing env
 - Private key goes in Supabase Edge Function secrets
@@ -146,6 +159,7 @@ GHL_LOCATION_ID=...
 ## Content and methodology
 
 ### The five Controlled Chaos principles
+
 - **What:** Final names for the five core teaching principles, used as `principle_tag` values throughout content
 - **When needed:** Locked into the codebase post-M1 demo. Pre-M2 to maintain content integrity.
 - **Status:** Done (provided June 13)
@@ -157,6 +171,7 @@ GHL_LOCATION_ID=...
   5. Building and Winning Huge Pots
 
 ### The six Character Mapping player types
+
 - **What:** Final names and short codes for the six player types
 - **When needed:** Locked into the codebase early for schema correctness
 - **Status:** Done (provided June 13, with correction June 14)
@@ -169,6 +184,7 @@ GHL_LOCATION_ID=...
   6. Smart Thinking Player (STP)
 
 ### Concept taxonomy (seed values)
+
 - **What:** Starting set of concept identifiers used in lessons; client extends through CMS as content grows
 - **When needed:** Schema doc references these; seeded by M2
 - **Status:** Done (20 seed concepts provided June 13)
@@ -198,12 +214,14 @@ GHL_LOCATION_ID=...
 Notes: list has minor numbering quirk (two #19s in the original list, treat as 21 values).
 
 ### Content for M1 demo
+
 - **What:** A handful of real lessons authored by the client for demo content in M1
 - **When needed:** Before M1 demo
 - **Status:** Pending (placeholder content currently in samples)
 - **Notes:** Even 3-5 real lessons makes the M1 demo feel like a real product rather than a prototype
 
 ### Content for production launch
+
 - **What:** Per the PRD, minimum 50 lessons at launch
 - **When needed:** Before production launch (post-M4)
 - **Status:** Client-authored in parallel with development
@@ -213,6 +231,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - Versioning lets client publish, review, and rollback as needed during content build-out
 
 ### Glossary content
+
 - **What:** Initial glossary entries (terms and definitions) for the in-drill tap-to-define feature
 - **When needed:** Before M2 demo
 - **Status:** Pending
@@ -222,18 +241,21 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - Client authors directly through the CMS or via the same bulk import mechanism
 
 ### Tips library content
+
 - **What:** Daily tip content for the Today's Tip rotation
 - **When needed:** Before M2 (rotation goes live in M4 dashboard)
 - **Status:** Pending
 - **Notes:** Same content pipeline as lessons; same bulk-import path
 
 ### References Library content
+
 - **What:** Cheat sheets, Character Mapping reference, methodology references
 - **When needed:** Before M4 launch
 - **Status:** Pending
 - **Notes:** Same content pipeline
 
 ### Skills Path structure
+
 - **What:** Definition of the skill nodes, their relationships, and prerequisites
 - **When needed:** M4 (Skills Path implementation)
 - **Status:** Pending
@@ -247,6 +269,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
 ## Design assets
 
 ### Six player-type avatar artwork
+
 - **What:** SVG illustrations of the 6 player types as small, simple avatars for use at the static poker table
 - **When needed:** M4 polish (placeholders work fine until then)
 - **Status:** Pending (designer being hired by client)
@@ -264,6 +287,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
     - `stp.svg`
 
 ### Logo
+
 - **What:** Brand logo for use in the app header, PWA install icon, and favicon
 - **When needed:** M4 polish (neutral defaults until then)
 - **Status:** Pending (designer being hired by client)
@@ -274,6 +298,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - **Favicon version:** logomark (square, not full wordmark) for the PWA app icon and browser tab
 
 ### Brand colors
+
 - **What:** Primary, secondary, accent colors plus neutrals
 - **When needed:** M4 polish
 - **Status:** Pending
@@ -283,6 +308,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - Integration is a deliberate pass: typography, color system, spacing rhythm. Not a search-and-replace.
 
 ### Brand fonts
+
 - **What:** Web fonts to use across the app
 - **When needed:** M4 polish
 - **Status:** Pending
@@ -292,6 +318,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - If from Google Fonts or similar, just the names
 
 ### Marketing assets (optional)
+
 - **What:** Hero images, illustrations, promotional graphics if used in onboarding or dashboards
 - **When needed:** As specific UI is built
 - **Status:** Pending
@@ -302,6 +329,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
 ## Business decisions
 
 ### Pricing tiers
+
 - **What:** Final list of subscription price points and what each maps to (all map to the same access entitlement; price points are revenue/marketing choices)
 - **When needed:** M3 (entitlement model setup)
 - **Status:** Pending
@@ -311,6 +339,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - Initial set might be: $27/mo standard, $47/mo (loyalty/donor tier), $297/year, occasional promo prices
 
 ### Subscription business rules
+
 - **What:** Behavior on failed payments, cancellations, refunds, trial periods
 - **When needed:** M3
 - **Status:** Pending
@@ -321,6 +350,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - Refunds: policy and Stripe-side handling
 
 ### GoHighLevel tag taxonomy
+
 - **What:** Names of tags and custom fields in GHL that the sync should update
 - **When needed:** M3
 - **Status:** Pending
@@ -329,6 +359,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - Custom fields: `quiz_app_plan`, `quiz_app_status`, `quiz_app_period_end`
 
 ### Content publishing rules
+
 - **What:** Who can promote content to production, who can rollback, any approval process
 - **When needed:** M2 (admin auth gating)
 - **Status:** Pending
@@ -337,6 +368,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - No multi-step approval workflow in V1 (V2+ if needed)
 
 ### Push notification rules
+
 - **What:** When are streak reminder pushes sent, what content do they contain
 - **When needed:** M4
 - **Status:** Pending
@@ -346,6 +378,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - Time zone handling: send at user's local time (use user_streaks.timezone field, added in M4 migration)
 
 ### Onboarding flow specifics
+
 - **What:** Step-by-step flow content for first-login onboarding
 - **When needed:** M4
 - **Status:** Pending
@@ -354,6 +387,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - Content authored by client; developer builds the flow
 
 ### Leaderboard rules
+
 - **What:** What metric drives the monthly leaderboard ranking, how ties are broken, what rewards are given
 - **When needed:** M4
 - **Status:** Pending
@@ -367,6 +401,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
 ## Legal and operational
 
 ### Legal / IP agreement
+
 - **What:** A signed agreement between client and developer covering IP ownership, non-compete, and confidentiality
 - **When needed:** Early in the project (anytime before final delivery)
 - **Status:** Pending (client to draft)
@@ -376,16 +411,19 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - Once signed, store both parties' copies
 
 ### Privacy policy
+
 - **What:** Privacy policy URL, posted on the client's website, that the app links to (per GDPR, CCPA requirements)
 - **When needed:** Before production launch
 - **Status:** Pending (client owns this)
 
 ### Terms of service
+
 - **What:** ToS URL for the app, posted on the client's website
 - **When needed:** Before production launch
 - **Status:** Pending (client owns this)
 
 ### Age verification
+
 - **What:** Age filter (or attestation) at signup; poker content typically requires 18+ in many jurisdictions, 21+ in others
 - **When needed:** M3 (signup flow)
 - **Status:** Pending
@@ -394,6 +432,7 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
   - Real ID verification not needed unless legal counsel advises
 
 ### Data deletion request handling
+
 - **What:** Process for handling member requests to delete their data (GDPR, CCPA)
 - **When needed:** Before launch
 - **Status:** Pending
@@ -406,18 +445,21 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
 ## Communication and operational
 
 ### Slack channel
+
 - **What:** A Slack channel for async communication
 - **When needed:** Early in the project
 - **Status:** Pending (client to set up after the first call)
 - **Notes:** Once set up, client sends invite to developer email
 
 ### Calendar slots
+
 - **What:** Recurring weekly call slot
 - **When needed:** Ongoing
 - **Status:** Confirmed Thursday 5 PM Skopje (10 AM Chicago)
 - **Notes:** Steve hosts on Zoom, records and shares
 
 ### Designer contact (if direct)
+
 - **What:** If the developer needs to communicate directly with the designer about asset specs, contact details
 - **When needed:** Around M4 when assets are being created
 - **Status:** Communication flows through Steve currently
@@ -429,35 +471,35 @@ Notes: list has minor numbering quirk (two #19s in the original list, treat as 2
 
 A condensed view of when each item is critical:
 
-| Item | Critical by | Status |
-|------|-------------|--------|
-| GitHub repo + access | Pre-M1 | Done |
-| Supabase access (both projects) | Pre-M1 | Done (invites sent) |
-| 5 principle names | M1 | Done |
-| 6 player type names | M1 | Done (corrected June 14) |
-| 20 seed concepts | M1 | Done |
-| Stripe account + keys | M3 start | Pending |
-| GHL API key + location ID | M3 start | Pending |
-| Email sender credentials | M3 start | Pending |
-| Vercel + domain access | M4 deploy | Pending |
-| Custom domain registered | M4 deploy | Pending |
-| Pricing tiers and subscription rules | M3 | Pending |
-| GHL tag taxonomy | M3 | Pending |
-| 6 avatar SVGs | M4 polish (placeholders OK until then) | Pending |
-| Logo SVG | M4 polish | Pending |
-| Brand colors and fonts | M4 polish | Pending |
-| 50+ lessons of content | Before launch | Client authoring |
-| Glossary content | Before M2 demo | Pending |
-| Tips library content | Before M4 | Pending |
-| References Library content | Before launch | Pending |
-| Skills Path topology | M4 | Pending |
-| Push notification rules | M4 | Pending |
-| Onboarding flow content | M4 | Pending |
-| Leaderboard rules | M4 | Pending |
-| Legal / IP agreement | Anytime, ideally early | Drafting (client) |
-| Privacy policy URL | Before launch | Pending |
-| Terms of service URL | Before launch | Pending |
-| Slack channel | Early | Pending |
+| Item                                 | Critical by                            | Status                   |
+| ------------------------------------ | -------------------------------------- | ------------------------ |
+| GitHub repo + access                 | Pre-M1                                 | Done                     |
+| Supabase access (both projects)      | Pre-M1                                 | Done (invites sent)      |
+| 5 principle names                    | M1                                     | Done                     |
+| 6 player type names                  | M1                                     | Done (corrected June 14) |
+| 20 seed concepts                     | M1                                     | Done                     |
+| Stripe account + keys                | M3 start                               | Pending                  |
+| GHL API key + location ID            | M3 start                               | Pending                  |
+| Email sender credentials             | M3 start                               | Pending                  |
+| Vercel + domain access               | M4 deploy                              | Pending                  |
+| Custom domain registered             | M4 deploy                              | Pending                  |
+| Pricing tiers and subscription rules | M3                                     | Pending                  |
+| GHL tag taxonomy                     | M3                                     | Pending                  |
+| 6 avatar SVGs                        | M4 polish (placeholders OK until then) | Pending                  |
+| Logo SVG                             | M4 polish                              | Pending                  |
+| Brand colors and fonts               | M4 polish                              | Pending                  |
+| 50+ lessons of content               | Before launch                          | Client authoring         |
+| Glossary content                     | Before M2 demo                         | Pending                  |
+| Tips library content                 | Before M4                              | Pending                  |
+| References Library content           | Before launch                          | Pending                  |
+| Skills Path topology                 | M4                                     | Pending                  |
+| Push notification rules              | M4                                     | Pending                  |
+| Onboarding flow content              | M4                                     | Pending                  |
+| Leaderboard rules                    | M4                                     | Pending                  |
+| Legal / IP agreement                 | Anytime, ideally early                 | Drafting (client)        |
+| Privacy policy URL                   | Before launch                          | Pending                  |
+| Terms of service URL                 | Before launch                          | Pending                  |
+| Slack channel                        | Early                                  | Pending                  |
 
 Review and update this table at every weekly call. Anything that moves from Pending to Done gets noted; anything newly Blocked gets escalated.
 

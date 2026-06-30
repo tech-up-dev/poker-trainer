@@ -15,11 +15,7 @@ type ValidationState =
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | { error: string }
 
-type PromoteStatus =
-  | 'idle'
-  | 'promoting'
-  | { promoted: number }
-  | { error: string }
+type PromoteStatus = 'idle' | 'promoting' | { promoted: number } | { error: string }
 
 type ReferenceEditorProps = {
   onPublishedContextChange: (ctx: {
@@ -31,7 +27,10 @@ type ReferenceEditorProps = {
   initialText?: string
 }
 
-export function ReferenceEditor({ onPublishedContextChange, initialText }: ReferenceEditorProps): JSX.Element {
+export function ReferenceEditor({
+  onPublishedContextChange,
+  initialText,
+}: ReferenceEditorProps): JSX.Element {
   const [inputText, setInputText] = useState(initialText ?? '')
   const [validationResult, setValidationResult] = useState<ValidationState | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
@@ -42,7 +41,7 @@ export function ReferenceEditor({ onPublishedContextChange, initialText }: Refer
   const [savedId, setSavedId] = useState<string | null>(null)
 
   const explicitId =
-    validationResult?.ok === true ? validationResult.data.reference_id ?? null : null
+    validationResult?.ok === true ? (validationResult.data.reference_id ?? null) : null
   const effectiveId = explicitId ?? savedId
 
   useEffect(() => {
@@ -216,26 +215,20 @@ export function ReferenceEditor({ onPublishedContextChange, initialText }: Refer
 
         {isSaving ? <p className="text-sm text-slate-400">Saving…</p> : null}
         {saveStatus === 'saved' && effectiveId !== null ? (
-          <p className="text-sm text-green-400">
-            Saved to staging as {effectiveId}
-          </p>
+          <p className="text-sm text-green-400">Saved to staging as {effectiveId}</p>
         ) : null}
         {typeof saveStatus === 'object' ? (
           <p className="text-sm text-red-400">Save failed: {saveStatus.error}</p>
         ) : null}
 
-        {isPromoting ? (
-          <p className="text-sm text-slate-400">Promoting…</p>
-        ) : null}
+        {isPromoting ? <p className="text-sm text-slate-400">Promoting…</p> : null}
         {typeof promoteStatus === 'object' && 'promoted' in promoteStatus ? (
           <p className="text-sm text-green-400">
             Promoted to production as v{promoteStatus.promoted}
           </p>
         ) : null}
         {typeof promoteStatus === 'object' && 'error' in promoteStatus ? (
-          <p className="text-sm text-red-400">
-            Promote failed: {promoteStatus.error}
-          </p>
+          <p className="text-sm text-red-400">Promote failed: {promoteStatus.error}</p>
         ) : null}
       </div>
 

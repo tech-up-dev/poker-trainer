@@ -1,1190 +1,1898 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Poker Training & Quiz App V3 (Developer Spec)</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --primary: #7f1d1d;
-      --primary-light: #b91c1c;
-      --hero-start: #450a0a;
-      --hero-end: #7f1d1d;
-      --accent: #d4a017;
-      --success: #22c55e;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-      --section-blue: #3b82f6;
-      --section-green: #10b981;
-      --section-purple: #a855f7;
-      --section-orange: #f97316;
-      --section-teal: #14b8a6;
-      --section-amber: #d4a017;
-      --section-red: #b91c1c;
-      --section-slate: #475569;
-      --bg: #faf7f5;
-      --card: #ffffff;
-      --border: #ede2e2;
-      --text: #111827;
-      --text-muted: #6b7280;
-    }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Poker Training & Quiz App V3 (Developer Spec)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --primary: #7f1d1d;
+        --primary-light: #b91c1c;
+        --hero-start: #450a0a;
+        --hero-end: #7f1d1d;
+        --accent: #d4a017;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --section-blue: #3b82f6;
+        --section-green: #10b981;
+        --section-purple: #a855f7;
+        --section-orange: #f97316;
+        --section-teal: #14b8a6;
+        --section-amber: #d4a017;
+        --section-red: #b91c1c;
+        --section-slate: #475569;
+        --bg: #faf7f5;
+        --card: #ffffff;
+        --border: #ede2e2;
+        --text: #111827;
+        --text-muted: #6b7280;
+      }
 
-    * { box-sizing: border-box; }
-    html, body { margin: 0; padding: 0; }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
 
-    body {
-      font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.55;
-      font-size: 15px;
-    }
+      body {
+        font-family:
+          'Inter',
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.55;
+        font-size: 15px;
+      }
 
-    .container {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 24px;
+      }
 
-    /* Hero */
-    header.hero {
-      background: linear-gradient(135deg, var(--hero-start), var(--hero-end));
-      color: white;
-      padding: 56px 0 64px;
-    }
-    .hero .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255,255,255,0.1);
-      border: 1px solid rgba(255,255,255,0.2);
-      border-radius: 999px;
-      padding: 6px 14px;
-      font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 24px;
-    }
-    .hero .kicker {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.6);
-      margin-bottom: 8px;
-    }
-    .hero h1 {
-      font-size: 38px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin: 0 0 12px;
-    }
-    .hero .lede {
-      font-size: 18px;
-      color: rgba(255,255,255,0.78);
-      max-width: 720px;
-      margin: 0;
-    }
-    .hero .meta {
-      margin-top: 28px;
-      font-size: 13px;
-      color: rgba(255,255,255,0.55);
-    }
-    .hero .meta strong { color: rgba(255,255,255,0.92); font-weight: 600; }
+      /* Hero */
+      header.hero {
+        background: linear-gradient(135deg, var(--hero-start), var(--hero-end));
+        color: white;
+        padding: 56px 0 64px;
+      }
+      .hero .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 999px;
+        padding: 6px 14px;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 24px;
+      }
+      .hero .kicker {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.6);
+        margin-bottom: 8px;
+      }
+      .hero h1 {
+        font-size: 38px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 0 0 12px;
+      }
+      .hero .lede {
+        font-size: 18px;
+        color: rgba(255, 255, 255, 0.78);
+        max-width: 720px;
+        margin: 0;
+      }
+      .hero .meta {
+        margin-top: 28px;
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.55);
+      }
+      .hero .meta strong {
+        color: rgba(255, 255, 255, 0.92);
+        font-weight: 600;
+      }
 
-    /* Sections */
-    main { padding: 16px 0 64px; }
-    section { padding: 40px 0; }
-    section.alt { background: var(--bg); }
-    section .kicker {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--primary-light);
-      margin: 0 0 6px;
-    }
-    section h2 {
-      font-size: 22px;
-      font-weight: 700;
-      margin: 0 0 8px;
-    }
-    section .sub {
-      font-size: 14px;
-      color: var(--text-muted);
-      max-width: 720px;
-      margin: 0 0 24px;
-    }
+      /* Sections */
+      main {
+        padding: 16px 0 64px;
+      }
+      section {
+        padding: 40px 0;
+      }
+      section.alt {
+        background: var(--bg);
+      }
+      section .kicker {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: var(--primary-light);
+        margin: 0 0 6px;
+      }
+      section h2 {
+        font-size: 22px;
+        font-weight: 700;
+        margin: 0 0 8px;
+      }
+      section .sub {
+        font-size: 14px;
+        color: var(--text-muted);
+        max-width: 720px;
+        margin: 0 0 24px;
+      }
 
-    /* Card and lists */
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    .card-body { padding: 20px 22px; }
+      /* Card and lists */
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      .card-body {
+        padding: 20px 22px;
+      }
 
-    .grid-2 {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-    }
-    .grid-3 {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 14px;
-    }
-    @media (max-width: 720px) {
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
-    }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      @media (max-width: 720px) {
+        .grid-2,
+        .grid-3 {
+          grid-template-columns: 1fr;
+        }
+      }
 
-    /* Scope Discipline */
-    .discipline {
-      background: rgba(212, 160, 23, 0.07);
-      border-left: 4px solid var(--accent);
-      border-radius: 12px;
-      padding: 20px 22px;
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
-    }
-    .discipline .icon {
-      width: 36px; height: 36px;
-      border-radius: 8px;
-      background: var(--accent);
-      color: white;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      font-weight: 700;
-    }
-    .discipline .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-    @media (max-width: 720px) { .discipline .pair { grid-template-columns: 1fr; } }
-    .discipline h3 {
-      font-size: 13px;
-      font-weight: 700;
-      margin: 0 0 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-    .discipline ul { margin: 0; padding-left: 20px; font-size: 13.5px; color: #4b5563; }
-    .discipline li { padding: 2px 0; }
-    .discipline .closer { font-size: 13.5px; color: #4b5563; margin-top: 14px; line-height: 1.55; }
+      /* Scope Discipline */
+      .discipline {
+        background: rgba(212, 160, 23, 0.07);
+        border-left: 4px solid var(--accent);
+        border-radius: 12px;
+        padding: 20px 22px;
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      .discipline .icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: var(--accent);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-weight: 700;
+      }
+      .discipline .pair {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      @media (max-width: 720px) {
+        .discipline .pair {
+          grid-template-columns: 1fr;
+        }
+      }
+      .discipline h3 {
+        font-size: 13px;
+        font-weight: 700;
+        margin: 0 0 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .discipline ul {
+        margin: 0;
+        padding-left: 20px;
+        font-size: 13.5px;
+        color: #4b5563;
+      }
+      .discipline li {
+        padding: 2px 0;
+      }
+      .discipline .closer {
+        font-size: 13.5px;
+        color: #4b5563;
+        margin-top: 14px;
+        line-height: 1.55;
+      }
 
-    /* Provided assets */
-    .asset {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 18px;
-    }
-    .asset .glyph {
-      width: 32px; height: 32px;
-      border-radius: 8px;
-      background: rgba(185, 28, 28, 0.1);
-      color: var(--primary-light);
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700;
-      margin-bottom: 10px;
-    }
-    .asset .name { font-weight: 700; font-size: 14px; margin: 0 0 4px; }
-    .asset .desc { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.55; }
+      /* Provided assets */
+      .asset {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 18px;
+      }
+      .asset .glyph {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(185, 28, 28, 0.1);
+        color: var(--primary-light);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        margin-bottom: 10px;
+      }
+      .asset .name {
+        font-weight: 700;
+        font-size: 14px;
+        margin: 0 0 4px;
+      }
+      .asset .desc {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.55;
+      }
 
-    /* Tech stack */
-    table.stack {
-      width: 100%;
-      border-collapse: collapse;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-    }
-    table.stack thead {
-      background: #f8fafc;
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      color: var(--text-muted);
-    }
-    table.stack th, table.stack td {
-      text-align: left;
-      padding: 12px 16px;
-      font-size: 14px;
-      border-top: 1px solid var(--border);
-      vertical-align: top;
-    }
-    table.stack thead th { border-top: none; font-weight: 600; }
-    table.stack td.layer { color: var(--text-muted); width: 22%; }
-    table.stack td.tech { font-weight: 600; width: 30%; }
-    table.stack td.rationale { color: var(--text-muted); }
+      /* Tech stack */
+      table.stack {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+      table.stack thead {
+        background: #f8fafc;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+      }
+      table.stack th,
+      table.stack td {
+        text-align: left;
+        padding: 12px 16px;
+        font-size: 14px;
+        border-top: 1px solid var(--border);
+        vertical-align: top;
+      }
+      table.stack thead th {
+        border-top: none;
+        font-weight: 600;
+      }
+      table.stack td.layer {
+        color: var(--text-muted);
+        width: 22%;
+      }
+      table.stack td.tech {
+        font-weight: 600;
+        width: 30%;
+      }
+      table.stack td.rationale {
+        color: var(--text-muted);
+      }
 
-    /* Confirmed Approaches */
-    .approach {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 18px;
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      margin-bottom: 10px;
-    }
-    .approach .check {
-      flex-shrink: 0;
-      width: 32px; height: 32px;
-      border-radius: 8px;
-      background: var(--success);
-      color: white;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 16px;
-    }
-    .approach .label { font-size: 14px; font-weight: 700; margin: 0 0 4px; }
-    .approach .desc { font-size: 13.5px; color: var(--text-muted); margin: 0; line-height: 1.55; }
+      /* Confirmed Approaches */
+      .approach {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 18px;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 10px;
+      }
+      .approach .check {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--success);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 16px;
+      }
+      .approach .label {
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0 0 4px;
+      }
+      .approach .desc {
+        font-size: 13.5px;
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.55;
+      }
 
-    /* Build areas (Scope) */
-    .area {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 14px;
-    }
-    .area .head {
-      padding: 14px 20px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .area .glyph {
-      width: 32px; height: 32px;
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      color: white;
-      font-weight: 700;
-      font-size: 14px;
-      flex-shrink: 0;
-    }
-    .area .title { font-weight: 700; font-size: 15px; }
-    .area .body { padding: 16px 20px; }
-    .area ul { list-style: none; margin: 0; padding: 0; }
-    .area li {
-      padding: 4px 0 4px 22px;
-      font-size: 14px;
-      color: #4b5563;
-      position: relative;
-      line-height: 1.55;
-    }
-    .area li::before {
-      content: "✓";
-      position: absolute;
-      left: 4px;
-      font-weight: 700;
-    }
-    .area .note {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-      font-size: 13px;
-      font-style: italic;
-      color: var(--text-muted);
-      line-height: 1.55;
-    }
+      /* Build areas (Scope) */
+      .area {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 14px;
+      }
+      .area .head {
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .area .glyph {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+      .area .title {
+        font-weight: 700;
+        font-size: 15px;
+      }
+      .area .body {
+        padding: 16px 20px;
+      }
+      .area ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .area li {
+        padding: 4px 0 4px 22px;
+        font-size: 14px;
+        color: #4b5563;
+        position: relative;
+        line-height: 1.55;
+      }
+      .area li::before {
+        content: '✓';
+        position: absolute;
+        left: 4px;
+        font-weight: 700;
+      }
+      .area .note {
+        margin-top: 12px;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+        font-size: 13px;
+        font-style: italic;
+        color: var(--text-muted);
+        line-height: 1.55;
+      }
 
-    /* Architecture notes */
-    .arch {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px 18px;
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-    }
-    .arch .glyph {
-      width: 34px; height: 34px;
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      font-weight: 700;
-      font-size: 14px;
-    }
-    .arch .title { font-weight: 700; font-size: 14px; margin: 0 0 4px; }
-    .arch .desc { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.55; }
+      /* Architecture notes */
+      .arch {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 16px 18px;
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+      }
+      .arch .glyph {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-weight: 700;
+        font-size: 14px;
+      }
+      .arch .title {
+        font-weight: 700;
+        font-size: 14px;
+        margin: 0 0 4px;
+      }
+      .arch .desc {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.55;
+      }
 
-    /* Phases (milestones without money) */
-    .phase {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      margin-bottom: 14px;
-    }
-    .phase .stripe { height: 5px; }
-    .phase .head {
-      padding: 14px 20px 8px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .phase .num {
-      width: 36px; height: 36px;
-      border-radius: 8px;
-      display: flex; align-items: center; justify-content: center;
-      color: white;
-      font-weight: 700;
-      font-size: 13px;
-      flex-shrink: 0;
-    }
-    .phase .title { font-weight: 700; font-size: 15px; }
-    .phase .body { padding: 4px 20px 16px; }
-    .phase .goal { font-size: 13.5px; color: var(--text-muted); margin: 0 0 12px; line-height: 1.55; }
-    .phase ul { list-style: none; margin: 0; padding: 0; }
-    .phase li {
-      padding: 4px 0 4px 22px;
-      font-size: 14px;
-      color: #4b5563;
-      position: relative;
-      line-height: 1.55;
-    }
-    .phase li::before {
-      content: "›";
-      position: absolute;
-      left: 6px;
-      color: var(--primary-light);
-      font-weight: 700;
-    }
-    .phase .footer-note {
-      margin: 12px 0 0;
-      padding-top: 12px;
-      border-top: 1px solid var(--border);
-      font-size: 13px;
-      color: var(--text-muted);
-      font-style: italic;
-      line-height: 1.55;
-    }
+      /* Phases (milestones without money) */
+      .phase {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 14px;
+      }
+      .phase .stripe {
+        height: 5px;
+      }
+      .phase .head {
+        padding: 14px 20px 8px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .phase .num {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 13px;
+        flex-shrink: 0;
+      }
+      .phase .title {
+        font-weight: 700;
+        font-size: 15px;
+      }
+      .phase .body {
+        padding: 4px 20px 16px;
+      }
+      .phase .goal {
+        font-size: 13.5px;
+        color: var(--text-muted);
+        margin: 0 0 12px;
+        line-height: 1.55;
+      }
+      .phase ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .phase li {
+        padding: 4px 0 4px 22px;
+        font-size: 14px;
+        color: #4b5563;
+        position: relative;
+        line-height: 1.55;
+      }
+      .phase li::before {
+        content: '›';
+        position: absolute;
+        left: 6px;
+        color: var(--primary-light);
+        font-weight: 700;
+      }
+      .phase .footer-note {
+        margin: 12px 0 0;
+        padding-top: 12px;
+        border-top: 1px solid var(--border);
+        font-size: 13px;
+        color: var(--text-muted);
+        font-style: italic;
+        line-height: 1.55;
+      }
 
-    /* Checklist */
-    .checklist ul, .deferred ul, .access ul {
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    .checklist li {
-      padding: 6px 0 6px 24px;
-      font-size: 14px;
-      color: #4b5563;
-      position: relative;
-      line-height: 1.55;
-    }
-    .checklist li::before {
-      content: "✓";
-      position: absolute;
-      left: 4px;
-      color: var(--success);
-      font-weight: 700;
-    }
-    .deferred li {
-      padding: 6px 0 6px 24px;
-      font-size: 14px;
-      color: #4b5563;
-      position: relative;
-      line-height: 1.55;
-    }
-    .deferred li::before {
-      content: "✕";
-      position: absolute;
-      left: 4px;
-      color: var(--danger);
-      font-weight: 700;
-    }
-    .access li {
-      padding: 6px 0 6px 24px;
-      font-size: 14px;
-      color: #4b5563;
-      position: relative;
-      line-height: 1.55;
-    }
-    .access li::before {
-      content: "▸";
-      position: absolute;
-      left: 6px;
-      color: var(--primary-light);
-      font-weight: 700;
-    }
+      /* Checklist */
+      .checklist ul,
+      .deferred ul,
+      .access ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+      .checklist li {
+        padding: 6px 0 6px 24px;
+        font-size: 14px;
+        color: #4b5563;
+        position: relative;
+        line-height: 1.55;
+      }
+      .checklist li::before {
+        content: '✓';
+        position: absolute;
+        left: 4px;
+        color: var(--success);
+        font-weight: 700;
+      }
+      .deferred li {
+        padding: 6px 0 6px 24px;
+        font-size: 14px;
+        color: #4b5563;
+        position: relative;
+        line-height: 1.55;
+      }
+      .deferred li::before {
+        content: '✕';
+        position: absolute;
+        left: 4px;
+        color: var(--danger);
+        font-weight: 700;
+      }
+      .access li {
+        padding: 6px 0 6px 24px;
+        font-size: 14px;
+        color: #4b5563;
+        position: relative;
+        line-height: 1.55;
+      }
+      .access li::before {
+        content: '▸';
+        position: absolute;
+        left: 6px;
+        color: var(--primary-light);
+        font-weight: 700;
+      }
 
-    /* Notes */
-    .note-block {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--section-orange);
-      border-radius: 8px;
-      padding: 14px 18px;
-      margin-bottom: 10px;
-    }
-    .note-block h3 { font-size: 14px; font-weight: 700; margin: 0 0 4px; }
-    .note-block p { font-size: 13.5px; color: var(--text-muted); margin: 0; line-height: 1.55; }
+      /* Notes */
+      .note-block {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-left: 3px solid var(--section-orange);
+        border-radius: 8px;
+        padding: 14px 18px;
+        margin-bottom: 10px;
+      }
+      .note-block h3 {
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0 0 4px;
+      }
+      .note-block p {
+        font-size: 13.5px;
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.55;
+      }
 
-    /* Assumptions */
-    .assumption {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 14px 18px;
-      margin-bottom: 10px;
-      display: flex;
-      gap: 12px;
-      align-items: flex-start;
-    }
-    .assumption .glyph {
-      width: 32px; height: 32px;
-      border-radius: 8px;
-      background: rgba(212, 160, 23, 0.12);
-      color: var(--accent);
-      display: flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
-      font-weight: 700;
-    }
-    .assumption .label { font-weight: 700; font-size: 14px; margin: 0 0 3px; }
-    .assumption .desc { font-size: 13px; color: var(--text-muted); margin: 0; line-height: 1.55; }
+      /* Assumptions */
+      .assumption {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 18px;
+        margin-bottom: 10px;
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .assumption .glyph {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(212, 160, 23, 0.12);
+        color: var(--accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-weight: 700;
+      }
+      .assumption .label {
+        font-weight: 700;
+        font-size: 14px;
+        margin: 0 0 3px;
+      }
+      .assumption .desc {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.55;
+      }
 
-    footer.foot {
-      background: var(--primary);
-      color: white;
-      padding: 40px 0;
-      text-align: center;
-      font-size: 13px;
-    }
-    footer.foot p { margin: 4px 0; color: rgba(255,255,255,0.7); }
-    footer.foot .tag { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 16px; }
+      footer.foot {
+        background: var(--primary);
+        color: white;
+        padding: 40px 0;
+        text-align: center;
+        font-size: 13px;
+      }
+      footer.foot p {
+        margin: 4px 0;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      footer.foot .tag {
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 11px;
+        margin-top: 16px;
+      }
 
-    @media print {
-      body { font-size: 12px; background: white; }
-      header.hero { background: var(--primary); }
-      section, section.alt { background: white; padding: 24px 0; }
-      .card, .area, .phase, .approach, .arch, .assumption, .note-block { box-shadow: none; break-inside: avoid; }
-      footer.foot { background: var(--primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    }
-  </style>
-</head>
-<body>
-
-  <header class="hero">
-    <div class="container">
-      <span class="badge">⚙ Developer Reference Document</span>
-      <p class="kicker">Technical Specification</p>
-      <h1>Poker Training & Quiz App V3</h1>
-      <p class="lede">Subscription-gated, mobile-first PWA. Greenfield build with a no-code Content Operations backbone, guided Skills Path, and full engagement loop. This document is for the engineering team and excludes commercial terms.</p>
-      <p class="meta">Client: <strong>Steve Pavilanis, Bushwood Digital Inc.</strong> &nbsp; · &nbsp; Engineering reference (June 4 PRD baseline)</p>
-    </div>
-  </header>
-
-  <main>
-
-    <!-- Project Context -->
-    <section>
+      @media print {
+        body {
+          font-size: 12px;
+          background: white;
+        }
+        header.hero {
+          background: var(--primary);
+        }
+        section,
+        section.alt {
+          background: white;
+          padding: 24px 0;
+        }
+        .card,
+        .area,
+        .phase,
+        .approach,
+        .arch,
+        .assumption,
+        .note-block {
+          box-shadow: none;
+          break-inside: avoid;
+        }
+        footer.foot {
+          background: var(--primary) !important;
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="hero">
       <div class="container">
-        <p class="kicker">Context</p>
-        <h2>Project Context</h2>
-        <p style="color: var(--text-muted); max-width: 760px; margin: 0 0 12px;">
-          A web-based poker training and quiz app for Bushwood Digital's poker coaching membership community. A Duolingo-style, flashcard-style learning experience built around the client's poker strategy methodology. Not a real-money platform. Not a hand-simulation engine. Content-driven.
+        <span class="badge">⚙ Developer Reference Document</span>
+        <p class="kicker">Technical Specification</p>
+        <h1>Poker Training & Quiz App V3</h1>
+        <p class="lede">
+          Subscription-gated, mobile-first PWA. Greenfield build with a no-code Content Operations
+          backbone, guided Skills Path, and full engagement loop. This document is for the
+          engineering team and excludes commercial terms.
         </p>
-        <p style="color: var(--text-muted); max-width: 760px; margin: 0 0 12px;">
-          Core loop: short lesson or concept intro, scenario-based quiz questions, instant feedback with teaching commentary, points, scoring, daily streaks, and a guided skills path. Standalone subscription product, separate from the client's existing membership platform. Delivered as a PWA so members can install it on their phones without app store involvement and receive push reminders.
-        </p>
-        <p style="color: var(--text-muted); max-width: 760px; margin: 0;">
-          Two workstreams: the member-facing app and the no-code Content Operations backbone (CMS). The CMS is the heaviest piece by design; the client has called it the heart of the app. References elsewhere to "V2" refer to additional products (Masterclass, AI features) that V1's architecture is designed to accept additively.
+        <p class="meta">
+          Client: <strong>Steve Pavilanis, Bushwood Digital Inc.</strong> &nbsp; · &nbsp;
+          Engineering reference (June 4 PRD baseline)
         </p>
       </div>
-    </section>
+    </header>
 
-    <!-- Scope Discipline -->
-    <section class="alt">
-      <div class="container">
-        <p class="kicker">Boundaries</p>
-        <h2>Scope Discipline</h2>
-        <p class="sub">What V1 IS and what V1 IS NOT. The product wins on quality of content, speed of authoring, reliability of publish, and a tight daily engagement loop.</p>
+    <main>
+      <!-- Project Context -->
+      <section>
+        <div class="container">
+          <p class="kicker">Context</p>
+          <h2>Project Context</h2>
+          <p style="color: var(--text-muted); max-width: 760px; margin: 0 0 12px">
+            A web-based poker training and quiz app for Bushwood Digital's poker coaching membership
+            community. A Duolingo-style, flashcard-style learning experience built around the
+            client's poker strategy methodology. Not a real-money platform. Not a hand-simulation
+            engine. Content-driven.
+          </p>
+          <p style="color: var(--text-muted); max-width: 760px; margin: 0 0 12px">
+            Core loop: short lesson or concept intro, scenario-based quiz questions, instant
+            feedback with teaching commentary, points, scoring, daily streaks, and a guided skills
+            path. Standalone subscription product, separate from the client's existing membership
+            platform. Delivered as a PWA so members can install it on their phones without app store
+            involvement and receive push reminders.
+          </p>
+          <p style="color: var(--text-muted); max-width: 760px; margin: 0">
+            Two workstreams: the member-facing app and the no-code Content Operations backbone
+            (CMS). The CMS is the heaviest piece by design; the client has called it the heart of
+            the app. References elsewhere to "V2" refer to additional products (Masterclass, AI
+            features) that V1's architecture is designed to accept additively.
+          </p>
+        </div>
+      </section>
 
-        <div class="discipline">
-          <div class="icon">◎</div>
-          <div style="flex: 1;">
-            <div class="pair">
-              <div>
-                <h3 style="color: var(--success);">✓ What this IS</h3>
-                <ul>
-                  <li>Content-driven learning with guided Skills Path</li>
-                  <li>Static 9-max poker table as visual reference</li>
-                  <li>Scenario-based quiz questions with teaching commentary</li>
-                  <li>No-code content operations backbone with versioning and rollback</li>
-                  <li>Subscription-gated, installable PWA with push reminders</li>
-                </ul>
+      <!-- Scope Discipline -->
+      <section class="alt">
+        <div class="container">
+          <p class="kicker">Boundaries</p>
+          <h2>Scope Discipline</h2>
+          <p class="sub">
+            What V1 IS and what V1 IS NOT. The product wins on quality of content, speed of
+            authoring, reliability of publish, and a tight daily engagement loop.
+          </p>
+
+          <div class="discipline">
+            <div class="icon">◎</div>
+            <div style="flex: 1">
+              <div class="pair">
+                <div>
+                  <h3 style="color: var(--success)">✓ What this IS</h3>
+                  <ul>
+                    <li>Content-driven learning with guided Skills Path</li>
+                    <li>Static 9-max poker table as visual reference</li>
+                    <li>Scenario-based quiz questions with teaching commentary</li>
+                    <li>No-code content operations backbone with versioning and rollback</li>
+                    <li>Subscription-gated, installable PWA with push reminders</li>
+                  </ul>
+                </div>
+                <div>
+                  <h3 style="color: var(--danger)">✕ What this IS NOT</h3>
+                  <ul>
+                    <li>Hand-simulation engine</li>
+                    <li>Card-dealing animations</li>
+                    <li>Branching decision trees</li>
+                    <li>GTO / solver-style deep math</li>
+                    <li>Native mobile app (PWA covers install-on-phone)</li>
+                  </ul>
+                </div>
+              </div>
+              <p class="closer">Two workstreams, one shared data model, one V1.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Client-Provided Assets -->
+      <section>
+        <div class="container">
+          <p class="kicker">Starting Point</p>
+          <h2>Client-Provided (Do Not Rebuild)</h2>
+          <p class="sub">
+            No application code exists yet. Greenfield build. What the client brings:
+          </p>
+
+          <div class="grid-3">
+            <div class="asset">
+              <div class="glyph">📚</div>
+              <p class="name">Teaching methodology (IP)</p>
+              <p class="desc">
+                Five core teaching principles and six player-type categories. The intellectual
+                property and product anchor.
+              </p>
+            </div>
+            <div class="asset">
+              <div class="glyph">📄</div>
+              <p class="name">Content library</p>
+              <p class="desc">
+                Lessons, scenario questions, answer options, correct answers, teaching commentary,
+                glossary terms with definitions, Character Mapping reference, tip library. Client
+                authors all content.
+              </p>
+            </div>
+            <div class="asset">
+              <div class="glyph">🎨</div>
+              <p class="name">Player-type avatar artwork</p>
+              <p class="desc">
+                Six player-type avatar illustrations and brand assets supplied by client or client's
+                designer. Avatar illustration is NOT part of dev hours. Integration of supplied
+                artwork is in scope.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tech Stack -->
+      <section class="alt">
+        <div class="container">
+          <p class="kicker">Stack</p>
+          <h2>Technology Stack</h2>
+          <p class="sub">
+            Typed end to end, separate staging and production from day one, two-layer rollback, and
+            architecture choices that keep future products and AI features additive.
+          </p>
+
+          <table class="stack">
+            <thead>
+              <tr>
+                <th>Layer</th>
+                <th>Technology</th>
+                <th>Rationale</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="layer">Frontend</td>
+                <td class="tech">Vite + React + TypeScript + Tailwind</td>
+                <td class="rationale">
+                  TypeScript is essential for a content-heavy app with rigorous schema validation.
+                  Fast iteration, type safety end to end.
+                </td>
+              </tr>
+              <tr>
+                <td class="layer">Validation</td>
+                <td class="tech">Zod</td>
+                <td class="rationale">
+                  Typed schemas with field-path-precise, human-readable error messages. Powers the
+                  import validator the client uses for bulk content.
+                </td>
+              </tr>
+              <tr>
+                <td class="layer">Backend & DB</td>
+                <td class="tech">Supabase (Postgres, Auth, Storage, Edge Functions)</td>
+                <td class="rationale">
+                  Separate staging and production projects. Edge Functions handle cross-environment
+                  promote and Stripe-to-GHL sync. pgvector available for later AI features.
+                </td>
+              </tr>
+              <tr>
+                <td class="layer">Payments</td>
+                <td class="tech">Stripe (recurring subscription billing)</td>
+                <td class="rationale">
+                  Stripe handles billing directly, with webhook-driven sync to app access and
+                  entitlements.
+                </td>
+              </tr>
+              <tr>
+                <td class="layer">CRM Sync</td>
+                <td class="tech">GoHighLevel (GHL)</td>
+                <td class="rationale">
+                  Real-time, per-Stripe-event webhook. Edge Function listens to Stripe and pushes to
+                  GHL on each subscription event.
+                </td>
+              </tr>
+              <tr>
+                <td class="layer">PWA & Push</td>
+                <td class="tech">Service Worker + Web Manifest + Web Push (VAPID)</td>
+                <td class="rationale">
+                  Install prompt, full-screen, offline-tolerant. Scheduled push for streak
+                  reminders. Caching coordinated with the content-publish flow.
+                </td>
+              </tr>
+              <tr>
+                <td class="layer">Hosting</td>
+                <td class="tech">Vercel (one-click deployment revert as code rollback)</td>
+                <td class="rationale">
+                  Two-layer rollback: code via Vercel, content via Supabase versioning.
+                </td>
+              </tr>
+              <tr>
+                <td class="layer">Source Control</td>
+                <td class="tech">GitHub</td>
+                <td class="rationale">
+                  Standard. Repo created under client or developer account per preference.
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Confirmed Approaches -->
+      <section>
+        <div class="container">
+          <p class="kicker">Locked In</p>
+          <h2>Confirmed Approaches</h2>
+          <p class="sub">
+            Decisions captured from the June 4 PRD and the alignment call. These are the technical
+            baseline for the build.
+          </p>
+
+          <div class="approach">
+            <div class="check">✓</div>
+            <div>
+              <p class="label">GoHighLevel integration</p>
+              <p class="desc">
+                Standard Stripe-backed GHL integration confirmed. Real-time per-Stripe-event webhook
+                from a Supabase Edge Function pushing to GoHighLevel. No native GHL processing in
+                scope, no additional webhook handler needed.
+              </p>
+            </div>
+          </div>
+
+          <div class="approach">
+            <div class="check">✓</div>
+            <div>
+              <p class="label">Single content pipeline (content-type-agnostic)</p>
+              <p class="desc">
+                The validate, stage, publish, rollback pipeline serves all V1 content types
+                (Lessons, Tips, References, Path nodes) through the same Edge Functions and the same
+                versioning machinery. No bespoke per-type pipeline anywhere in V1.
+              </p>
+            </div>
+          </div>
+
+          <div class="approach">
+            <div class="check">✓</div>
+            <div>
+              <p class="label">Entitlements over subscription status</p>
+              <p class="desc">
+                A user has zero or more entitlements, each mapped to a Stripe product / price. The
+                app checks entitlements, not raw subscription state. Flexible price points map to a
+                single binary "app access" entitlement, so admin can add or change prices in Stripe
+                or GHL anytime with no code changes.
+              </p>
+            </div>
+          </div>
+
+          <div class="approach">
+            <div class="check">✓</div>
+            <div>
+              <p class="label">Auth model</p>
+              <p class="desc">
+                Supabase Auth: password (immediate post-purchase login, no email wait) plus
+                magic-link as a secondary / recovery path. Single shared identity from day one.
+              </p>
+            </div>
+          </div>
+
+          <div class="approach">
+            <div class="check">✓</div>
+            <div>
+              <p class="label">Two-layer rollback</p>
+              <p class="desc">
+                Code rollback via Vercel's one-click deployment revert. Content rollback via
+                Supabase versioned publish. Code and content can roll back independently without
+                coordinating each other.
+              </p>
+            </div>
+          </div>
+
+          <div class="approach">
+            <div class="check">✓</div>
+            <div>
+              <p class="label">Avatars client-supplied</p>
+              <p class="desc">
+                Six player-type illustrations and brand assets provided by client or their designer.
+                Avatar illustration is NOT part of dev hours. Integration of supplied artwork is in
+                scope.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Scope of Work -->
+      <section class="alt">
+        <div class="container">
+          <p class="kicker">Build</p>
+          <h2>Scope of Work</h2>
+          <p class="sub">
+            Two workstreams. The member-facing app and the Content Operations backbone. The CMS
+            carries the heaviest technical weight.
+          </p>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-red)">⊞</div>
+              <div class="title">Static 9-Max poker table & card display (member app)</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-red)">
+                <li>
+                  Custom static 9-max (full-ring, nine-seat) poker table layout. NOT 6-max. Hard
+                  requirement
+                </li>
+                <li>
+                  Displays positions, stack sizes, dealer button, blinds, pot, community cards, hero
+                  hole cards
+                </li>
+                <li>Lightweight card-rendering component (no dealing animation, no card play)</li>
+                <li>
+                  Player-type avatars at relevant seats as tappable markers that open a short
+                  explainer for that player type
+                </li>
+                <li>All nine seats fit cleanly on a mobile browser screen</li>
+              </ul>
+              <p class="note">
+                <strong>Note on approach:</strong> Existing React poker libraries are built for
+                animated card dealing, which this project does not need. Custom static layout
+                reusing a lightweight card component.
+              </p>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-blue)">⊟</div>
+              <div class="title">Quiz & lesson engine</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-blue)">
+                <li>
+                  Question sequencing, per-answer scoring, session completion, final session score
+                </li>
+                <li>
+                  Lesson flow: concept intro, scenario question set, instant feedback, session score
+                </li>
+                <li>
+                  Scenario-based questions referencing the static table (position vs player type vs
+                  board)
+                </li>
+                <li>
+                  Multiple-choice answer interface, four answers, one correct per question, feedback
+                  shown regardless of choice
+                </li>
+                <li>Review missed questions at end of session</li>
+                <li>
+                  Starred / saved questions, persistent across sessions (refinement of
+                  missed-question review)
+                </li>
+                <li>
+                  Sessions can run in randomized order (methodology is all-encompassing, no fixed
+                  prerequisite ordering)
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-purple)">▤</div>
+              <div class="title">Glossary / tap-to-define (with nested linking)</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-purple)">
+                <li>
+                  Tappable poker terms inside questions and explanations open a definition drawer
+                </li>
+                <li>
+                  Drawer shows: term, plain-language definition, importance indicator,
+                  specific-situation example, example usage
+                </li>
+                <li>
+                  Nested linking: definitions can link to other definitions, with a navigation stack
+                  (back through the chain)
+                </li>
+                <li>
+                  One managed glossary table serves both the in-drill tap-to-define drawer (M1) and
+                  the browsable References Library view (M2). Single source, two UI surfaces
+                </li>
+                <li>
+                  Glossary is a managed library the client can edit via the Content Operations
+                  backbone
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-teal)">▦</div>
+              <div class="title">Content Operations backbone (CMS): the heart of the app</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-teal)">
+                <li>
+                  No-code wizard-style authoring UI that branches by question type (general Q&A or
+                  hand scenario) for one-off authoring
+                </li>
+                <li>
+                  Visual interactive table builder for hand scenarios: place players on a 9-max
+                  layout, assign player types, set stack sizes, move the dealer button, set hole
+                  cards and board cards. Distinct interactive editor (separate from the static table
+                  in the member app)
+                </li>
+                <li>
+                  Bulk import / export as the primary content workflow: the workhorse for thousands
+                  of questions. CSV, JSON, and Markdown
+                </li>
+                <li>
+                  The import schema is cleanly documented as a markdown spec the client can paste
+                  into Claude or other AI tools to generate matching output
+                </li>
+                <li>
+                  Validation engine using Zod with field-path-specific, human-readable error
+                  messages so the client can fix issues without developer involvement (e.g.
+                  "question 3, answers: expected exactly one with is_correct=true, found 0")
+                </li>
+                <li>
+                  Separate Supabase projects for staging and production: isolated environments from
+                  day one
+                </li>
+                <li>Write-to-staging flow with preview on staging</li>
+                <li>
+                  Versioned publish to production: each promote creates a new content version with
+                  full history
+                </li>
+                <li>
+                  One-click rollback to any previous content version, controlled by the client, no
+                  developer needed
+                </li>
+                <li>
+                  Single shared scenario data model across the wizard, bulk upload, validator, and
+                  member app so all paths stay aligned
+                </li>
+              </ul>
+              <p class="note">
+                <strong>Note on approach:</strong> The CMS table builder is a custom interactive
+                editor (drag / click to seat players, set stacks via modal, move the dealer button,
+                assign cards from a picker). Built as its own component, not a library, because no
+                existing React poker library targets interactive authoring of this shape.
+              </p>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-orange)">💡</div>
+              <div class="title">Today's Tip, Saved Tips & References Library</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-orange)">
+                <li>
+                  Today's Tip surface on the home / dashboard, rotating from the client's tip
+                  library
+                </li>
+                <li>Members can save tips for later, organized in a personal Saved Tips list</li>
+                <li>
+                  References Library: cheat sheets, Character Mapping reference, methodology
+                  references
+                </li>
+                <li>
+                  All authored and versioned through the CMS, same publish flow as questions and
+                  lessons
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-amber)">⊿</div>
+              <div class="title">Skills Path & guided progression</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-amber)">
+                <li>Duolingo-style visual progression map with skill nodes and connecting paths</li>
+                <li>
+                  Unlock states (locked, available, in progress, mastered) driven by lesson
+                  completion and accuracy
+                </li>
+                <li>Dependencies between skill nodes so the member sees a clear next step</li>
+                <li>
+                  Maintains the randomized-order option for free practice, while offering this
+                  guided arc on top
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-green)">★</div>
+              <div class="title">Onboarding & warm-up lesson</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-green)">
+                <li>
+                  Short onboarding flow on first login, framing what the app is and how scoring /
+                  streaks work
+                </li>
+                <li>
+                  Warm-up lesson: a curated low-friction first session so members get an early win
+                </li>
+                <li>
+                  Celebratory animations on first-correct, first-session-complete, first-streak,
+                  first-badge
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-blue)">📱</div>
+              <div class="title">Progressive Web App (PWA) & Web Push</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-blue)">
+                <li>
+                  PWA built in from day one: manifest, service worker, install prompt, app-like
+                  full-screen experience on Android and iOS
+                </li>
+                <li>
+                  Add-to-Home-Screen support so members get an icon on their phone without app store
+                  involvement
+                </li>
+                <li>
+                  Service-worker caching strategy designed in coordination with the content-publish
+                  flow so "promote to production" always reaches members cleanly and never leaves
+                  them on stale content
+                </li>
+                <li>
+                  Web push notifications (VAPID setup, scheduled send job) for streak reminders
+                </li>
+                <li>
+                  All screens fully mobile-responsive. Mobile browser is the priority. Most members
+                  will be on phones
+                </li>
+              </ul>
+              <p class="note">
+                <strong>Honest tradeoff:</strong> iOS PWA capabilities are slightly more limited
+                than Android (mainly around push permission timing and some background behavior),
+                but for a subscription quiz app this is rarely felt. Web Push is supported on iOS
+                16.4+ for installed PWAs.
+              </p>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-amber)">🏆</div>
+              <div class="title">Gamification, streaks & badge mastery</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-amber)">
+                <li>Points and scoring based on quiz accuracy</li>
+                <li>Daily streak with progress tracking and reminder push notifications</li>
+                <li>
+                  Monthly contest leaderboard: ranked by quiz performance, monthly reset, contest
+                  mechanics for community engagement
+                </li>
+                <li>Achievement badges for milestones</li>
+                <li>
+                  Badge decay / mastery-maintenance: badges fade if not exercised, restored on
+                  re-engagement (keeps the loop active)
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-purple)">📈</div>
+              <div class="title">Progress tracking & dashboard</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-purple)">
+                <li>
+                  Per-member progress: questions answered, accuracy rate, sessions completed,
+                  improvement over time
+                </li>
+                <li>Dashboard showing rating, selected stats, trend over time</li>
+                <li>Today's Tip and outbound links to client website for upgrades and discounts</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-green)">🔒</div>
+              <div class="title">Authentication, entitlements & access (Supabase)</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-green)">
+                <li>Fresh Supabase projects (staging + production) set up from scratch</li>
+                <li>
+                  Database schemas as versioned setup scripts (tables, indexes, row-level security
+                  policies)
+                </li>
+                <li>
+                  Supabase Auth: password (immediate post-purchase login, no email wait) plus
+                  magic-link as secondary / recovery
+                </li>
+                <li>
+                  Entitlements model: a user has zero or more entitlements, each mapped to a Stripe
+                  product / price. The app checks entitlements, not raw subscription status
+                </li>
+                <li>
+                  Flexible price points map to a single binary "app access" entitlement, so admin
+                  can add or change prices in Stripe or GHL anytime with no code changes
+                </li>
+                <li>
+                  App access gated by active entitlement. Returning entitled members go straight in
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-red)">💳</div>
+              <div class="title">Subscription & payments (Stripe)</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-red)">
+                <li>Stripe recurring subscription billing. Stripe handles billing directly</li>
+                <li>Access gated by active entitlement</li>
+                <li>
+                  Standard subscription management: active access, failed-payment handling,
+                  cancellation
+                </li>
+                <li>Real-time entitlement sync via Stripe webhook</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-purple)">⚡</div>
+              <div class="title">CRM sync (GoHighLevel)</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-purple)">
+                <li>
+                  Real-time, per-Stripe-event webhook sync to GoHighLevel for tagging, segmentation,
+                  automation triggers
+                </li>
+                <li>
+                  Sync runs in a Supabase Edge Function listening to Stripe webhooks and pushing to
+                  GHL on each subscription event
+                </li>
+                <li>
+                  Standard Stripe-backed integration confirmed. No native GHL payment handling in
+                  scope
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-amber)">🎨</div>
+              <div class="title">Design & branding</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-amber)">
+                <li>
+                  Clean, modern, custom UI that feels like the client's brand. Not a generic poker
+                  template
+                </li>
+                <li>
+                  Custom visual identity for the six player-type avatars is non-negotiable (artwork
+                  supplied, integration is in scope)
+                </li>
+                <li>Reference look and flow: the RunOut app, but distinct custom branding</li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="area">
+            <div class="head">
+              <div class="glyph" style="background: var(--section-blue)">🚀</div>
+              <div class="title">Deployment & two-layer rollback</div>
+            </div>
+            <div class="body">
+              <ul style="color: var(--section-blue)">
+                <li>Deploy the web app to the client's domain via Vercel</li>
+                <li>
+                  Two-layer rollback: code via Vercel's one-click deployment revert, content via
+                  Supabase versioned publish
+                </li>
+                <li>
+                  Two Supabase environments (staging, production) configured for the lifecycle of
+                  the product
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Architecture Notes -->
+      <section>
+        <div class="container">
+          <p class="kicker">Forward-Looking Design</p>
+          <h2>Architecture Approach</h2>
+          <p class="sub">
+            Decisions absorbed into V1 so future products (Masterclass, member pricing, adaptive AI)
+            become additive, not rebuilds.
+          </p>
+
+          <div class="grid-2">
+            <div class="arch">
+              <div
+                class="glyph"
+                style="background: rgba(16, 185, 129, 0.12); color: var(--section-green)"
+              >
+                🛡
               </div>
               <div>
-                <h3 style="color: var(--danger);">✕ What this IS NOT</h3>
-                <ul>
-                  <li>Hand-simulation engine</li>
-                  <li>Card-dealing animations</li>
-                  <li>Branching decision trees</li>
-                  <li>GTO / solver-style deep math</li>
-                  <li>Native mobile app (PWA covers install-on-phone)</li>
-                </ul>
+                <p class="title">Entitlements over subscription status</p>
+                <p class="desc">
+                  A user has zero or more entitlements (quiz subscription, future Masterclass,
+                  future products), each mapped to a Stripe product / price. The app checks
+                  entitlements, not raw subscription status. Future multi-product support becomes
+                  new rows plus a new Stripe product, not a rebuild.
+                </p>
               </div>
             </div>
-            <p class="closer">Two workstreams, one shared data model, one V1.</p>
+            <div class="arch">
+              <div
+                class="glyph"
+                style="background: rgba(59, 130, 246, 0.12); color: var(--section-blue)"
+              >
+                💲
+              </div>
+              <div>
+                <p class="title">Flexible price points, single access entitlement</p>
+                <p class="desc">
+                  Multiple Stripe prices can map to the same binary "app access" entitlement. Admin
+                  can add or change price points in Stripe or GHL anytime with no code changes.
+                </p>
+              </div>
+            </div>
+            <div class="arch">
+              <div
+                class="glyph"
+                style="background: rgba(20, 184, 166, 0.12); color: var(--section-teal)"
+              >
+                🔑
+              </div>
+              <div>
+                <p class="title">Single Supabase Auth identity from day one</p>
+                <p class="desc">
+                  Password login for immediate access post-purchase (no email wait), with magic-link
+                  as a secondary / recovery path. Ready for member pricing via Stripe coupons tied
+                  to existing entitlements. One identity carries across future products.
+                </p>
+              </div>
+            </div>
+            <div class="arch">
+              <div
+                class="glyph"
+                style="background: rgba(168, 85, 247, 0.12); color: var(--section-purple)"
+              >
+                ⟲
+              </div>
+              <div>
+                <p class="title">Answer-event logging from day one</p>
+                <p class="desc">
+                  Every quiz attempt logged as an event (user, question, correct / incorrect,
+                  timestamp, time taken). Powers progress and stats. Also the fuel for adaptive AI
+                  recommendations later without a rebuild.
+                </p>
+              </div>
+            </div>
+            <div class="arch">
+              <div
+                class="glyph"
+                style="background: rgba(249, 115, 22, 0.12); color: var(--section-orange)"
+              >
+                ⌥
+              </div>
+              <div>
+                <p class="title">Stable IDs and rich content tags</p>
+                <p class="desc">
+                  Concept, principle, player type, street, difficulty. Tagged from day one so future
+                  filtering, search, and AI features have structure to work with.
+                </p>
+              </div>
+            </div>
+            <div class="arch">
+              <div
+                class="glyph"
+                style="background: rgba(185, 28, 28, 0.12); color: var(--section-red)"
+              >
+                🧠
+              </div>
+              <div>
+                <p class="title">pgvector-ready Postgres</p>
+                <p class="desc">
+                  pgvector is supported by Supabase Postgres, so vector search and embeddings can be
+                  added later as an additive layer. Content text is kept retrievable so this is
+                  never blocked. No embeddings generated in this build.
+                </p>
+              </div>
+            </div>
+            <div class="arch">
+              <div
+                class="glyph"
+                style="background: rgba(212, 160, 23, 0.12); color: var(--section-amber)"
+              >
+                ✨
+              </div>
+              <div>
+                <p class="title">AI-derived data in its own tables</p>
+                <p class="desc">
+                  Future AI features stay additive and never force changes to the source content.
+                  Authored content remains the single source of truth.
+                </p>
+              </div>
+            </div>
+            <div class="arch">
+              <div
+                class="glyph"
+                style="background: rgba(16, 185, 129, 0.12); color: var(--section-green)"
+              >
+                ⟲
+              </div>
+              <div>
+                <p class="title">Two-layer rollback</p>
+                <p class="desc">
+                  Code rollback via Vercel's one-click deployment revert. Content rollback via
+                  Supabase versioned publish. Code and content can roll back independently without
+                  coordinating each other.
+                </p>
+              </div>
+            </div>
+            <div class="arch">
+              <div
+                class="glyph"
+                style="background: rgba(20, 184, 166, 0.12); color: var(--section-teal)"
+              >
+                ▦
+              </div>
+              <div>
+                <p class="title">Single content pipeline</p>
+                <p class="desc">
+                  The validate, stage, publish, rollback pipeline is content-type-agnostic. All V1
+                  content types (Lessons, Tips, References, Path nodes) are authored, versioned, and
+                  rolled back through the same machinery. No bespoke per-type pipeline anywhere in
+                  V1.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Client-Provided Assets -->
-    <section>
-      <div class="container">
-        <p class="kicker">Starting Point</p>
-        <h2>Client-Provided (Do Not Rebuild)</h2>
-        <p class="sub">No application code exists yet. Greenfield build. What the client brings:</p>
+      <!-- Build Phases (technical only, no money) -->
+      <section class="alt">
+        <div class="container">
+          <p class="kicker">Build Plan</p>
+          <h2>Phase Breakdown (Technical)</h2>
+          <p class="sub">
+            Four phases. M2 (the CMS) is the heaviest by design. M4 carries the engagement loop and
+            skills path. Commercial terms are intentionally excluded.
+          </p>
 
-        <div class="grid-3">
-          <div class="asset">
-            <div class="glyph">📚</div>
-            <p class="name">Teaching methodology (IP)</p>
-            <p class="desc">Five core teaching principles and six player-type categories. The intellectual property and product anchor.</p>
+          <div class="phase">
+            <div class="stripe" style="background: var(--section-red)"></div>
+            <div class="head">
+              <div class="num" style="background: var(--section-red)">M1</div>
+              <div class="title">
+                Foundation, Static Table UI, Q&A Interface, Glossary (nested), PWA Scaffold
+              </div>
+            </div>
+            <div class="body">
+              <p class="goal">
+                Visible, tangible product on screen by end of M1. Look and feel anchored, and the
+                technical foundation in place for the heavy CMS work in M2.
+              </p>
+              <ul>
+                <li>
+                  Custom static 9-max table layout (positions, stacks, dealer button, blinds, pot,
+                  board, hole cards), mobile-first
+                </li>
+                <li>Lightweight card-rendering component</li>
+                <li>Multiple-choice question / answer interface (four answers, one correct)</li>
+                <li>Slide-up feedback drawer (correct / incorrect plus teaching commentary)</li>
+                <li>Tap-to-define glossary drawer with nested linking and navigation stack</li>
+                <li>
+                  Bulk import flow: paste a JSON batch, validate against the schema, save to
+                  staging. Same validator gates as the paid test, productionized into a polished M1
+                  deliverable so the client can ingest large Claude-generated content batches from
+                  day one
+                </li>
+                <li>PWA scaffolding: manifest, service worker, caching strategy</li>
+                <li>Entitlements + auth schema design</li>
+              </ul>
+              <p class="footer-note">
+                Nested glossary linking absorbed at no additional scope cost as a refinement of the
+                existing glossary work.
+              </p>
+            </div>
           </div>
-          <div class="asset">
-            <div class="glyph">📄</div>
-            <p class="name">Content library</p>
-            <p class="desc">Lessons, scenario questions, answer options, correct answers, teaching commentary, glossary terms with definitions, Character Mapping reference, tip library. Client authors all content.</p>
+
+          <div class="phase">
+            <div class="stripe" style="background: var(--section-blue)"></div>
+            <div class="head">
+              <div class="num" style="background: var(--section-blue)">M2</div>
+              <div class="title">
+                Quiz Engine, CMS Backbone, Today's Tip + Saved Tips + References
+              </div>
+            </div>
+            <div class="body">
+              <p class="goal">
+                The heaviest milestone. The product becomes self-sufficient and the client can
+                author and ship content end-to-end without developer involvement.
+              </p>
+              <ul>
+                <li>
+                  Quiz / lesson engine: sequencing, scoring, session completion, randomized order,
+                  review missed questions
+                </li>
+                <li>Starred / saved questions, persistent across sessions</li>
+                <li>
+                  No-code wizard-style authoring UI, branches by question type (general Q&A vs hand
+                  scenario)
+                </li>
+                <li>
+                  Visual interactive table builder for hand scenarios (seats, stacks, button, hole /
+                  board cards)
+                </li>
+                <li>
+                  Bulk import / export (CSV, JSON, Markdown) with a clean markdown import spec for
+                  use with Claude or other AI tools
+                </li>
+                <li>
+                  Zod-based validation engine with field-path-precise, human-readable error messages
+                </li>
+                <li>
+                  Staging / production isolation, write-to-staging with preview, versioned publish,
+                  one-click content rollback
+                </li>
+                <li>
+                  Content type generalization: add a content_type discriminator across the staging,
+                  published, and versions tables (rename to content_*) so the validate, stage,
+                  publish, rollback pipeline serves Lessons, Tips, References, and Path nodes
+                  through the same Edge Functions and the same versioning machinery. Single
+                  pipeline, every type
+                </li>
+                <li>
+                  Pipeline hardening: server-side re-validation inside the promote and rollback Edge
+                  Functions; admin auth gate on the validator UI; CORS allow-list tightened to the
+                  actual staging and production Vercel domains
+                </li>
+                <li>
+                  Today's Tip surface + Saved Tips list + References Library (cheat sheets,
+                  Character Mapping, methodology)
+                </li>
+                <li>
+                  Shared scenario data model across wizard, bulk upload, validator, and member app
+                </li>
+              </ul>
+              <p class="footer-note">
+                Starred / saved questions absorbed at no additional scope cost as a refinement of
+                the missed-question review described in the original Loom.
+              </p>
+            </div>
           </div>
-          <div class="asset">
-            <div class="glyph">🎨</div>
-            <p class="name">Player-type avatar artwork</p>
-            <p class="desc">Six player-type avatar illustrations and brand assets supplied by client or client's designer. Avatar illustration is NOT part of dev hours. Integration of supplied artwork is in scope.</p>
+
+          <div class="phase">
+            <div class="stripe" style="background: var(--section-green)"></div>
+            <div class="head">
+              <div class="num" style="background: var(--section-green)">M3</div>
+              <div class="title">
+                Auth, Entitlements, Stripe Subscriptions, Real-time GHL Sync, Event Logging
+              </div>
+            </div>
+            <div class="body">
+              <p class="goal">
+                Members can subscribe, log in, and have access tied to entitlements. CRM stays in
+                real-time sync. Answer events flow from day one. Standard Stripe-backed GoHighLevel
+                integration confirmed with client. No additional webhook handler needed.
+              </p>
+              <ul>
+                <li>Supabase staging + production environments, schemas with row-level security</li>
+                <li>
+                  Supabase Auth: password (immediate post-purchase login) plus magic-link recovery
+                </li>
+                <li>
+                  Entitlements model live, app gating reads entitlements (not raw subscription
+                  state)
+                </li>
+                <li>
+                  Flexible price points map to a single binary access entitlement (no code changes
+                  for new prices)
+                </li>
+                <li>
+                  Stripe recurring subscription billing with webhooks. Failed-payment and
+                  cancellation handling
+                </li>
+                <li>
+                  Real-time GoHighLevel sync via per-Stripe-event webhook (Supabase Edge Function)
+                </li>
+                <li>
+                  Answer-event logging instrumentation: every attempt logged as an event for stats
+                  and future AI
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="phase">
+            <div class="stripe" style="background: var(--section-amber)"></div>
+            <div class="head">
+              <div class="num" style="background: var(--section-amber)">M4</div>
+              <div class="title">
+                Skills Path, Streaks, Push, Badges, Onboarding, Leaderboard, QA, Deploy
+              </div>
+            </div>
+            <div class="body">
+              <p class="goal">
+                Ship it. Engagement loop, guided progression, and the on-phone push experience all
+                in. QA across desktop and mobile, deploy to the client's domain.
+              </p>
+              <ul>
+                <li>
+                  Skills Path / visual progression (Duolingo-style guided map with skill nodes,
+                  unlock states, dependencies)
+                </li>
+                <li>
+                  Web push notifications (PWA, streak reminders, VAPID setup, scheduled send job)
+                </li>
+                <li>Badge decay / mastery-maintenance logic</li>
+                <li>Onboarding flow + warm-up lesson + celebratory animations</li>
+                <li>
+                  Monthly contest leaderboard: ranked by quiz performance, monthly reset, contest
+                  mechanics for community engagement
+                </li>
+                <li>Points / scoring and daily streak</li>
+                <li>Achievement badges for milestones</li>
+                <li>
+                  Progress tracking: questions answered, accuracy rate, sessions completed,
+                  improvement over time, richer stats dashboard
+                </li>
+                <li>
+                  Full QA across desktop and mobile, polish, deployment to client's domain (Vercel)
+                </li>
+              </ul>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- Tech Stack -->
-    <section class="alt">
-      <div class="container">
-        <p class="kicker">Stack</p>
-        <h2>Technology Stack</h2>
-        <p class="sub">Typed end to end, separate staging and production from day one, two-layer rollback, and architecture choices that keep future products and AI features additive.</p>
+      <!-- V1 Feature Checklist -->
+      <section>
+        <div class="container">
+          <p class="kicker">PRD Alignment</p>
+          <h2>V1 Feature Checklist</h2>
+          <p class="sub">
+            All items below are covered by V1 scope, mapped directly to Steve's June 4 PRD V1
+            Feature Checklist.
+          </p>
 
-        <table class="stack">
-          <thead>
-            <tr><th>Layer</th><th>Technology</th><th>Rationale</th></tr>
-          </thead>
-          <tbody>
-            <tr><td class="layer">Frontend</td><td class="tech">Vite + React + TypeScript + Tailwind</td><td class="rationale">TypeScript is essential for a content-heavy app with rigorous schema validation. Fast iteration, type safety end to end.</td></tr>
-            <tr><td class="layer">Validation</td><td class="tech">Zod</td><td class="rationale">Typed schemas with field-path-precise, human-readable error messages. Powers the import validator the client uses for bulk content.</td></tr>
-            <tr><td class="layer">Backend & DB</td><td class="tech">Supabase (Postgres, Auth, Storage, Edge Functions)</td><td class="rationale">Separate staging and production projects. Edge Functions handle cross-environment promote and Stripe-to-GHL sync. pgvector available for later AI features.</td></tr>
-            <tr><td class="layer">Payments</td><td class="tech">Stripe (recurring subscription billing)</td><td class="rationale">Stripe handles billing directly, with webhook-driven sync to app access and entitlements.</td></tr>
-            <tr><td class="layer">CRM Sync</td><td class="tech">GoHighLevel (GHL)</td><td class="rationale">Real-time, per-Stripe-event webhook. Edge Function listens to Stripe and pushes to GHL on each subscription event.</td></tr>
-            <tr><td class="layer">PWA & Push</td><td class="tech">Service Worker + Web Manifest + Web Push (VAPID)</td><td class="rationale">Install prompt, full-screen, offline-tolerant. Scheduled push for streak reminders. Caching coordinated with the content-publish flow.</td></tr>
-            <tr><td class="layer">Hosting</td><td class="tech">Vercel (one-click deployment revert as code rollback)</td><td class="rationale">Two-layer rollback: code via Vercel, content via Supabase versioning.</td></tr>
-            <tr><td class="layer">Source Control</td><td class="tech">GitHub</td><td class="rationale">Standard. Repo created under client or developer account per preference.</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Confirmed Approaches -->
-    <section>
-      <div class="container">
-        <p class="kicker">Locked In</p>
-        <h2>Confirmed Approaches</h2>
-        <p class="sub">Decisions captured from the June 4 PRD and the alignment call. These are the technical baseline for the build.</p>
-
-        <div class="approach">
-          <div class="check">✓</div>
-          <div>
-            <p class="label">GoHighLevel integration</p>
-            <p class="desc">Standard Stripe-backed GHL integration confirmed. Real-time per-Stripe-event webhook from a Supabase Edge Function pushing to GoHighLevel. No native GHL processing in scope, no additional webhook handler needed.</p>
-          </div>
-        </div>
-
-        <div class="approach">
-          <div class="check">✓</div>
-          <div>
-            <p class="label">Single content pipeline (content-type-agnostic)</p>
-            <p class="desc">The validate, stage, publish, rollback pipeline serves all V1 content types (Lessons, Tips, References, Path nodes) through the same Edge Functions and the same versioning machinery. No bespoke per-type pipeline anywhere in V1.</p>
-          </div>
-        </div>
-
-        <div class="approach">
-          <div class="check">✓</div>
-          <div>
-            <p class="label">Entitlements over subscription status</p>
-            <p class="desc">A user has zero or more entitlements, each mapped to a Stripe product / price. The app checks entitlements, not raw subscription state. Flexible price points map to a single binary "app access" entitlement, so admin can add or change prices in Stripe or GHL anytime with no code changes.</p>
-          </div>
-        </div>
-
-        <div class="approach">
-          <div class="check">✓</div>
-          <div>
-            <p class="label">Auth model</p>
-            <p class="desc">Supabase Auth: password (immediate post-purchase login, no email wait) plus magic-link as a secondary / recovery path. Single shared identity from day one.</p>
-          </div>
-        </div>
-
-        <div class="approach">
-          <div class="check">✓</div>
-          <div>
-            <p class="label">Two-layer rollback</p>
-            <p class="desc">Code rollback via Vercel's one-click deployment revert. Content rollback via Supabase versioned publish. Code and content can roll back independently without coordinating each other.</p>
-          </div>
-        </div>
-
-        <div class="approach">
-          <div class="check">✓</div>
-          <div>
-            <p class="label">Avatars client-supplied</p>
-            <p class="desc">Six player-type illustrations and brand assets provided by client or their designer. Avatar illustration is NOT part of dev hours. Integration of supplied artwork is in scope.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Scope of Work -->
-    <section class="alt">
-      <div class="container">
-        <p class="kicker">Build</p>
-        <h2>Scope of Work</h2>
-        <p class="sub">Two workstreams. The member-facing app and the Content Operations backbone. The CMS carries the heaviest technical weight.</p>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-red)">⊞</div>
-            <div class="title">Static 9-Max poker table & card display (member app)</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-red)">
-              <li>Custom static 9-max (full-ring, nine-seat) poker table layout. NOT 6-max. Hard requirement</li>
-              <li>Displays positions, stack sizes, dealer button, blinds, pot, community cards, hero hole cards</li>
-              <li>Lightweight card-rendering component (no dealing animation, no card play)</li>
-              <li>Player-type avatars at relevant seats as tappable markers that open a short explainer for that player type</li>
-              <li>All nine seats fit cleanly on a mobile browser screen</li>
-            </ul>
-            <p class="note"><strong>Note on approach:</strong> Existing React poker libraries are built for animated card dealing, which this project does not need. Custom static layout reusing a lightweight card component.</p>
-          </div>
-        </div>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-blue)">⊟</div>
-            <div class="title">Quiz & lesson engine</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-blue)">
-              <li>Question sequencing, per-answer scoring, session completion, final session score</li>
-              <li>Lesson flow: concept intro, scenario question set, instant feedback, session score</li>
-              <li>Scenario-based questions referencing the static table (position vs player type vs board)</li>
-              <li>Multiple-choice answer interface, four answers, one correct per question, feedback shown regardless of choice</li>
-              <li>Review missed questions at end of session</li>
-              <li>Starred / saved questions, persistent across sessions (refinement of missed-question review)</li>
-              <li>Sessions can run in randomized order (methodology is all-encompassing, no fixed prerequisite ordering)</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-purple)">▤</div>
-            <div class="title">Glossary / tap-to-define (with nested linking)</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-purple)">
-              <li>Tappable poker terms inside questions and explanations open a definition drawer</li>
-              <li>Drawer shows: term, plain-language definition, importance indicator, specific-situation example, example usage</li>
-              <li>Nested linking: definitions can link to other definitions, with a navigation stack (back through the chain)</li>
-              <li>One managed glossary table serves both the in-drill tap-to-define drawer (M1) and the browsable References Library view (M2). Single source, two UI surfaces</li>
-              <li>Glossary is a managed library the client can edit via the Content Operations backbone</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-teal)">▦</div>
-            <div class="title">Content Operations backbone (CMS): the heart of the app</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-teal)">
-              <li>No-code wizard-style authoring UI that branches by question type (general Q&A or hand scenario) for one-off authoring</li>
-              <li>Visual interactive table builder for hand scenarios: place players on a 9-max layout, assign player types, set stack sizes, move the dealer button, set hole cards and board cards. Distinct interactive editor (separate from the static table in the member app)</li>
-              <li>Bulk import / export as the primary content workflow: the workhorse for thousands of questions. CSV, JSON, and Markdown</li>
-              <li>The import schema is cleanly documented as a markdown spec the client can paste into Claude or other AI tools to generate matching output</li>
-              <li>Validation engine using Zod with field-path-specific, human-readable error messages so the client can fix issues without developer involvement (e.g. "question 3, answers: expected exactly one with is_correct=true, found 0")</li>
-              <li>Separate Supabase projects for staging and production: isolated environments from day one</li>
-              <li>Write-to-staging flow with preview on staging</li>
-              <li>Versioned publish to production: each promote creates a new content version with full history</li>
-              <li>One-click rollback to any previous content version, controlled by the client, no developer needed</li>
-              <li>Single shared scenario data model across the wizard, bulk upload, validator, and member app so all paths stay aligned</li>
-            </ul>
-            <p class="note"><strong>Note on approach:</strong> The CMS table builder is a custom interactive editor (drag / click to seat players, set stacks via modal, move the dealer button, assign cards from a picker). Built as its own component, not a library, because no existing React poker library targets interactive authoring of this shape.</p>
-          </div>
-        </div>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-orange)">💡</div>
-            <div class="title">Today's Tip, Saved Tips & References Library</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-orange)">
-              <li>Today's Tip surface on the home / dashboard, rotating from the client's tip library</li>
-              <li>Members can save tips for later, organized in a personal Saved Tips list</li>
-              <li>References Library: cheat sheets, Character Mapping reference, methodology references</li>
-              <li>All authored and versioned through the CMS, same publish flow as questions and lessons</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-amber)">⊿</div>
-            <div class="title">Skills Path & guided progression</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-amber)">
-              <li>Duolingo-style visual progression map with skill nodes and connecting paths</li>
-              <li>Unlock states (locked, available, in progress, mastered) driven by lesson completion and accuracy</li>
-              <li>Dependencies between skill nodes so the member sees a clear next step</li>
-              <li>Maintains the randomized-order option for free practice, while offering this guided arc on top</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-green)">★</div>
-            <div class="title">Onboarding & warm-up lesson</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-green)">
-              <li>Short onboarding flow on first login, framing what the app is and how scoring / streaks work</li>
-              <li>Warm-up lesson: a curated low-friction first session so members get an early win</li>
-              <li>Celebratory animations on first-correct, first-session-complete, first-streak, first-badge</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-blue)">📱</div>
-            <div class="title">Progressive Web App (PWA) & Web Push</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-blue)">
-              <li>PWA built in from day one: manifest, service worker, install prompt, app-like full-screen experience on Android and iOS</li>
-              <li>Add-to-Home-Screen support so members get an icon on their phone without app store involvement</li>
-              <li>Service-worker caching strategy designed in coordination with the content-publish flow so "promote to production" always reaches members cleanly and never leaves them on stale content</li>
-              <li>Web push notifications (VAPID setup, scheduled send job) for streak reminders</li>
-              <li>All screens fully mobile-responsive. Mobile browser is the priority. Most members will be on phones</li>
-            </ul>
-            <p class="note"><strong>Honest tradeoff:</strong> iOS PWA capabilities are slightly more limited than Android (mainly around push permission timing and some background behavior), but for a subscription quiz app this is rarely felt. Web Push is supported on iOS 16.4+ for installed PWAs.</p>
-          </div>
-        </div>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-amber)">🏆</div>
-            <div class="title">Gamification, streaks & badge mastery</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-amber)">
-              <li>Points and scoring based on quiz accuracy</li>
-              <li>Daily streak with progress tracking and reminder push notifications</li>
-              <li>Monthly contest leaderboard: ranked by quiz performance, monthly reset, contest mechanics for community engagement</li>
-              <li>Achievement badges for milestones</li>
-              <li>Badge decay / mastery-maintenance: badges fade if not exercised, restored on re-engagement (keeps the loop active)</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-purple)">📈</div>
-            <div class="title">Progress tracking & dashboard</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-purple)">
-              <li>Per-member progress: questions answered, accuracy rate, sessions completed, improvement over time</li>
-              <li>Dashboard showing rating, selected stats, trend over time</li>
-              <li>Today's Tip and outbound links to client website for upgrades and discounts</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-green)">🔒</div>
-            <div class="title">Authentication, entitlements & access (Supabase)</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-green)">
-              <li>Fresh Supabase projects (staging + production) set up from scratch</li>
-              <li>Database schemas as versioned setup scripts (tables, indexes, row-level security policies)</li>
-              <li>Supabase Auth: password (immediate post-purchase login, no email wait) plus magic-link as secondary / recovery</li>
-              <li>Entitlements model: a user has zero or more entitlements, each mapped to a Stripe product / price. The app checks entitlements, not raw subscription status</li>
-              <li>Flexible price points map to a single binary "app access" entitlement, so admin can add or change prices in Stripe or GHL anytime with no code changes</li>
-              <li>App access gated by active entitlement. Returning entitled members go straight in</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-red)">💳</div>
-            <div class="title">Subscription & payments (Stripe)</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-red)">
-              <li>Stripe recurring subscription billing. Stripe handles billing directly</li>
-              <li>Access gated by active entitlement</li>
-              <li>Standard subscription management: active access, failed-payment handling, cancellation</li>
+          <div class="card card-body checklist">
+            <ul>
+              <li>9-max static table, mobile-first</li>
+              <li>
+                Two question types: general Q&A (MCQ, four answers, one correct) and hand scenario
+              </li>
+              <li>Glossary base implementation, with nested linking included</li>
+              <li>
+                Wizard authoring, visual interactive table builder, bulk import / export (CSV, JSON,
+                Markdown), human-readable validation errors, staging / preview environments, content
+                versioning, one-click content rollback
+              </li>
+              <li>Starred / saved questions</li>
+              <li>Installable PWA</li>
+              <li>
+                Stripe entitlements with flexible price points mapping to a single binary "app
+                access" entitlement; admin can add or change prices in Stripe or GHL anytime with no
+                code changes
+              </li>
+              <li>
+                Two-layer rollback: code (Vercel one-click deployment revert) and content (Supabase,
+                versioned)
+              </li>
+              <li>
+                Supabase Auth: password (immediate post-purchase login, no email wait) plus
+                magic-link as secondary / recovery
+              </li>
               <li>Real-time entitlement sync via Stripe webhook</li>
             </ul>
           </div>
         </div>
+      </section>
 
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-purple)">⚡</div>
-            <div class="title">CRM sync (GoHighLevel)</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-purple)">
-              <li>Real-time, per-Stripe-event webhook sync to GoHighLevel for tagging, segmentation, automation triggers</li>
-              <li>Sync runs in a Supabase Edge Function listening to Stripe webhooks and pushing to GHL on each subscription event</li>
-              <li>Standard Stripe-backed integration confirmed. No native GHL payment handling in scope</li>
-            </ul>
-          </div>
-        </div>
+      <!-- Deferred to Post-V1 -->
+      <section class="alt">
+        <div class="container">
+          <p class="kicker">Exclusions</p>
+          <h2>Deferred to Post-V1</h2>
+          <p class="sub">
+            Items explicitly reserved for future phases per Steve's June 4 PRD. Not built in V1.
+            Architecture leaves room for them as additive work.
+          </p>
 
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-amber)">🎨</div>
-            <div class="title">Design & branding</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-amber)">
-              <li>Clean, modern, custom UI that feels like the client's brand. Not a generic poker template</li>
-              <li>Custom visual identity for the six player-type avatars is non-negotiable (artwork supplied, integration is in scope)</li>
-              <li>Reference look and flow: the RunOut app, but distinct custom branding</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="area">
-          <div class="head">
-            <div class="glyph" style="background: var(--section-blue)">🚀</div>
-            <div class="title">Deployment & two-layer rollback</div>
-          </div>
-          <div class="body">
-            <ul style="color: var(--section-blue)">
-              <li>Deploy the web app to the client's domain via Vercel</li>
-              <li>Two-layer rollback: code via Vercel's one-click deployment revert, content via Supabase versioned publish</li>
-              <li>Two Supabase environments (staging, production) configured for the lifecycle of the product</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Architecture Notes -->
-    <section>
-      <div class="container">
-        <p class="kicker">Forward-Looking Design</p>
-        <h2>Architecture Approach</h2>
-        <p class="sub">Decisions absorbed into V1 so future products (Masterclass, member pricing, adaptive AI) become additive, not rebuilds.</p>
-
-        <div class="grid-2">
-          <div class="arch">
-            <div class="glyph" style="background: rgba(16, 185, 129, 0.12); color: var(--section-green)">🛡</div>
-            <div>
-              <p class="title">Entitlements over subscription status</p>
-              <p class="desc">A user has zero or more entitlements (quiz subscription, future Masterclass, future products), each mapped to a Stripe product / price. The app checks entitlements, not raw subscription status. Future multi-product support becomes new rows plus a new Stripe product, not a rebuild.</p>
-            </div>
-          </div>
-          <div class="arch">
-            <div class="glyph" style="background: rgba(59, 130, 246, 0.12); color: var(--section-blue)">💲</div>
-            <div>
-              <p class="title">Flexible price points, single access entitlement</p>
-              <p class="desc">Multiple Stripe prices can map to the same binary "app access" entitlement. Admin can add or change price points in Stripe or GHL anytime with no code changes.</p>
-            </div>
-          </div>
-          <div class="arch">
-            <div class="glyph" style="background: rgba(20, 184, 166, 0.12); color: var(--section-teal)">🔑</div>
-            <div>
-              <p class="title">Single Supabase Auth identity from day one</p>
-              <p class="desc">Password login for immediate access post-purchase (no email wait), with magic-link as a secondary / recovery path. Ready for member pricing via Stripe coupons tied to existing entitlements. One identity carries across future products.</p>
-            </div>
-          </div>
-          <div class="arch">
-            <div class="glyph" style="background: rgba(168, 85, 247, 0.12); color: var(--section-purple)">⟲</div>
-            <div>
-              <p class="title">Answer-event logging from day one</p>
-              <p class="desc">Every quiz attempt logged as an event (user, question, correct / incorrect, timestamp, time taken). Powers progress and stats. Also the fuel for adaptive AI recommendations later without a rebuild.</p>
-            </div>
-          </div>
-          <div class="arch">
-            <div class="glyph" style="background: rgba(249, 115, 22, 0.12); color: var(--section-orange)">⌥</div>
-            <div>
-              <p class="title">Stable IDs and rich content tags</p>
-              <p class="desc">Concept, principle, player type, street, difficulty. Tagged from day one so future filtering, search, and AI features have structure to work with.</p>
-            </div>
-          </div>
-          <div class="arch">
-            <div class="glyph" style="background: rgba(185, 28, 28, 0.12); color: var(--section-red)">🧠</div>
-            <div>
-              <p class="title">pgvector-ready Postgres</p>
-              <p class="desc">pgvector is supported by Supabase Postgres, so vector search and embeddings can be added later as an additive layer. Content text is kept retrievable so this is never blocked. No embeddings generated in this build.</p>
-            </div>
-          </div>
-          <div class="arch">
-            <div class="glyph" style="background: rgba(212, 160, 23, 0.12); color: var(--section-amber)">✨</div>
-            <div>
-              <p class="title">AI-derived data in its own tables</p>
-              <p class="desc">Future AI features stay additive and never force changes to the source content. Authored content remains the single source of truth.</p>
-            </div>
-          </div>
-          <div class="arch">
-            <div class="glyph" style="background: rgba(16, 185, 129, 0.12); color: var(--section-green)">⟲</div>
-            <div>
-              <p class="title">Two-layer rollback</p>
-              <p class="desc">Code rollback via Vercel's one-click deployment revert. Content rollback via Supabase versioned publish. Code and content can roll back independently without coordinating each other.</p>
-            </div>
-          </div>
-          <div class="arch">
-            <div class="glyph" style="background: rgba(20, 184, 166, 0.12); color: var(--section-teal)">▦</div>
-            <div>
-              <p class="title">Single content pipeline</p>
-              <p class="desc">The validate, stage, publish, rollback pipeline is content-type-agnostic. All V1 content types (Lessons, Tips, References, Path nodes) are authored, versioned, and rolled back through the same machinery. No bespoke per-type pipeline anywhere in V1.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Build Phases (technical only, no money) -->
-    <section class="alt">
-      <div class="container">
-        <p class="kicker">Build Plan</p>
-        <h2>Phase Breakdown (Technical)</h2>
-        <p class="sub">Four phases. M2 (the CMS) is the heaviest by design. M4 carries the engagement loop and skills path. Commercial terms are intentionally excluded.</p>
-
-        <div class="phase">
-          <div class="stripe" style="background: var(--section-red)"></div>
-          <div class="head">
-            <div class="num" style="background: var(--section-red)">M1</div>
-            <div class="title">Foundation, Static Table UI, Q&A Interface, Glossary (nested), PWA Scaffold</div>
-          </div>
-          <div class="body">
-            <p class="goal">Visible, tangible product on screen by end of M1. Look and feel anchored, and the technical foundation in place for the heavy CMS work in M2.</p>
+          <div class="card card-body deferred">
             <ul>
-              <li>Custom static 9-max table layout (positions, stacks, dealer button, blinds, pot, board, hole cards), mobile-first</li>
-              <li>Lightweight card-rendering component</li>
-              <li>Multiple-choice question / answer interface (four answers, one correct)</li>
-              <li>Slide-up feedback drawer (correct / incorrect plus teaching commentary)</li>
-              <li>Tap-to-define glossary drawer with nested linking and navigation stack</li>
-              <li>Bulk import flow: paste a JSON batch, validate against the schema, save to staging. Same validator gates as the paid test, productionized into a polished M1 deliverable so the client can ingest large Claude-generated content batches from day one</li>
-              <li>PWA scaffolding: manifest, service worker, caching strategy</li>
-              <li>Entitlements + auth schema design</li>
+              <li>Full offline mode</li>
+              <li>Advanced / competitive leaderboard (the monthly contest leaderboard is in V1)</li>
+              <li>
+                Adaptive / AI lesson recommendation (architecture is ready for this, not built in
+                V1)
+              </li>
+              <li>Dynamic hand simulator, animation, branching decision trees</li>
+              <li>GTO / solver tools</li>
+              <li>iOS / Android native apps (PWA covers install-on-phone)</li>
+              <li>Tournament and mixed game modes</li>
+              <li>Dense in-app theory and video content</li>
+              <li>Social / friend leaderboard</li>
+              <li>User submissions</li>
             </ul>
-            <p class="footer-note">Nested glossary linking absorbed at no additional scope cost as a refinement of the existing glossary work.</p>
           </div>
         </div>
+      </section>
 
-        <div class="phase">
-          <div class="stripe" style="background: var(--section-blue)"></div>
-          <div class="head">
-            <div class="num" style="background: var(--section-blue)">M2</div>
-            <div class="title">Quiz Engine, CMS Backbone, Today's Tip + Saved Tips + References</div>
+      <!-- Technical Assumptions -->
+      <section>
+        <div class="container">
+          <p class="kicker">Honest Caveats</p>
+          <h2>Technical Assumptions</h2>
+          <p class="sub">
+            Engineering-relevant assumptions only. Commercial terms covered in the client-facing
+            proposal.
+          </p>
+
+          <div class="assumption">
+            <div class="glyph">🎨</div>
+            <div>
+              <p class="label">Client-supplied avatar artwork (confirmed)</p>
+              <p class="desc">
+                Six player-type illustrations and brand assets provided by client or designer.
+                Integration of supplied artwork is in scope; illustration work is not.
+              </p>
+            </div>
           </div>
-          <div class="body">
-            <p class="goal">The heaviest milestone. The product becomes self-sufficient and the client can author and ship content end-to-end without developer involvement.</p>
+
+          <div class="assumption">
+            <div class="glyph">📄</div>
+            <div>
+              <p class="label">Client authors content</p>
+              <p class="desc">
+                Lessons, questions, explanations, glossary, tips, and references all authored by
+                client. Developer builds the ingestion pipeline, validator, and admin tools, not the
+                content itself.
+              </p>
+            </div>
+          </div>
+
+          <div class="assumption">
+            <div class="glyph">🗄</div>
+            <div>
+              <p class="label">Scenario data model agreed early</p>
+              <p class="desc">
+                Scenario data model is agreed early (Milestone 1 or start of Milestone 2). If the
+                client's content shape differs materially from these assumptions, remaining scope is
+                reviewed and agreed together before proceeding.
+              </p>
+            </div>
+          </div>
+
+          <div class="assumption">
+            <div class="glyph">⚙</div>
+            <div>
+              <p class="label">Third-party accounts owned by client</p>
+              <p class="desc">
+                Supabase, Stripe, GHL, Vercel, and domain accounts are owned by the client.
+                Developer / admin access is granted at kickoff.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pre-Kickoff Access -->
+      <section class="alt">
+        <div class="container">
+          <p class="kicker">Pre-Kickoff</p>
+          <h2>Required Access</h2>
+          <p class="sub">Engineering blocking items. Required before the clock starts.</p>
+
+          <div class="card card-body access">
             <ul>
-              <li>Quiz / lesson engine: sequencing, scoring, session completion, randomized order, review missed questions</li>
-              <li>Starred / saved questions, persistent across sessions</li>
-              <li>No-code wizard-style authoring UI, branches by question type (general Q&A vs hand scenario)</li>
-              <li>Visual interactive table builder for hand scenarios (seats, stacks, button, hole / board cards)</li>
-              <li>Bulk import / export (CSV, JSON, Markdown) with a clean markdown import spec for use with Claude or other AI tools</li>
-              <li>Zod-based validation engine with field-path-precise, human-readable error messages</li>
-              <li>Staging / production isolation, write-to-staging with preview, versioned publish, one-click content rollback</li>
-              <li>Content type generalization: add a content_type discriminator across the staging, published, and versions tables (rename to content_*) so the validate, stage, publish, rollback pipeline serves Lessons, Tips, References, and Path nodes through the same Edge Functions and the same versioning machinery. Single pipeline, every type</li>
-              <li>Pipeline hardening: server-side re-validation inside the promote and rollback Edge Functions; admin auth gate on the validator UI; CORS allow-list tightened to the actual staging and production Vercel domains</li>
-              <li>Today's Tip surface + Saved Tips list + References Library (cheat sheets, Character Mapping, methodology)</li>
-              <li>Shared scenario data model across wizard, bulk upload, validator, and member app</li>
-            </ul>
-            <p class="footer-note">Starred / saved questions absorbed at no additional scope cost as a refinement of the missed-question review described in the original Loom.</p>
-          </div>
-        </div>
-
-        <div class="phase">
-          <div class="stripe" style="background: var(--section-green)"></div>
-          <div class="head">
-            <div class="num" style="background: var(--section-green)">M3</div>
-            <div class="title">Auth, Entitlements, Stripe Subscriptions, Real-time GHL Sync, Event Logging</div>
-          </div>
-          <div class="body">
-            <p class="goal">Members can subscribe, log in, and have access tied to entitlements. CRM stays in real-time sync. Answer events flow from day one. Standard Stripe-backed GoHighLevel integration confirmed with client. No additional webhook handler needed.</p>
-            <ul>
-              <li>Supabase staging + production environments, schemas with row-level security</li>
-              <li>Supabase Auth: password (immediate post-purchase login) plus magic-link recovery</li>
-              <li>Entitlements model live, app gating reads entitlements (not raw subscription state)</li>
-              <li>Flexible price points map to a single binary access entitlement (no code changes for new prices)</li>
-              <li>Stripe recurring subscription billing with webhooks. Failed-payment and cancellation handling</li>
-              <li>Real-time GoHighLevel sync via per-Stripe-event webhook (Supabase Edge Function)</li>
-              <li>Answer-event logging instrumentation: every attempt logged as an event for stats and future AI</li>
+              <li>Stripe account access (test and live keys)</li>
+              <li>
+                GoHighLevel account / API access (confirmed: standard Stripe-backed GHL integration,
+                no native processing)
+              </li>
+              <li>
+                Supabase access, or permission to create the staging and production projects under
+                the client's account
+              </li>
+              <li>Vercel and domain access</li>
+              <li>
+                Client's content / methodology sample for scenario data-model design (questions,
+                glossary, tips, references)
+              </li>
+              <li>A GitHub repository, or permission to create one</li>
             </ul>
           </div>
         </div>
+      </section>
+    </main>
 
-        <div class="phase">
-          <div class="stripe" style="background: var(--section-amber)"></div>
-          <div class="head">
-            <div class="num" style="background: var(--section-amber)">M4</div>
-            <div class="title">Skills Path, Streaks, Push, Badges, Onboarding, Leaderboard, QA, Deploy</div>
-          </div>
-          <div class="body">
-            <p class="goal">Ship it. Engagement loop, guided progression, and the on-phone push experience all in. QA across desktop and mobile, deploy to the client's domain.</p>
-            <ul>
-              <li>Skills Path / visual progression (Duolingo-style guided map with skill nodes, unlock states, dependencies)</li>
-              <li>Web push notifications (PWA, streak reminders, VAPID setup, scheduled send job)</li>
-              <li>Badge decay / mastery-maintenance logic</li>
-              <li>Onboarding flow + warm-up lesson + celebratory animations</li>
-              <li>Monthly contest leaderboard: ranked by quiz performance, monthly reset, contest mechanics for community engagement</li>
-              <li>Points / scoring and daily streak</li>
-              <li>Achievement badges for milestones</li>
-              <li>Progress tracking: questions answered, accuracy rate, sessions completed, improvement over time, richer stats dashboard</li>
-              <li>Full QA across desktop and mobile, polish, deployment to client's domain (Vercel)</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- V1 Feature Checklist -->
-    <section>
+    <footer class="foot">
       <div class="container">
-        <p class="kicker">PRD Alignment</p>
-        <h2>V1 Feature Checklist</h2>
-        <p class="sub">All items below are covered by V1 scope, mapped directly to Steve's June 4 PRD V1 Feature Checklist.</p>
-
-        <div class="card card-body checklist">
-          <ul>
-            <li>9-max static table, mobile-first</li>
-            <li>Two question types: general Q&A (MCQ, four answers, one correct) and hand scenario</li>
-            <li>Glossary base implementation, with nested linking included</li>
-            <li>Wizard authoring, visual interactive table builder, bulk import / export (CSV, JSON, Markdown), human-readable validation errors, staging / preview environments, content versioning, one-click content rollback</li>
-            <li>Starred / saved questions</li>
-            <li>Installable PWA</li>
-            <li>Stripe entitlements with flexible price points mapping to a single binary "app access" entitlement; admin can add or change prices in Stripe or GHL anytime with no code changes</li>
-            <li>Two-layer rollback: code (Vercel one-click deployment revert) and content (Supabase, versioned)</li>
-            <li>Supabase Auth: password (immediate post-purchase login, no email wait) plus magic-link as secondary / recovery</li>
-            <li>Real-time entitlement sync via Stripe webhook</li>
-          </ul>
-        </div>
+        <p><strong style="color: white">Poker Training & Quiz App V3 (Bushwood Digital)</strong></p>
+        <p>
+          Developer reference document. Commercial terms (price, timeline, milestone amounts,
+          payment schedule) are covered in the client-facing proposal and intentionally excluded
+          here.
+        </p>
+        <p class="tag">© TechUp Consulting</p>
       </div>
-    </section>
-
-    <!-- Deferred to Post-V1 -->
-    <section class="alt">
-      <div class="container">
-        <p class="kicker">Exclusions</p>
-        <h2>Deferred to Post-V1</h2>
-        <p class="sub">Items explicitly reserved for future phases per Steve's June 4 PRD. Not built in V1. Architecture leaves room for them as additive work.</p>
-
-        <div class="card card-body deferred">
-          <ul>
-            <li>Full offline mode</li>
-            <li>Advanced / competitive leaderboard (the monthly contest leaderboard is in V1)</li>
-            <li>Adaptive / AI lesson recommendation (architecture is ready for this, not built in V1)</li>
-            <li>Dynamic hand simulator, animation, branching decision trees</li>
-            <li>GTO / solver tools</li>
-            <li>iOS / Android native apps (PWA covers install-on-phone)</li>
-            <li>Tournament and mixed game modes</li>
-            <li>Dense in-app theory and video content</li>
-            <li>Social / friend leaderboard</li>
-            <li>User submissions</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-    <!-- Technical Assumptions -->
-    <section>
-      <div class="container">
-        <p class="kicker">Honest Caveats</p>
-        <h2>Technical Assumptions</h2>
-        <p class="sub">Engineering-relevant assumptions only. Commercial terms covered in the client-facing proposal.</p>
-
-        <div class="assumption">
-          <div class="glyph">🎨</div>
-          <div>
-            <p class="label">Client-supplied avatar artwork (confirmed)</p>
-            <p class="desc">Six player-type illustrations and brand assets provided by client or designer. Integration of supplied artwork is in scope; illustration work is not.</p>
-          </div>
-        </div>
-
-        <div class="assumption">
-          <div class="glyph">📄</div>
-          <div>
-            <p class="label">Client authors content</p>
-            <p class="desc">Lessons, questions, explanations, glossary, tips, and references all authored by client. Developer builds the ingestion pipeline, validator, and admin tools, not the content itself.</p>
-          </div>
-        </div>
-
-        <div class="assumption">
-          <div class="glyph">🗄</div>
-          <div>
-            <p class="label">Scenario data model agreed early</p>
-            <p class="desc">Scenario data model is agreed early (Milestone 1 or start of Milestone 2). If the client's content shape differs materially from these assumptions, remaining scope is reviewed and agreed together before proceeding.</p>
-          </div>
-        </div>
-
-        <div class="assumption">
-          <div class="glyph">⚙</div>
-          <div>
-            <p class="label">Third-party accounts owned by client</p>
-            <p class="desc">Supabase, Stripe, GHL, Vercel, and domain accounts are owned by the client. Developer / admin access is granted at kickoff.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Pre-Kickoff Access -->
-    <section class="alt">
-      <div class="container">
-        <p class="kicker">Pre-Kickoff</p>
-        <h2>Required Access</h2>
-        <p class="sub">Engineering blocking items. Required before the clock starts.</p>
-
-        <div class="card card-body access">
-          <ul>
-            <li>Stripe account access (test and live keys)</li>
-            <li>GoHighLevel account / API access (confirmed: standard Stripe-backed GHL integration, no native processing)</li>
-            <li>Supabase access, or permission to create the staging and production projects under the client's account</li>
-            <li>Vercel and domain access</li>
-            <li>Client's content / methodology sample for scenario data-model design (questions, glossary, tips, references)</li>
-            <li>A GitHub repository, or permission to create one</li>
-          </ul>
-        </div>
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="foot">
-    <div class="container">
-      <p><strong style="color: white;">Poker Training & Quiz App V3 (Bushwood Digital)</strong></p>
-      <p>Developer reference document. Commercial terms (price, timeline, milestone amounts, payment schedule) are covered in the client-facing proposal and intentionally excluded here.</p>
-      <p class="tag">© TechUp Consulting</p>
-    </div>
-  </footer>
-
-</body>
+    </footer>
+  </body>
 </html>

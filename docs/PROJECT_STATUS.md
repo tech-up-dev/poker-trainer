@@ -18,15 +18,15 @@
 
 ## 1. Snapshot
 
-| | |
-|---|---|
-| **Total V1** | $16,250 fixed, 10–14 weeks @ 25–35 hrs/wk, 4 milestones |
-| **Paid test** | ✅ Delivered & approved ($500, credited to M1) |
-| **Current milestone** | **M2 — Quiz Engine + CMS Backbone + Tips/References** ($5,850) — in progress, backend-first |
-| **Working repo** | `tech-up-dev/poker-trainer` (mine). `dev` → Vercel Preview, `master` → Production |
-| **Client mirror** | `beatsmallstakes/beat-small-stakes-app` (Steve's) — commits/PRs copied over later, approach TBD |
-| **Live preview** | https://poker-trainer-olive-rho.vercel.app |
-| **Next client checkpoint** | Thursday 2026-06-25, 5 PM Skopje (recovery demo) |
+|                            |                                                                                                 |
+| -------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Total V1**               | $16,250 fixed, 10–14 weeks @ 25–35 hrs/wk, 4 milestones                                         |
+| **Paid test**              | ✅ Delivered & approved ($500, credited to M1)                                                  |
+| **Current milestone**      | **M2 — Quiz Engine + CMS Backbone + Tips/References** ($5,850) — in progress, backend-first     |
+| **Working repo**           | `tech-up-dev/poker-trainer` (mine). `dev` → Vercel Preview, `master` → Production               |
+| **Client mirror**          | `beatsmallstakes/beat-small-stakes-app` (Steve's) — commits/PRs copied over later, approach TBD |
+| **Live preview**           | https://poker-trainer-olive-rho.vercel.app                                                      |
+| **Next client checkpoint** | Thursday 2026-06-25, 5 PM Skopje (recovery demo)                                                |
 
 **Where we really are:** M1 backend is complete. M2 started 2026-06-24. Content pipeline
 generalized to `content_*` tables with `content_type` discriminator. Admin auth gate live
@@ -40,7 +40,9 @@ Member-facing UI (quiz engine, table, glossary) remains design-blocked.
 Status legend: `Not started` · `In progress` · `In review` · `Awaiting client` · `Approved`
 
 ### Paid test — ✅ Approved
+
 Validate-and-publish round trip on a sample lesson. Code carries into M1.
+
 - [x] Zod content schema (`shared/schemas/lesson.ts`) — lessons, MCQ (4 answers / exactly 1 correct), hand scenarios w/ table state, tags
 - [x] Validator UI with field-path-specific errors (`LessonValidator.tsx`, `validate.ts`)
 - [x] Save-to-staging
@@ -51,12 +53,14 @@ Validate-and-publish round trip on a sample lesson. Code carries into M1.
 - [x] Two Supabase projects (staging + prod), migrations applied to both
 
 ### M1 — Foundation, Static Table, Q&A, Glossary (nested), PWA Scaffold — `In progress`
+
 **Goal:** "Visible, tangible product on screen by end of M1." $3,100 balance. Backend complete; member UI held pending design.
-- [ ] Custom static 9-max table layout — *design-blocked*
-- [ ] Lightweight card-rendering component — *design-blocked*
-- [ ] MCQ interface — *design-blocked*
-- [ ] Slide-up feedback drawer — *design-blocked*
-- [ ] Tap-to-define glossary drawer — *design-blocked*
+
+- [ ] Custom static 9-max table layout — _design-blocked_
+- [ ] Lightweight card-rendering component — _design-blocked_
+- [ ] MCQ interface — _design-blocked_
+- [ ] Slide-up feedback drawer — _design-blocked_
+- [ ] Tap-to-define glossary drawer — _design-blocked_
 - [x] Bulk import flow: paste JSON batch → validate → save to staging
 - [x] PWA scaffold: manifest, service worker, version-aware caching
 - [x] Entitlements + auth schema (user_profiles, entitlements, answer_events)
@@ -67,11 +71,13 @@ Validate-and-publish round trip on a sample lesson. Code carries into M1.
 - [x] Seed admin user (staging + production)
 
 ### M2 — Quiz Engine + CMS Backbone + Tips/References — `In progress`
+
 **Goal:** heaviest milestone; client becomes self-sufficient on content. $5,850.
-- [ ] Quiz/lesson engine: sequencing, scoring, session completion, randomized order, review missed — *design-blocked*
-- [ ] Starred/saved questions (persistent) — *design-blocked*
-- [ ] Wizard authoring UI (branches by question type) — *design-blocked*
-- [ ] Visual interactive table builder for hand scenarios — *design-blocked*
+
+- [ ] Quiz/lesson engine: sequencing, scoring, session completion, randomized order, review missed — _design-blocked_
+- [ ] Starred/saved questions (persistent) — _design-blocked_
+- [ ] Wizard authoring UI (branches by question type) — _design-blocked_
+- [ ] Visual interactive table builder for hand scenarios — _design-blocked_
 - [ ] Bulk import/export: CSV + Markdown parsers (JSON already works)
 - [x] Zod validation engine with field-path-precise errors
 - [x] Staging/prod isolation, write-to-staging preview, versioned publish, one-click rollback
@@ -79,10 +85,12 @@ Validate-and-publish round trip on a sample lesson. Code carries into M1.
 - [x] Pipeline hardening: server-side re-validation ✓; admin auth gate (`REQUIRE_ADMIN=true`) ✓; CORS tightening ☐
 - [ ] CORS tightening — Edge Functions still allow `*`; needs Vercel domain allow-list
 - [x] Today's Tip + Saved Tips + References Library (+$750) — admin UI built: `/admin/tips` (TipEditor) + `/admin/references` (ReferenceEditor) + `get-from-staging` Edge Function (2026-06-24)
-- [ ] Shared scenario data model — *design-blocked*
+- [ ] Shared scenario data model — _design-blocked_
 
 ### M3 — Auth, Entitlements, Stripe, GHL Sync, Event Logging — `Not started`
+
 $2,600.
+
 - [ ] Supabase staging + prod schemas with RLS
 - [ ] Supabase Auth: password (immediate post-purchase login) + magic-link recovery
 - [ ] Entitlements model live; app gates on entitlements, not subscription state
@@ -90,10 +98,12 @@ $2,600.
 - [ ] Stripe recurring billing + webhooks; failed-payment & cancellation handling
 - [ ] Real-time GHL sync via per-Stripe-event Edge Function
 - [ ] Answer-event logging instrumentation
-- [ ] *(conditional)* GHL→app webhook handler if GHL processes payments natively (+$150–250)
+- [ ] _(conditional)_ GHL→app webhook handler if GHL processes payments natively (+$150–250)
 
 ### M4 — Skills Path, Streaks, Push, Badges, Onboarding, Leaderboard, QA, Deploy — `Not started`
+
 $4,200.
+
 - [ ] Skills Path / visual progression (Duolingo-style map; unlock states; dependencies) (+$1,200)
 - [ ] Web push notifications (VAPID, scheduled send job) (+$600)
 - [ ] Badge decay / mastery-maintenance (+$400)
@@ -108,16 +118,16 @@ $4,200.
 
 ## 3. Decision log (project-specific)
 
-| # | Date | Decision | Rationale |
-|---|------|----------|-----------|
-| D1 | 2026-06-21 | **React guide is conventions-only; Supabase governs auth/HTTP/state.** | The V3 proposal's committed stack is Vite + React + TS + Tailwind + Zod + Supabase only — no axios, .NET, TanStack Query, or Zustand. The REACT_FEATURE_IMPLEMENTATION_GUIDE is a generic master-prompt ported from an Angular/.NET project; its auth (`/api/v1/...` JWT) and mandated state/HTTP libraries do **not** apply. Follow it for typing, folder structure, component design, Tailwind/UI standards, forms, error handling, testing, security. Where it covers auth/data/state, SUPABASE_IMPLEMENTATION_GUIDE + DEVELOPER_GUIDE win. |
-| D2 | (proposal) | Two separate Supabase projects (staging + prod). | Complete isolation of preview vs live members. |
-| D3 | (proposal) | Single content pipeline with `content_type` discriminator. | One validate→stage→publish→rollback for all content types. |
-| D4 | (naming lock) | Player types = strict closed enum (OMC/PLF/Y2K/GTO/DWM/STP); concepts = open field. | Catch AI-generated typos on player types; let client extend concept taxonomy via CMS. |
-| D5 | 2026-06-21 | **Add `react-router-dom`** for the member app. | Standard, unavoidable for multi-screen member app; client approved the dependency. |
-| D6 | 2026-06-21 | **Backend-first for M1; member-facing UI held until design.** | No approved member design yet (client sending ideas ~within a week). Build DB, schemas, Edge Functions, admin tooling, PWA/infra now; static table can be built headless on request. |
-| D7 | 2026-06-21 | **One feature = one branch = one PR; app and API as separate PRs. No Claude attribution in commits/PRs; human-style code comments.** | Client's preferred workflow and house style. |
-| D8 | 2026-06-21 | **Two-repo setup:** `tech-up-dev/poker-trainer` is the working repo; `beatsmallstakes/beat-small-stakes-app` is the client mirror, synced later (approach TBD). | Keeps working history separate; client copy handled deliberately when the time comes. |
+| #   | Date          | Decision                                                                                                                                                        | Rationale                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| --- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | 2026-06-21    | **React guide is conventions-only; Supabase governs auth/HTTP/state.**                                                                                          | The V3 proposal's committed stack is Vite + React + TS + Tailwind + Zod + Supabase only — no axios, .NET, TanStack Query, or Zustand. The REACT_FEATURE_IMPLEMENTATION_GUIDE is a generic master-prompt ported from an Angular/.NET project; its auth (`/api/v1/...` JWT) and mandated state/HTTP libraries do **not** apply. Follow it for typing, folder structure, component design, Tailwind/UI standards, forms, error handling, testing, security. Where it covers auth/data/state, SUPABASE_IMPLEMENTATION_GUIDE + DEVELOPER_GUIDE win. |
+| D2  | (proposal)    | Two separate Supabase projects (staging + prod).                                                                                                                | Complete isolation of preview vs live members.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| D3  | (proposal)    | Single content pipeline with `content_type` discriminator.                                                                                                      | One validate→stage→publish→rollback for all content types.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| D4  | (naming lock) | Player types = strict closed enum (OMC/PLF/Y2K/GTO/DWM/STP); concepts = open field.                                                                             | Catch AI-generated typos on player types; let client extend concept taxonomy via CMS.                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| D5  | 2026-06-21    | **Add `react-router-dom`** for the member app.                                                                                                                  | Standard, unavoidable for multi-screen member app; client approved the dependency.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| D6  | 2026-06-21    | **Backend-first for M1; member-facing UI held until design.**                                                                                                   | No approved member design yet (client sending ideas ~within a week). Build DB, schemas, Edge Functions, admin tooling, PWA/infra now; static table can be built headless on request.                                                                                                                                                                                                                                                                                                                                                           |
+| D7  | 2026-06-21    | **One feature = one branch = one PR; app and API as separate PRs. No Claude attribution in commits/PRs; human-style code comments.**                            | Client's preferred workflow and house style.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| D8  | 2026-06-21    | **Two-repo setup:** `tech-up-dev/poker-trainer` is the working repo; `beatsmallstakes/beat-small-stakes-app` is the client mirror, synced later (approach TBD). | Keeps working history separate; client copy handled deliberately when the time comes.                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 
 ---
 
@@ -143,22 +153,22 @@ $4,200.
 
 ## 6. Deferred items tracker (do not let slip)
 
-| Item | Lands in | Status |
-|------|----------|--------|
-| Server-side re-validation (Zod in Edge Function) | M2 | ✅ Done 2026-06-24 |
-| Admin auth on the validator | M2 | ✅ Done 2026-06-24 (`REQUIRE_ADMIN=true`) |
-| Bulk-import file upload (client's main workflow) | M1 | JSON done; CSV/Markdown pending |
-| CORS tightening to Vercel domains | M2 | Pending |
+| Item                                             | Lands in | Status                                    |
+| ------------------------------------------------ | -------- | ----------------------------------------- |
+| Server-side re-validation (Zod in Edge Function) | M2       | ✅ Done 2026-06-24                        |
+| Admin auth on the validator                      | M2       | ✅ Done 2026-06-24 (`REQUIRE_ADMIN=true`) |
+| Bulk-import file upload (client's main workflow) | M1       | JSON done; CSV/Markdown pending           |
+| CORS tightening to Vercel domains                | M2       | Pending                                   |
 
 ## 7. Risks (live)
 
-| Risk | L/I | Mitigation | Status |
-|------|-----|------------|--------|
-| Content readiness lag (client authoring) | M/H | Schema spec delivered; sample content for testing | Open |
-| Design ambiguity on novel screens | M/M | Iterative mocks before build; member UI held until design | Open |
-| Scope creep on member UX | H/M | Anchor every ask to V1 checklist; V2 backlog for the rest | Open |
-| iOS PWA push limits | M/M | iOS 16.4+ supported; email fallback | Open |
-| Production DB accident | L/Critical | Staging-first; verify linked project before destructive ops | Open |
+| Risk                                     | L/I        | Mitigation                                                  | Status |
+| ---------------------------------------- | ---------- | ----------------------------------------------------------- | ------ |
+| Content readiness lag (client authoring) | M/H        | Schema spec delivered; sample content for testing           | Open   |
+| Design ambiguity on novel screens        | M/M        | Iterative mocks before build; member UI held until design   | Open   |
+| Scope creep on member UX                 | H/M        | Anchor every ask to V1 checklist; V2 backlog for the rest   | Open   |
+| iOS PWA push limits                      | M/M        | iOS 16.4+ supported; email fallback                         | Open   |
+| Production DB accident                   | L/Critical | Staging-first; verify linked project before destructive ops | Open   |
 
 ## 8. Next actions
 

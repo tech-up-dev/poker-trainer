@@ -61,9 +61,7 @@ export function PublishedContent({
       {state.kind === 'loading' ? (
         <p className="text-sm text-slate-400">Loading…</p>
       ) : state.kind === 'error' ? (
-        <p className="text-sm text-red-400">
-          Failed to load published content: {state.message}
-        </p>
+        <p className="text-sm text-red-400">Failed to load published content: {state.message}</p>
       ) : state.kind === 'empty' ? (
         <p className="text-sm text-slate-400">No production version yet.</p>
       ) : (

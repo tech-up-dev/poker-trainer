@@ -26,8 +26,7 @@ const noEmDash = {
           context.report({
             node,
             loc: { start, end: { line: start.line, column: start.column + 1 } },
-            message:
-              'Em dash (U+2014) is not allowed; use a regular hyphen or rephrase.',
+            message: 'Em dash (U+2014) is not allowed; use a regular hyphen or rephrase.',
           })
         }
       },
