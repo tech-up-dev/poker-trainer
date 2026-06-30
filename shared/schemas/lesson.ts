@@ -10,6 +10,13 @@ export const AnswerSchema = z.object({
     .min(1, "Explanation is required for every answer"),
 });
 
+const SeatActionSchema = z.object({
+  action: z.enum(["Fold", "Check", "Limp", "Call", "Bet", "Raise", "3-bet", "4-bet", "All-in"], {
+    error: () => "action must be one of: Fold, Check, Limp, Call, Bet, Raise, 3-bet, 4-bet, All-in",
+  }),
+  amount: z.number().nonnegative("amount must be zero or greater").optional(),
+});
+
 export const HandScenarioStateSchema = z.object({
   street: z.enum(["preflop", "flop", "turn", "river"], {
     error: () => "street must be one of: preflop, flop, turn, river",
@@ -25,6 +32,7 @@ export const HandScenarioStateSchema = z.object({
     .optional(),
   stack_sizes: z.record(z.string(), z.number()).optional(),
   villain_player_types: z.record(z.string(), z.string()).optional(),
+  seat_actions: z.record(z.string(), SeatActionSchema).optional(),
   notes: z.string().optional(),
 });
 
