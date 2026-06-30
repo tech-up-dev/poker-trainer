@@ -6,7 +6,6 @@ import { Card, CardBack } from './Card';
 // ─── Position data ───────────────────────────────────────────────────────────
 
 const POSITIONS = ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'MP', 'MP+1', 'HJ', 'CO'] as const;
-type Position = (typeof POSITIONS)[number];
 
 // Normalise non-standard aliases
 function normalisePos(pos: string): string {
