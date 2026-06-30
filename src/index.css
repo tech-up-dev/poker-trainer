@@ -1,1 +1,39 @@
 @import 'tailwindcss';
+
+/*
+ * Beat Small Stakes brand theme. Dark is the app default; `.light` on <html>
+ * (toggled by ThemeProvider) overrides the same custom properties so every
+ * `bg-canvas` / `text-ink` / etc. utility repaints without a rebuild.
+ * Source: client color spec (navy + gold, colorblind-safe, tuned for 50+ eyes).
+ */
+@theme {
+  --color-canvas: #07182c;
+  --color-surface: #0e2a47;
+  --color-elevated: #16395c;
+  --color-line: #21466b;
+  --color-gold: #f4a024;
+  --color-amber: #e0901a;
+  --color-on-gold: #0a1e33;
+  --color-ink: #eaf1f8;
+  --color-ink-2: #9db2c9;
+  --color-ink-3: #6b83a0;
+  --color-link: #5da2e0;
+  --color-success: #3dbe8a;
+  --color-error: #e2574b;
+}
+
+:root.light {
+  --color-canvas: #f4f6fa;
+  --color-surface: #ffffff;
+  --color-elevated: #f4f6fa;
+  --color-line: #dbe2ec;
+  --color-gold: #f4a024;
+  --color-amber: #e0901a;
+  --color-on-gold: #0a1e33;
+  --color-ink: #0c2340;
+  --color-ink-2: #4a5e78;
+  --color-ink-3: #4a5e78;
+  --color-link: #2e6fb8;
+  --color-success: #1c7a55;
+  --color-error: #a8332a;
+}
