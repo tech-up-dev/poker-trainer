@@ -86,6 +86,7 @@ The CMS is the heaviest technical work in V1. It's the heart of the app. Content
 **Two Supabase projects** (staging and production) from day one. Content gets written to staging first, previewed, then promoted to production. Each promotion creates a version snapshot.
 
 **Two-layer rollback:**
+
 - Code rollback: Vercel's one-click deployment revert
 - Content rollback: Supabase versioned publish (any prior version can be restored)
 
@@ -95,26 +96,26 @@ Code and content roll back independently. No coordination needed between them.
 
 ## Tech stack reference
 
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| Build tool | Vite | Fast dev server, fast builds, modern ESM |
-| Framework | React 18+ | Standard for this type of app |
-| Language | TypeScript (strict) | Schema-heavy app; type safety end to end |
-| Styling | Tailwind CSS | Utility-first, fast to iterate, no custom CSS bloat |
-| Validation | Zod | Schemas are the source of truth; types derived |
-| State (local) | React `useState`, `useReducer` | No global state library in V1 |
-| State (server) | Direct Supabase queries | No TanStack Query yet; add if needed in M2 |
-| Routing | React Router (added M1) | Standard SPA routing |
-| Database | Postgres (via Supabase) | Relational data, strong consistency, RLS |
-| Auth | Supabase Auth | Password + magic link, integrated with RLS |
-| Storage | Supabase Storage | For avatar artwork and any future media |
-| Edge Functions | Supabase Edge Functions (Deno) | Server-side logic for promote, rollback, webhooks |
-| Payments | Stripe (recurring billing) | Industry standard |
-| CRM sync | GoHighLevel (via Stripe webhook) | Real-time, per-Stripe-event |
-| PWA | Service Worker + Web Manifest | Add-to-home-screen, offline caching, web push |
-| Push | Web Push API (VAPID) | iOS 16.4+ supported for installed PWAs |
-| Hosting | Vercel | Code deploys, instant rollback, branch previews |
-| Source control | GitHub | Repo lives under the client's account |
+| Layer          | Technology                       | Why                                                 |
+| -------------- | -------------------------------- | --------------------------------------------------- |
+| Build tool     | Vite                             | Fast dev server, fast builds, modern ESM            |
+| Framework      | React 18+                        | Standard for this type of app                       |
+| Language       | TypeScript (strict)              | Schema-heavy app; type safety end to end            |
+| Styling        | Tailwind CSS                     | Utility-first, fast to iterate, no custom CSS bloat |
+| Validation     | Zod                              | Schemas are the source of truth; types derived      |
+| State (local)  | React `useState`, `useReducer`   | No global state library in V1                       |
+| State (server) | Direct Supabase queries          | No TanStack Query yet; add if needed in M2          |
+| Routing        | React Router (added M1)          | Standard SPA routing                                |
+| Database       | Postgres (via Supabase)          | Relational data, strong consistency, RLS            |
+| Auth           | Supabase Auth                    | Password + magic link, integrated with RLS          |
+| Storage        | Supabase Storage                 | For avatar artwork and any future media             |
+| Edge Functions | Supabase Edge Functions (Deno)   | Server-side logic for promote, rollback, webhooks   |
+| Payments       | Stripe (recurring billing)       | Industry standard                                   |
+| CRM sync       | GoHighLevel (via Stripe webhook) | Real-time, per-Stripe-event                         |
+| PWA            | Service Worker + Web Manifest    | Add-to-home-screen, offline caching, web push       |
+| Push           | Web Push API (VAPID)             | iOS 16.4+ supported for installed PWAs              |
+| Hosting        | Vercel                           | Code deploys, instant rollback, branch previews     |
+| Source control | GitHub                           | Repo lives under the client's account               |
 
 **Versions to pin:** see `package.json`. Notable: Zod v4 (the validation API uses `error` callbacks, not `errorMap`).
 
@@ -299,21 +300,21 @@ For session-wide state (current user, entitlements), use React Context. One prov
 
 ```tsx
 // src/components/quiz/QuestionRenderer.tsx
-import { useState } from "react";
-import type { Question, Answer } from "@/types/lesson";
-import { FeedbackDrawer } from "./FeedbackDrawer";
+import { useState } from 'react'
+import type { Question, Answer } from '@/types/lesson'
+import { FeedbackDrawer } from './FeedbackDrawer'
 
 type QuestionRendererProps = {
-  question: Question;
-  onAnswered: (answer: Answer, isCorrect: boolean) => void;
-};
+  question: Question
+  onAnswered: (answer: Answer, isCorrect: boolean) => void
+}
 
 export function QuestionRenderer({ question, onAnswered }: QuestionRendererProps) {
-  const [selected, setSelected] = useState<Answer | null>(null);
+  const [selected, setSelected] = useState<Answer | null>(null)
 
   function handleSelect(answer: Answer) {
-    setSelected(answer);
-    onAnswered(answer, answer.is_correct);
+    setSelected(answer)
+    onAnswered(answer, answer.is_correct)
   }
 
   return (
@@ -331,15 +332,14 @@ export function QuestionRenderer({ question, onAnswered }: QuestionRendererProps
           </button>
         ))}
       </div>
-      {selected && (
-        <FeedbackDrawer answer={selected} isCorrect={selected.is_correct} />
-      )}
+      {selected && <FeedbackDrawer answer={selected} isCorrect={selected.is_correct} />}
     </div>
-  );
+  )
 }
 ```
 
 Key patterns visible:
+
 - Props as a `type` alias (not `interface`)
 - Hooks at top of component
 - Event handlers as named functions inside the component
@@ -493,13 +493,13 @@ Staging is more permissive in dev/test (anon read) and admin-gated in production
 
 ### Edge Function inventory
 
-| Function | Purpose | Hosted in | Auth |
-|----------|---------|-----------|------|
-| `promote-to-prod` | Read staging → snapshot to versions → write production | Production project | Service role (M1 test); admin auth (M2) |
-| `rollback-to-version` | Restore prior version to production, log as new version | Production project | Service role (M1 test); admin auth (M2) |
-| `stripe-webhook` | Receive Stripe subscription events → update entitlements → forward to GHL sync | Production project | Stripe signature verification |
-| `ghl-sync` | Push subscription state to GHL custom fields/tags | Production project | Called by `stripe-webhook`; GHL API key in secrets |
-| `push-streak-reminder` | Scheduled function: send web push to users at risk of breaking streak | Production project | Cron-invoked, service role |
+| Function               | Purpose                                                                        | Hosted in          | Auth                                               |
+| ---------------------- | ------------------------------------------------------------------------------ | ------------------ | -------------------------------------------------- |
+| `promote-to-prod`      | Read staging → snapshot to versions → write production                         | Production project | Service role (M1 test); admin auth (M2)            |
+| `rollback-to-version`  | Restore prior version to production, log as new version                        | Production project | Service role (M1 test); admin auth (M2)            |
+| `stripe-webhook`       | Receive Stripe subscription events → update entitlements → forward to GHL sync | Production project | Stripe signature verification                      |
+| `ghl-sync`             | Push subscription state to GHL custom fields/tags                              | Production project | Called by `stripe-webhook`; GHL API key in secrets |
+| `push-streak-reminder` | Scheduled function: send web push to users at risk of breaking streak          | Production project | Cron-invoked, service role                         |
 
 Functions are deployed via the CLI:
 
@@ -524,28 +524,28 @@ Every content type has a Zod schema in `shared/schemas/`. TypeScript types deriv
 
 ```ts
 // shared/schemas/lesson.ts
-import { z } from "zod";
+import { z } from 'zod'
 
 export const AnswerSchema = z.object({
-  text: z.string().min(1, "Answer text is required"),
+  text: z.string().min(1, 'Answer text is required'),
   is_correct: z.boolean(),
-  explanation: z.string().min(1, "Explanation is required for every answer"),
-});
+  explanation: z.string().min(1, 'Explanation is required for every answer'),
+})
 
-export const QuestionSchema = z.discriminatedUnion("type", [
+export const QuestionSchema = z.discriminatedUnion('type', [
   // multiple_choice and hand_scenario variants
-]);
+])
 
 export const LessonSchema = z.object({
   lesson_id: z.string().min(1),
   title: z.string().min(1),
   principle_tag: z.string().min(1),
   concept: z.string().min(1),
-  difficulty: z.enum(["beginner", "intermediate", "advanced"]).optional(),
+  difficulty: z.enum(['beginner', 'intermediate', 'advanced']).optional(),
   questions: z.array(QuestionSchema).min(1),
-});
+})
 
-export type Lesson = z.infer<typeof LessonSchema>;
+export type Lesson = z.infer<typeof LessonSchema>
 ```
 
 **Rules:**
@@ -625,15 +625,16 @@ The app checks entitlements, not raw Stripe subscription status. This decouples 
 ```ts
 // Conceptual gating check
 const { data: entitlements } = await supabase
-  .from("entitlements")
-  .select("entitlement_key")
-  .eq("user_id", userId)
-  .is("expires_at", null);  // or .gt("expires_at", now)
+  .from('entitlements')
+  .select('entitlement_key')
+  .eq('user_id', userId)
+  .is('expires_at', null) // or .gt("expires_at", now)
 
-const hasAccess = entitlements?.some(e => e.entitlement_key === "quiz_app_access");
+const hasAccess = entitlements?.some((e) => e.entitlement_key === 'quiz_app_access')
 ```
 
 Why this matters:
+
 - Multiple Stripe price points (e.g., $27/mo, $47/mo, annual) all map to the same `quiz_app_access` entitlement.
 - Future products (Masterclass, etc.) get their own entitlement keys without touching the existing model.
 - Admin-granted access (e.g., for support cases) uses `source: 'manual'`.
@@ -650,6 +651,7 @@ The `/admin/*` routes check for a special entitlement: `admin_access` (or simila
 ### Manifest (`public/manifest.json`)
 
 Standard PWA manifest with:
+
 - App name, short name
 - Icons in multiple sizes (192, 512)
 - `display: "standalone"` for app-like full-screen
@@ -659,6 +661,7 @@ Standard PWA manifest with:
 ### Service worker
 
 Custom service worker handles:
+
 - Install: cache the app shell (HTML, CSS, JS bundle)
 - Activate: clean up old caches
 - Fetch: cache-first for static assets, network-first for API calls
@@ -670,10 +673,12 @@ The caching strategy is coordinated with the content publish flow. The app uses 
 ### Web push (added M4)
 
 VAPID keys generated once and stored:
+
 - Public key: in the app source (Vite env)
 - Private key: in Supabase Edge Function secrets
 
 Push subscription flow:
+
 1. Member opts in via a settings toggle
 2. Frontend calls `pushManager.subscribe()` with the VAPID public key
 3. Push subscription endpoint stored in `user_push_subscriptions` table
@@ -711,6 +716,7 @@ refactor: extract formatPath helper from validate.ts
 ### Pull requests
 
 Every PR includes:
+
 - A clear title summarizing the change
 - A description with: what changed, why, how to test, screenshots if UI
 - Linked GitHub issue if applicable
@@ -728,7 +734,7 @@ Walk-through example: adding `Tip` content.
 1. **Add the Zod schema** in `shared/schemas/tip.ts`:
 
 ```ts
-import { z } from "zod";
+import { z } from 'zod'
 
 export const TipSchema = z.object({
   tip_id: z.string().min(1),
@@ -736,27 +742,27 @@ export const TipSchema = z.object({
   body: z.string().min(1),
   concept: z.string().min(1),
   related_glossary_terms: z.array(z.string()).optional(),
-});
+})
 
-export type Tip = z.infer<typeof TipSchema>;
+export type Tip = z.infer<typeof TipSchema>
 ```
 
 2. **Update the validator** to handle the new type. The validator is generic and dispatches by `content_type`. Add the new schema to its dispatch map:
 
 ```ts
 // src/lib/validate.ts
-import { LessonSchema } from "@/shared/schemas/lesson";
-import { TipSchema } from "@/shared/schemas/tip";
+import { LessonSchema } from '@/shared/schemas/lesson'
+import { TipSchema } from '@/shared/schemas/tip'
 
 const SCHEMAS = {
   lesson: LessonSchema,
   tip: TipSchema,
   // ...
-} as const;
+} as const
 
 export function validateContent(type: ContentType, raw: unknown) {
-  const schema = SCHEMAS[type];
-  return schema.safeParse(raw);
+  const schema = SCHEMAS[type]
+  return schema.safeParse(raw)
 }
 ```
 
@@ -785,40 +791,39 @@ Walk-through: a hypothetical `send-welcome-email` function.
 2. **Add `index.ts`**:
 
 ```ts
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.0'
 
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",  // tighten in M2
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+  'Access-Control-Allow-Origin': '*', // tighten in M2
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { user_id } = await req.json();
+    const { user_id } = await req.json()
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+    )
 
     // Function logic here
 
-    return new Response(
-      JSON.stringify({ ok: true }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   } catch (error) {
-    return new Response(
-      JSON.stringify({ ok: false, message: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    return new Response(JSON.stringify({ ok: false, message: error.message }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
-});
+})
 ```
 
 3. **Deploy**:
@@ -846,9 +851,9 @@ curl -X POST https://<project-ref>.supabase.co/functions/v1/send-welcome-email \
 6. **Call from the client** (if needed) via the Supabase client:
 
 ```ts
-const { data, error } = await supabase.functions.invoke("send-welcome-email", {
-  body: { user_id: "abc" },
-});
+const { data, error } = await supabase.functions.invoke('send-welcome-email', {
+  body: { user_id: 'abc' },
+})
 ```
 
 ---
@@ -864,18 +869,18 @@ Walk-through: adding a `StreakBadge` component.
 ```tsx
 // src/components/gamification/StreakBadge.tsx
 type StreakBadgeProps = {
-  streak: number;
-  size?: "sm" | "md" | "lg";
-};
+  streak: number
+  size?: 'sm' | 'md' | 'lg'
+}
 
 const SIZE_CLASSES = {
-  sm: "text-sm px-2 py-1",
-  md: "text-base px-3 py-1.5",
-  lg: "text-lg px-4 py-2",
-} as const;
+  sm: 'text-sm px-2 py-1',
+  md: 'text-base px-3 py-1.5',
+  lg: 'text-lg px-4 py-2',
+} as const
 
-export function StreakBadge({ streak, size = "md" }: StreakBadgeProps) {
-  if (streak === 0) return null;
+export function StreakBadge({ streak, size = 'md' }: StreakBadgeProps) {
+  if (streak === 0) return null
 
   return (
     <span
@@ -885,7 +890,7 @@ export function StreakBadge({ streak, size = "md" }: StreakBadgeProps) {
       <span aria-hidden>🔥</span>
       <span>{streak}</span>
     </span>
-  );
+  )
 }
 ```
 
@@ -963,6 +968,7 @@ This codebase prioritizes:
 ### What we test
 
 **Always:**
+
 - Zod schema validation (positive and negative cases for every content type)
 - Utility functions (`formatPath`, ID generators, date formatters)
 - Edge Function happy paths and key error paths
@@ -970,10 +976,12 @@ This codebase prioritizes:
 - Critical user flows (subscribe → access; drill completion → progress saved)
 
 **Sometimes:**
+
 - React component rendering (when there's branching logic worth testing)
 - Custom hooks (when state transitions are non-trivial)
 
 **Rarely:**
+
 - Static UI components without behavior
 - Tailwind class application
 - Framework code

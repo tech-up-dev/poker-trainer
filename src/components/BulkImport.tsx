@@ -113,7 +113,10 @@ export function BulkImport(): JSX.Element {
       })
       const result = data as { ok: boolean; content_id?: string; message?: string } | null
       if (error || !result?.ok) {
-        failures.push({ index: item.index, message: result?.message ?? error?.message ?? 'Unknown error' })
+        failures.push({
+          index: item.index,
+          message: result?.message ?? error?.message ?? 'Unknown error',
+        })
       } else {
         saved.push({ contentType: item.contentType, contentId: result.content_id ?? '(unknown)' })
       }
@@ -135,7 +138,10 @@ export function BulkImport(): JSX.Element {
       })
       const result = data as { ok: boolean; message?: string } | null
       if (error || !result?.ok) {
-        failures.push({ contentId: item.contentId, message: result?.message ?? error?.message ?? 'Unknown error' })
+        failures.push({
+          contentId: item.contentId,
+          message: result?.message ?? error?.message ?? 'Unknown error',
+        })
       } else {
         promoted++
       }
@@ -151,10 +157,9 @@ export function BulkImport(): JSX.Element {
         <h1 className="text-2xl font-semibold">Bulk Import</h1>
         <p className="text-slate-400">
           Paste a JSON array, a single object, or a wrapper like{' '}
-          <code className="text-slate-300">{'{ "glossary": [ … ] }'}</code>. Each
-          item's type is detected automatically ({CANDIDATE_TYPES.join(', ')}).
-          Validate the batch, then save every valid item to staging in one step.
-          Missing ids are generated for you.
+          <code className="text-slate-300">{'{ "glossary": [ … ] }'}</code>. Each item's type is
+          detected automatically ({CANDIDATE_TYPES.join(', ')}). Validate the batch, then save every
+          valid item to staging in one step. Missing ids are generated for you.
         </p>
       </header>
 
@@ -204,7 +209,9 @@ export function BulkImport(): JSX.Element {
             <div>
               <span className="text-green-400 font-medium">{validItems.length} valid</span>
               <span className="text-slate-500"> · </span>
-              <span className={invalidItems.length > 0 ? 'text-red-400 font-medium' : 'text-slate-400'}>
+              <span
+                className={invalidItems.length > 0 ? 'text-red-400 font-medium' : 'text-slate-400'}
+              >
                 {invalidItems.length} invalid
               </span>
               <span className="text-slate-500">
@@ -214,9 +221,7 @@ export function BulkImport(): JSX.Element {
               </span>
             </div>
             {validItems.length > 0 ? (
-              <div className="text-slate-400">
-                {summarizeByType(validItems)}
-              </div>
+              <div className="text-slate-400">{summarizeByType(validItems)}</div>
             ) : null}
           </div>
         ) : null}
@@ -227,7 +232,7 @@ export function BulkImport(): JSX.Element {
             className="rounded border border-red-600 bg-red-600/10 px-4 py-3 space-y-1"
           >
             <p className="text-red-200 text-sm font-medium">
-              Item {item.index + 1} — no matching content type
+              Item {item.index + 1}: no matching content type
             </p>
             <ul className="space-y-1">
               {item.errors.map((err, i) => (
@@ -298,9 +303,7 @@ export function BulkImport(): JSX.Element {
   )
 }
 
-function summarizeByType(
-  items: Extract<ItemResult, { ok: true }>[]
-): string {
+function summarizeByType(items: Extract<ItemResult, { ok: true }>[]): string {
   const counts = new Map<ContentType, number>()
   for (const item of items) {
     counts.set(item.contentType, (counts.get(item.contentType) ?? 0) + 1)

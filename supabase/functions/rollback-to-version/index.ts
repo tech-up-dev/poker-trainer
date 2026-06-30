@@ -2,7 +2,7 @@
 // Production-only operation: reads the target version's snapshot from
 // content_versions, writes a new version entry (created_by="rollback",
 // source_version=<target>), and upserts content_published to point at it.
-// Append-only — no prior versions are ever deleted.
+// Append-only; no prior versions are ever deleted.
 //
 // Rollback deliberately does NOT re-validate. The target snapshot already
 // passed validation at promote time; re-checking it against a possibly newer

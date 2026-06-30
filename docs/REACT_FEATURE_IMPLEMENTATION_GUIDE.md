@@ -44,11 +44,11 @@ cd project-name
 npm install
 ```
 
-| Choice | Value | Reason |
-|--------|-------|--------|
-| Build tool | **Vite** | Fast dev server, instant HMR, simple config. CRA is deprecated. |
-| Language | **TypeScript** | Same strict-typing rationale as Angular. |
-| Package manager | `npm` or `pnpm` | Pick one per project and stay consistent. |
+| Choice          | Value           | Reason                                                          |
+| --------------- | --------------- | --------------------------------------------------------------- |
+| Build tool      | **Vite**        | Fast dev server, instant HMR, simple config. CRA is deprecated. |
+| Language        | **TypeScript**  | Same strict-typing rationale as Angular.                        |
+| Package manager | `npm` or `pnpm` | Pick one per project and stay consistent.                       |
 
 ### TypeScript Strict Configuration
 
@@ -78,14 +78,14 @@ npm install react-router-dom @tanstack/react-query zustand axios react-hook-form
 npm install -D tailwindcss postcss autoprefixer
 ```
 
-| Library | Replaces (Angular equivalent) | Purpose |
-|---------|-------------------------------|---------|
-| `react-router-dom` | `@angular/router` | Routing, lazy loading, guards |
-| `@tanstack/react-query` | `resource()` / `HttpClient` + caching | Server state, fetching, caching, retries |
-| `zustand` | Signal-based services (`CartService`, `AuthService`) | Global client state |
-| `axios` | `HttpClient` | HTTP requests, interceptors |
-| `react-hook-form` + `zod` | Typed Reactive Forms | Forms + validation |
-| `tailwindcss` | Tailwind CSS | Styling (identical setup to Angular) |
+| Library                   | Replaces (Angular equivalent)                        | Purpose                                  |
+| ------------------------- | ---------------------------------------------------- | ---------------------------------------- |
+| `react-router-dom`        | `@angular/router`                                    | Routing, lazy loading, guards            |
+| `@tanstack/react-query`   | `resource()` / `HttpClient` + caching                | Server state, fetching, caching, retries |
+| `zustand`                 | Signal-based services (`CartService`, `AuthService`) | Global client state                      |
+| `axios`                   | `HttpClient`                                         | HTTP requests, interceptors              |
+| `react-hook-form` + `zod` | Typed Reactive Forms                                 | Forms + validation                       |
+| `tailwindcss`             | Tailwind CSS                                         | Styling (identical setup to Angular)     |
 
 ### Node & Package Manager
 
@@ -145,27 +145,27 @@ src/
 
 ### Folder Rules
 
-| Folder | Rule |
-|--------|------|
-| `core/` | Imported once at root. Only singletons: auth, API client, error boundary, global types. |
-| `features/` | One folder per route or business domain. Each feature is self-contained. |
-| `shared/` | Components and hooks with zero business logic. Purely presentational/reusable. |
-| `layout/` | Structural wrapper components only. Never inside `features/`. |
+| Folder      | Rule                                                                                    |
+| ----------- | --------------------------------------------------------------------------------------- |
+| `core/`     | Imported once at root. Only singletons: auth, API client, error boundary, global types. |
+| `features/` | One folder per route or business domain. Each feature is self-contained.                |
+| `shared/`   | Components and hooks with zero business logic. Purely presentational/reusable.          |
+| `layout/`   | Structural wrapper components only. Never inside `features/`.                           |
 
 > **Never put business logic inside `shared/`.** If a component needs feature-specific data fetching, it belongs in a feature folder.
 
 ### File Naming Conventions
 
-| Artifact | Convention | Example |
-|----------|-----------|---------|
-| Component | `PascalCase.tsx` | `UserProfile.tsx` |
-| Hook | `useCamelCase.ts` | `useAuth.ts`, `useDebounce.ts` |
-| Zustand store | `camelCase.store.ts`, hook named `useXStore` | `cart.store.ts` → `useCartStore` |
-| API module | `camelCase.api.ts` | `user.api.ts` |
-| Types/interfaces | `camelCase.types.ts` | `user.types.ts` |
-| Route config | `feature.routes.tsx` | `dashboard.routes.tsx` |
-| Test file | `Component.test.tsx` (co-located) | `UserCard.test.tsx` |
-| Pure utility | `camelCase.ts` | `validators.ts` |
+| Artifact         | Convention                                   | Example                          |
+| ---------------- | -------------------------------------------- | -------------------------------- |
+| Component        | `PascalCase.tsx`                             | `UserProfile.tsx`                |
+| Hook             | `useCamelCase.ts`                            | `useAuth.ts`, `useDebounce.ts`   |
+| Zustand store    | `camelCase.store.ts`, hook named `useXStore` | `cart.store.ts` → `useCartStore` |
+| API module       | `camelCase.api.ts`                           | `user.api.ts`                    |
+| Types/interfaces | `camelCase.types.ts`                         | `user.types.ts`                  |
+| Route config     | `feature.routes.tsx`                         | `dashboard.routes.tsx`           |
+| Test file        | `Component.test.tsx` (co-located)            | `UserCard.test.tsx`              |
+| Pure utility     | `camelCase.ts`                               | `validators.ts`                  |
 
 ### Component File Rule — Different From Angular On Purpose
 
@@ -184,11 +184,12 @@ export function UserCard({ user }: { user: User }) {
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
       <p className="text-sm font-semibold text-gray-900">{user.name}</p>
     </div>
-  );
+  )
 }
 ```
 
 Only create a separate `.css`/`.module.css` file for:
+
 - Global resets / base styles (`index.css`)
 - Complex keyframe animations not expressible with Tailwind utilities
 
@@ -206,19 +207,19 @@ unavoidable exception**: React's error boundary API still requires a class compo
 
 ```tsx
 // main.tsx
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RouterProvider } from 'react-router-dom';
-import { router } from './app.routes';
-import { GlobalErrorBoundary } from './core/ErrorBoundary';
-import './index.css';
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { RouterProvider } from 'react-router-dom'
+import { router } from './app.routes'
+import { GlobalErrorBoundary } from './core/ErrorBoundary'
+import './index.css'
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: { retry: 1, staleTime: 30_000 },
   },
-});
+})
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
@@ -227,8 +228,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
         <RouterProvider router={router} />
       </QueryClientProvider>
     </GlobalErrorBoundary>
-  </React.StrictMode>
-);
+  </React.StrictMode>,
+)
 ```
 
 ### Lazy Loading — Mandatory
@@ -238,10 +239,10 @@ Every feature route must be lazy-loaded with `React.lazy()` (or the router's bui
 
 ```tsx
 // app.routes.tsx
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { Shell } from './layout/Shell';
-import { ProtectedRoute } from './core/auth/ProtectedRoute';
-import { userRoutes } from './features/users/users.routes';
+import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { Shell } from './layout/Shell'
+import { ProtectedRoute } from './core/auth/ProtectedRoute'
+import { userRoutes } from './features/users/users.routes'
 
 export const router = createBrowserRouter([
   {
@@ -251,21 +252,21 @@ export const router = createBrowserRouter([
       { index: true, element: <Navigate to="dashboard" replace /> },
       {
         path: 'dashboard',
-        lazy: () => import('./features/dashboard/Dashboard').then(m => ({ Component: m.Dashboard })),
+        lazy: () =>
+          import('./features/dashboard/Dashboard').then((m) => ({ Component: m.Dashboard })),
       },
       {
         element: <ProtectedRoute />,
-        children: [
-          { path: 'users', children: userRoutes },
-        ],
+        children: [{ path: 'users', children: userRoutes }],
       },
       {
         path: '*',
-        lazy: () => import('./features/not-found/NotFound').then(m => ({ Component: m.NotFound })),
+        lazy: () =>
+          import('./features/not-found/NotFound').then((m) => ({ Component: m.NotFound })),
       },
     ],
   },
-]);
+])
 ```
 
 ---
@@ -277,31 +278,31 @@ export const router = createBrowserRouter([
 Same two-step JWT flow agreed with the backend team. Login returns tokens in the response body;
 user data is fetched in a separate subsequent call.
 
-| Step | Action | Endpoint |
-|------|--------|----------|
-| 1 | Submit credentials → receive `AccessToken` + `RefreshToken` | `POST /api/v1/Authenticate/login` |
-| 2 | Fetch full user profile using the access token | `GET /api/v1/User/me` |
-| 3 | Attach Bearer token to all subsequent requests | Axios request interceptor (automatic) |
+| Step | Action                                                      | Endpoint                              |
+| ---- | ----------------------------------------------------------- | ------------------------------------- |
+| 1    | Submit credentials → receive `AccessToken` + `RefreshToken` | `POST /api/v1/Authenticate/login`     |
+| 2    | Fetch full user profile using the access token              | `GET /api/v1/User/me`                 |
+| 3    | Attach Bearer token to all subsequent requests              | Axios request interceptor (automatic) |
 
 ### Token Storage — Identical Rule
 
-| Token | Storage | Reason |
-|-------|---------|--------|
-| Access token | **Memory only** — held in the Zustand auth store | Lost on page refresh by design; short-lived |
-| Refresh token | **`localStorage`** | Needed to silently re-authenticate after page refresh |
+| Token         | Storage                                          | Reason                                                |
+| ------------- | ------------------------------------------------ | ----------------------------------------------------- |
+| Access token  | **Memory only** — held in the Zustand auth store | Lost on page refresh by design; short-lived           |
+| Refresh token | **`localStorage`**                               | Needed to silently re-authenticate after page refresh |
 
 > **Never store the access token in `localStorage` or `sessionStorage`.** In-memory tokens
 > expire quickly and limit XSS blast radius.
 
 ### API Endpoints Reference — Identical
 
-| Method | Endpoint | Purpose |
-|--------|----------|---------|
-| `POST` | `/api/v1/Authenticate/login` | Login — returns `AccessToken` + `RefreshToken` |
-| `GET`  | `/api/v1/User/me` | Get current user profile (requires Bearer token) |
-| `PUT`  | `/api/v1/User/change-password` | Change password for authenticated user |
-| `POST` | `/api/v1/User/forgot-password` | Request password reset email |
-| `POST` | `/api/v1/User/reset-password` | Submit new password with `uid` + `token` from email |
+| Method | Endpoint                       | Purpose                                             |
+| ------ | ------------------------------ | --------------------------------------------------- |
+| `POST` | `/api/v1/Authenticate/login`   | Login — returns `AccessToken` + `RefreshToken`      |
+| `GET`  | `/api/v1/User/me`              | Get current user profile (requires Bearer token)    |
+| `PUT`  | `/api/v1/User/change-password` | Change password for authenticated user              |
+| `POST` | `/api/v1/User/forgot-password` | Request password reset email                        |
+| `POST` | `/api/v1/User/reset-password`  | Submit new password with `uid` + `token` from email |
 
 ### TypeScript Interfaces — `core/auth/auth.types.ts`
 
@@ -309,37 +310,46 @@ Identical to the Angular interfaces — mirrors backend `.NET` records in camelC
 
 ```typescript
 export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
+  accessToken: string
+  refreshToken: string
 }
 
 export interface LoginRequest {
-  email: string;
-  password: string;
+  email: string
+  password: string
 }
 
 export interface MeResponse {
-  id: number;
-  firstName: string;
-  lastName: string;
-  picture: string | null;
-  email: string;
-  phoneNumber: string | null;
-  suspensionReason: string | null;
-  dateCreated: string;            // ISO 8601 — format with date-fns
-  status: ListItemBaseResponse;
-  type: string;
-  profilePicture: string | null;
+  id: number
+  firstName: string
+  lastName: string
+  picture: string | null
+  email: string
+  phoneNumber: string | null
+  suspensionReason: string | null
+  dateCreated: string // ISO 8601 — format with date-fns
+  status: ListItemBaseResponse
+  type: string
+  profilePicture: string | null
 }
 
 export interface ListItemBaseResponse {
-  id: number;
-  name: string;
+  id: number
+  name: string
 }
 
-export interface ChangePasswordRequest { oldPassword: string; newPassword: string; }
-export interface ForgotPasswordRequest { email: string; }
-export interface ResetPasswordRequest  { uid: string; token: string; password: string; }
+export interface ChangePasswordRequest {
+  oldPassword: string
+  newPassword: string
+}
+export interface ForgotPasswordRequest {
+  email: string
+}
+export interface ResetPasswordRequest {
+  uid: string
+  token: string
+  password: string
+}
 ```
 
 ### Auth Store — `core/auth/auth.store.ts` (Zustand)
@@ -348,18 +358,18 @@ This is the React equivalent of Angular's signal-based `AuthService`. Expose sta
 actions together; only the store mutates its own state.
 
 ```typescript
-import { create } from 'zustand';
-import { authApi } from './authApi';
-import type { LoginRequest, MeResponse } from './auth.types';
+import { create } from 'zustand'
+import { authApi } from './authApi'
+import type { LoginRequest, MeResponse } from './auth.types'
 
 interface AuthState {
-  accessToken: string | null;       // memory only — never persisted
-  currentUser: MeResponse | null;
-  isAuthenticated: boolean;
-  login: (request: LoginRequest) => Promise<void>;
-  loadCurrentUser: () => Promise<void>;
-  logout: () => void;
-  setAccessToken: (token: string | null) => void;
+  accessToken: string | null // memory only — never persisted
+  currentUser: MeResponse | null
+  isAuthenticated: boolean
+  login: (request: LoginRequest) => Promise<void>
+  loadCurrentUser: () => Promise<void>
+  logout: () => void
+  setAccessToken: (token: string | null) => void
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -369,50 +379,50 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   // Step 1: POST /api/v1/Authenticate/login → Step 2: GET /api/v1/User/me
   login: async (request) => {
-    const res = await authApi.login(request);
-    set({ accessToken: res.accessToken });
-    localStorage.setItem('refreshToken', res.refreshToken);
-    await get().loadCurrentUser();
+    const res = await authApi.login(request)
+    set({ accessToken: res.accessToken })
+    localStorage.setItem('refreshToken', res.refreshToken)
+    await get().loadCurrentUser()
   },
 
   // GET /api/v1/User/me — interceptor attaches Bearer token automatically
   loadCurrentUser: async () => {
-    const user = await authApi.me();
-    set({ currentUser: user, isAuthenticated: true });
+    const user = await authApi.me()
+    set({ currentUser: user, isAuthenticated: true })
   },
 
   logout: () => {
-    localStorage.removeItem('refreshToken');
-    set({ accessToken: null, currentUser: null, isAuthenticated: false });
+    localStorage.removeItem('refreshToken')
+    set({ accessToken: null, currentUser: null, isAuthenticated: false })
   },
 
   setAccessToken: (token) => set({ accessToken: token }),
-}));
+}))
 ```
 
 ### Axios Instance & Token Interceptor — `core/api/axiosInstance.ts`
 
 ```typescript
-import axios from 'axios';
-import { useAuthStore } from '../auth/auth.store';
+import axios from 'axios'
+import { useAuthStore } from '../auth/auth.store'
 
 const PUBLIC_ENDPOINTS = [
   '/api/v1/Authenticate/login',
   '/api/v1/User/forgot-password',
   '/api/v1/User/reset-password',
-];
+]
 
-export const api = axios.create({ baseURL: import.meta.env.VITE_API_URL });
+export const api = axios.create({ baseURL: import.meta.env.VITE_API_URL })
 
 // Attach Bearer token to every request except public endpoints
 api.interceptors.request.use((config) => {
-  const isPublic = PUBLIC_ENDPOINTS.some(url => config.url?.includes(url));
-  if (isPublic) return config;
+  const isPublic = PUBLIC_ENDPOINTS.some((url) => config.url?.includes(url))
+  if (isPublic) return config
 
-  const token = useAuthStore.getState().accessToken;
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+  const token = useAuthStore.getState().accessToken
+  if (token) config.headers.Authorization = `Bearer ${token}`
+  return config
+})
 
 // Centralized error handling — replaces Angular's errorInterceptor
 api.interceptors.response.use(
@@ -420,15 +430,15 @@ api.interceptors.response.use(
   (error) => {
     switch (error.response?.status) {
       case 0:
-        showToast('No network connection.');
-        break;
+        showToast('No network connection.')
+        break
       case 500:
-        showToast('Server error. Please try again later.');
-        break;
+        showToast('Server error. Please try again later.')
+        break
     }
-    return Promise.reject(error);
-  }
-);
+    return Promise.reject(error)
+  },
+)
 ```
 
 ### Session Restoration on Page Refresh — `core/auth/useAuthInit.ts`
@@ -436,25 +446,26 @@ api.interceptors.response.use(
 ```typescript
 // Runs once on app mount — silently restores session from refreshToken in localStorage
 export function useAuthInit() {
-  const [isReady, setIsReady] = useState(false);
-  const { loadCurrentUser, logout } = useAuthStore();
+  const [isReady, setIsReady] = useState(false)
+  const { loadCurrentUser, logout } = useAuthStore()
 
   useEffect(() => {
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshToken = localStorage.getItem('refreshToken')
     if (!refreshToken) {
-      setIsReady(true);
-      return;
+      setIsReady(true)
+      return
     }
-    authApi.refreshAccessToken(refreshToken)
+    authApi
+      .refreshAccessToken(refreshToken)
       .then(({ accessToken }) => {
-        useAuthStore.getState().setAccessToken(accessToken);
-        return loadCurrentUser();
+        useAuthStore.getState().setAccessToken(accessToken)
+        return loadCurrentUser()
       })
       .catch(() => logout())
-      .finally(() => setIsReady(true));
-  }, []);
+      .finally(() => setIsReady(true))
+  }, [])
 
-  return isReady;
+  return isReady
 }
 ```
 
@@ -467,27 +478,29 @@ React Router has no guard API like `CanActivateFn` — guards are **wrapper comp
 rendering `<Outlet />` or redirecting via `<Navigate />`.
 
 ```tsx
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuthStore } from './auth.store';
+import { Navigate, Outlet } from 'react-router-dom'
+import { useAuthStore } from './auth.store'
 
 // Basic authentication guard
 export function ProtectedRoute() {
-  const isAuthenticated = useAuthStore(s => s.isAuthenticated);
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />;
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  return isAuthenticated ? <Outlet /> : <Navigate to="/login" replace />
 }
 
 // Suspended user guard — checks MeResponse.suspensionReason
 export function ActiveUserRoute() {
-  const suspensionReason = useAuthStore(s => s.currentUser?.suspensionReason);
-  return suspensionReason ? <Navigate to="/suspended" replace /> : <Outlet />;
+  const suspensionReason = useAuthStore((s) => s.currentUser?.suspensionReason)
+  return suspensionReason ? <Navigate to="/suspended" replace /> : <Outlet />
 }
 
 // Type-based guard — checks MeResponse.type
 export function RequireType({ type }: { type: string }) {
-  const userType = useAuthStore(s => s.currentUser?.type);
-  return userType?.toLowerCase() === type.toLowerCase()
-    ? <Outlet />
-    : <Navigate to="/forbidden" replace />;
+  const userType = useAuthStore((s) => s.currentUser?.type)
+  return userType?.toLowerCase() === type.toLowerCase() ? (
+    <Outlet />
+  ) : (
+    <Navigate to="/forbidden" replace />
+  )
 }
 ```
 
@@ -515,15 +528,15 @@ export function RequireType({ type }: { type: string }) {
 
 ### Decision Rule
 
-| Scenario | Use |
-|----------|-----|
-| Local component state (toggle, counter, form values) | `useState` / `useReducer` |
-| Cross-component / global UI state (user, cart, theme) | **Zustand** store |
-| HTTP requests / server data | **TanStack Query** (`useQuery` / `useMutation`) |
-| Event streams (debounced search, websockets) | `useEffect` + custom hook |
-| Derived/computed values from state | `useMemo` |
-| Side-effects when state changes | `useEffect` |
-| Routing events | `useLocation` / `useNavigate` / `useSearchParams` |
+| Scenario                                              | Use                                               |
+| ----------------------------------------------------- | ------------------------------------------------- |
+| Local component state (toggle, counter, form values)  | `useState` / `useReducer`                         |
+| Cross-component / global UI state (user, cart, theme) | **Zustand** store                                 |
+| HTTP requests / server data                           | **TanStack Query** (`useQuery` / `useMutation`)   |
+| Event streams (debounced search, websockets)          | `useEffect` + custom hook                         |
+| Derived/computed values from state                    | `useMemo`                                         |
+| Side-effects when state changes                       | `useEffect`                                       |
+| Routing events                                        | `useLocation` / `useNavigate` / `useSearchParams` |
 
 > **Default**: Zustand for shared client state, TanStack Query for anything that comes from
 > the server. This mirrors Angular's "Signals for state, Observables for async" split —
@@ -560,15 +573,15 @@ store; components subscribe only to the slices they need.
 
 ```typescript
 // shared/store/cart.store.ts
-import { create } from 'zustand';
-import type { Product, CartItem } from '../types/cart.types';
+import { create } from 'zustand'
+import type { Product, CartItem } from '../types/cart.types'
 
 interface CartState {
-  items: CartItem[];
-  totalCount: () => number;
-  totalPrice: () => number;
-  addItem: (product: Product) => void;
-  removeItem: (id: string) => void;
+  items: CartItem[]
+  totalCount: () => number
+  totalPrice: () => number
+  addItem: (product: Product) => void
+  removeItem: (id: string) => void
 }
 
 export const useCartStore = create<CartState>((set, get) => ({
@@ -577,22 +590,25 @@ export const useCartStore = create<CartState>((set, get) => ({
   totalCount: () => get().items.reduce((sum, i) => sum + i.qty, 0),
   totalPrice: () => get().items.reduce((sum, i) => sum + i.price * i.qty, 0),
 
-  addItem: (product) => set((state) => {
-    const existing = state.items.find(i => i.id === product.id);
-    if (existing) {
-      return { items: state.items.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i) };
-    }
-    return { items: [...state.items, { ...product, qty: 1 }] };
-  }),
+  addItem: (product) =>
+    set((state) => {
+      const existing = state.items.find((i) => i.id === product.id)
+      if (existing) {
+        return {
+          items: state.items.map((i) => (i.id === product.id ? { ...i, qty: i.qty + 1 } : i)),
+        }
+      }
+      return { items: [...state.items, { ...product, qty: 1 }] }
+    }),
 
-  removeItem: (id) => set((state) => ({ items: state.items.filter(i => i.id !== id) })),
-}));
+  removeItem: (id) => set((state) => ({ items: state.items.filter((i) => i.id !== id) })),
+}))
 ```
 
 ```tsx
 // Component usage — subscribe only to what you need (avoids unnecessary re-renders)
-const items = useCartStore(s => s.items);
-const addItem = useCartStore(s => s.addItem);
+const items = useCartStore((s) => s.items)
+const addItem = useCartStore((s) => s.addItem)
 ```
 
 ### TanStack Query — Server State
@@ -603,39 +619,45 @@ Angular's `resource()`.
 
 ```tsx
 // Bridge a feature API module → component
-const { data: users, isLoading, isError, error, refetch } = useQuery({
+const {
+  data: users,
+  isLoading,
+  isError,
+  error,
+  refetch,
+} = useQuery({
   queryKey: ['users'],
   queryFn: userApi.getAll,
-});
+})
 
 // Mutation — create/update/delete
-const queryClient = useQueryClient();
+const queryClient = useQueryClient()
 const createUser = useMutation({
   mutationFn: userApi.create,
   onSuccess: () => queryClient.invalidateQueries({ queryKey: ['users'] }),
-});
+})
 ```
 
 ### Async Operator Selection — TanStack Query Equivalents
 
-| Angular RxJS Pattern | TanStack Query Equivalent |
-|-----------------------|----------------------------|
+| Angular RxJS Pattern                                 | TanStack Query Equivalent                          |
+| ---------------------------------------------------- | -------------------------------------------------- |
 | `switchMap` (search/autocomplete, cancels in-flight) | Built-in — query auto-cancels on `queryKey` change |
-| `mergeMap` (parallel requests) | Multiple independent `useQuery` calls |
-| `concatMap` (sequential requests) | Chain via `enabled` option / `await` in `queryFn` |
-| `exhaustMap` (ignore clicks while in-flight) | Check `mutation.isPending` and disable the button |
+| `mergeMap` (parallel requests)                       | Multiple independent `useQuery` calls              |
+| `concatMap` (sequential requests)                    | Chain via `enabled` option / `await` in `queryFn`  |
+| `exhaustMap` (ignore clicks while in-flight)         | Check `mutation.isPending` and disable the button  |
 
 ### Debounced Search — Custom Hook
 
 ```typescript
 // shared/hooks/useDebounce.ts
 export function useDebounce<T>(value: T, delayMs = 300): T {
-  const [debounced, setDebounced] = useState(value);
+  const [debounced, setDebounced] = useState(value)
   useEffect(() => {
-    const timer = setTimeout(() => setDebounced(value), delayMs);
-    return () => clearTimeout(timer);
-  }, [value, delayMs]);
-  return debounced;
+    const timer = setTimeout(() => setDebounced(value), delayMs)
+    return () => clearTimeout(timer)
+  }, [value, delayMs])
+  return debounced
 }
 ```
 
@@ -661,28 +683,24 @@ dedicated API modules and consumed via TanStack Query. This is a hard rule with 
 
 ```typescript
 // features/users/api/user.api.ts
-import { api } from '../../../core/api/axiosInstance';
-import type { User, CreateUserDto, UpdateUserDto } from '../user.types';
-import type { PagedResponse } from '../../../core/types/pagination.types';
+import { api } from '../../../core/api/axiosInstance'
+import type { User, CreateUserDto, UpdateUserDto } from '../user.types'
+import type { PagedResponse } from '../../../core/types/pagination.types'
 
-const BASE_URL = '/users';
+const BASE_URL = '/users'
 
 export const userApi = {
-  getAll: (): Promise<PagedResponse<User>> =>
-    api.get(BASE_URL).then(res => res.data),
+  getAll: (): Promise<PagedResponse<User>> => api.get(BASE_URL).then((res) => res.data),
 
-  getById: (id: number): Promise<User> =>
-    api.get(`${BASE_URL}/${id}`).then(res => res.data),
+  getById: (id: number): Promise<User> => api.get(`${BASE_URL}/${id}`).then((res) => res.data),
 
-  create: (dto: CreateUserDto): Promise<User> =>
-    api.post(BASE_URL, dto).then(res => res.data),
+  create: (dto: CreateUserDto): Promise<User> => api.post(BASE_URL, dto).then((res) => res.data),
 
   update: (id: number, dto: UpdateUserDto): Promise<User> =>
-    api.put(`${BASE_URL}/${id}`, dto).then(res => res.data),
+    api.put(`${BASE_URL}/${id}`, dto).then((res) => res.data),
 
-  delete: (id: number): Promise<void> =>
-    api.delete(`${BASE_URL}/${id}`).then(res => res.data),
-};
+  delete: (id: number): Promise<void> => api.delete(`${BASE_URL}/${id}`).then((res) => res.data),
+}
 ```
 
 ### Typing Rules — Identical
@@ -697,16 +715,16 @@ Identical shapes to Angular:
 
 ```typescript
 export interface PagedRequest {
-  page: number;       // 1-based
-  pageSize: number;   // default: 10
+  page: number // 1-based
+  pageSize: number // default: 10
 }
 
 export interface PagedResponse<T> {
-  data: T[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
+  data: T[]
+  totalCount: number
+  page: number
+  pageSize: number
+  totalPages: number
 }
 ```
 
@@ -714,13 +732,13 @@ export interface PagedResponse<T> {
 
 ```typescript
 // core/utils/apiError.ts
-import { AxiosError } from 'axios';
+import { AxiosError } from 'axios'
 
 export function getApiErrorMessage(error: unknown): string {
   if (error instanceof AxiosError) {
-    return error.response?.data?.message ?? error.message ?? 'Unknown error';
+    return error.response?.data?.message ?? error.message ?? 'Unknown error'
   }
-  return 'Unknown error';
+  return 'Unknown error'
 }
 ```
 
@@ -736,25 +754,25 @@ Whenever a feature includes a table with search/filter functionality, the API re
 // core/types/search.types.ts
 
 export interface PagingRequest {
-  pageNumber: number;   // 1-based
-  pageSize: number;     // default: 10
+  pageNumber: number // 1-based
+  pageSize: number // default: 10
 }
 
 export interface SortingRequest {
-  field: number;        // enum value — defined per feature (e.g. UserSortField)
-  sortOrder: number;    // 1 = ascending, 2 = descending
+  field: number // enum value — defined per feature (e.g. UserSortField)
+  sortOrder: number // 1 = ascending, 2 = descending
 }
 
 // Base — extend this per feature, adding feature-specific filter fields
 export interface BaseSearchRequest {
-  query: string | null;
-  paging: PagingRequest;
-  sorting: SortingRequest;
+  query: string | null
+  paging: PagingRequest
+  sorting: SortingRequest
 }
 
 // Feature-specific example — add only the filter fields that apply
 export interface UserSearchRequest extends BaseSearchRequest {
-  status: number | null;   // null = all, otherwise filter by status enum value
+  status: number | null // null = all, otherwise filter by status enum value
 }
 ```
 
@@ -864,15 +882,15 @@ Use `useSearchParams` to keep pagination/filter state shareable and bookmarkable
 requirement as Angular's URL sync rule.
 
 ```tsx
-const [searchParams, setSearchParams] = useSearchParams();
-const page = Number(searchParams.get('page') ?? '1');
-const pageSize = Number(searchParams.get('pageSize') ?? '10');
+const [searchParams, setSearchParams] = useSearchParams()
+const page = Number(searchParams.get('page') ?? '1')
+const pageSize = Number(searchParams.get('pageSize') ?? '10')
 
 function onPageChange(newPage: number) {
-  setSearchParams(prev => {
-    prev.set('page', String(newPage));
-    return prev;
-  });
+  setSearchParams((prev) => {
+    prev.set('page', String(newPage))
+    return prev
+  })
 }
 ```
 
@@ -880,20 +898,20 @@ function onPageChange(newPage: number) {
 
 ```tsx
 // features/users/users.routes.tsx
-import type { RouteObject } from 'react-router-dom';
-import { ProtectedRoute } from '../../core/auth/ProtectedRoute';
+import type { RouteObject } from 'react-router-dom'
+import { ProtectedRoute } from '../../core/auth/ProtectedRoute'
 
 export const userRoutes: RouteObject[] = [
-  { index: true, lazy: () => import('./UserList').then(m => ({ Component: m.UserList })) },
-  { path: ':id', lazy: () => import('./UserDetail').then(m => ({ Component: m.UserDetail })) },
+  { index: true, lazy: () => import('./UserList').then((m) => ({ Component: m.UserList })) },
+  { path: ':id', lazy: () => import('./UserDetail').then((m) => ({ Component: m.UserDetail })) },
   {
     path: ':id/edit',
     element: <ProtectedRoute />,
     children: [
-      { index: true, lazy: () => import('./UserEdit').then(m => ({ Component: m.UserEdit })) },
+      { index: true, lazy: () => import('./UserEdit').then((m) => ({ Component: m.UserEdit })) },
     ],
   },
-];
+]
 ```
 
 ### Route Organization Rules — Identical
@@ -923,21 +941,21 @@ Zod schemas are the equivalent of Angular's typed `FormGroup`. Always derive the
 from the schema with `z.infer`.
 
 ```typescript
-import { z } from 'zod';
+import { z } from 'zod'
 
 export const loginSchema = z.object({
   email: z.string().email('Enter a valid email address'),
   password: z.string().min(8, 'Password must be at least 8 characters'),
   rememberMe: z.boolean(),
-});
+})
 
-export type LoginForm = z.infer<typeof loginSchema>;
+export type LoginForm = z.infer<typeof loginSchema>
 ```
 
 ```tsx
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { loginSchema, type LoginForm } from './login.schema';
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { loginSchema, type LoginForm } from './login.schema'
 
 export function LoginPage() {
   const {
@@ -947,12 +965,12 @@ export function LoginPage() {
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '', rememberMe: false },
-  });
+  })
 
   const onSubmit = async (data: LoginForm) => {
     // data.email and data.password are typed `string` — no casting needed
-    await useAuthStore.getState().login(data);
-  };
+    await useAuthStore.getState().login(data)
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -966,9 +984,11 @@ export function LoginPage() {
         {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
       </div>
       {/* password, rememberMe fields ... */}
-      <Button type="submit" variant="save" loading={isSubmitting}>Log in</Button>
+      <Button type="submit" variant="save" loading={isSubmitting}>
+        Log in
+      </Button>
     </form>
-  );
+  )
 }
 ```
 
@@ -980,12 +1000,15 @@ feature-specific.
 
 ```typescript
 // core/utils/validators.ts
-export const passwordStrengthSchema = z.string().refine((value) => {
-  const hasUpper = /[A-Z]/.test(value);
-  const hasNumber = /[0-9]/.test(value);
-  const hasSpecial = /[!@#$%^&*]/.test(value);
-  return hasUpper && hasNumber && hasSpecial;
-}, { message: 'Password must contain an uppercase letter, a number, and a special character' });
+export const passwordStrengthSchema = z.string().refine(
+  (value) => {
+    const hasUpper = /[A-Z]/.test(value)
+    const hasNumber = /[0-9]/.test(value)
+    const hasSpecial = /[!@#$%^&*]/.test(value)
+    return hasUpper && hasNumber && hasSpecial
+  },
+  { message: 'Password must contain an uppercase letter, a number, and a special character' },
+)
 ```
 
 ### Validation Error Display
@@ -998,11 +1021,11 @@ export const passwordStrengthSchema = z.string().refine((value) => {
 
 ```tsx
 // shared/components/FieldError.tsx
-import type { FieldError as RHFFieldError } from 'react-hook-form';
+import type { FieldError as RHFFieldError } from 'react-hook-form'
 
 export function FieldError({ error }: { error?: RHFFieldError }) {
-  if (!error) return null;
-  return <p className="mt-1 text-xs text-red-600">{error.message}</p>;
+  if (!error) return null
+  return <p className="mt-1 text-xs text-red-600">{error.message}</p>
 }
 ```
 
@@ -1012,30 +1035,34 @@ export function FieldError({ error }: { error?: RHFFieldError }) {
 
 ### Smart vs Dumb Components — Identical Split
 
-| Type | Responsibility |
-|------|---------------|
-| **Smart (Page/Container)** | Uses hooks (`useQuery`, `useAuthStore`), manages state, performs data fetching. One per route. |
-| **Dumb (Presentational)** | Receives data via props, emits events via callback props. No store/query hooks. Fully reusable. |
+| Type                       | Responsibility                                                                                  |
+| -------------------------- | ----------------------------------------------------------------------------------------------- |
+| **Smart (Page/Container)** | Uses hooks (`useQuery`, `useAuthStore`), manages state, performs data fetching. One per route.  |
+| **Dumb (Presentational)**  | Receives data via props, emits events via callback props. No store/query hooks. Fully reusable. |
 
 > **Never mix these responsibilities** in the same component.
 
 ```tsx
 // ✅ Dumb component — props only
 interface UserCardProps {
-  user: User;
-  showActions?: boolean;
-  onDelete: (id: number) => void;
+  user: User
+  showActions?: boolean
+  onDelete: (id: number) => void
 }
 
 export function UserCard({ user, showActions = true, onDelete }: UserCardProps) {
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-      <p className="text-sm font-semibold text-gray-900">{user.firstName} {user.lastName}</p>
+      <p className="text-sm font-semibold text-gray-900">
+        {user.firstName} {user.lastName}
+      </p>
       {showActions && (
-        <Button variant="delete" size="sm" onClick={() => onDelete(user.id)}>Delete</Button>
+        <Button variant="delete" size="sm" onClick={() => onDelete(user.id)}>
+          Delete
+        </Button>
       )}
     </div>
-  );
+  )
 }
 ```
 
@@ -1044,10 +1071,10 @@ export function UserCard({ user, showActions = true, onDelete }: UserCardProps) 
 React re-renders by default on every parent render. Use these tools deliberately —
 **not everywhere**, but on components that render frequently or receive stable props:
 
-| Angular | React Equivalent |
-|---------|-------------------|
-| `ChangeDetectionStrategy.OnPush` | `React.memo(Component)` |
-| `computed()` | `useMemo(() => ..., [deps])` |
+| Angular                                    | React Equivalent                 |
+| ------------------------------------------ | -------------------------------- |
+| `ChangeDetectionStrategy.OnPush`           | `React.memo(Component)`          |
+| `computed()`                               | `useMemo(() => ..., [deps])`     |
 | Stable callback references passed to child | `useCallback(() => ..., [deps])` |
 
 ```tsx
@@ -1063,14 +1090,18 @@ export const UserCard = React.memo(function UserCard({ user, onDelete }: UserCar
 
 ```tsx
 // Conditional — equivalent of @if / @else
-{user ? <UserCard user={user} /> : <p className="text-gray-500">No user found.</p>}
+{
+  user ? <UserCard user={user} /> : <p className="text-gray-500">No user found.</p>
+}
 
 // List — equivalent of @for ... @empty
-{items.length === 0 ? (
-  <p className="text-gray-400">No items yet.</p>
-) : (
-  items.map(item => <ItemRow key={item.id} item={item} />)
-)}
+{
+  items.length === 0 ? (
+    <p className="text-gray-400">No items yet.</p>
+  ) : (
+    items.map((item) => <ItemRow key={item.id} item={item} />)
+  )
+}
 ```
 
 > **Always use a stable `key` (e.g., `item.id`).** Never use the array index as `key` for
@@ -1124,7 +1155,7 @@ module.exports = {
       },
     },
   },
-};
+}
 ```
 
 ```css
@@ -1134,8 +1165,12 @@ module.exports = {
 @tailwind utilities;
 
 @layer base {
-  * { @apply box-border; }
-  body { @apply bg-gray-50 text-gray-900 font-sans antialiased; }
+  * {
+    @apply box-border;
+  }
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans antialiased;
+  }
 }
 ```
 
@@ -1146,15 +1181,15 @@ module.exports = {
 Every project uses the same semantic button color system. Apply these automatically —
 they do not need to be specified per feature.
 
-| Intent | Tailwind Classes | Examples |
-|--------|-----------------|---------|
-| Save / Create / Confirm | `bg-green-600 hover:bg-green-700 text-white` | Save, Create, Add, Submit |
-| Update / Edit / Modify | `bg-amber-500 hover:bg-amber-600 text-white` | Update, Edit, Modify, Rename |
-| Delete / Remove | `bg-red-600 hover:bg-red-700 text-white` | Delete, Remove, Discard |
-| Navigate / View / Open | `bg-blue-600 hover:bg-blue-700 text-white` | View, Open, Details, Preview |
-| Cancel / Back | `bg-gray-100 hover:bg-gray-200 text-gray-700` | Cancel, Close, Back |
-| Neutral / Secondary | `border border-gray-300 hover:bg-gray-50 text-gray-700` | Export, Download, Copy |
-| Danger confirmation | `bg-red-700 hover:bg-red-800 text-white ring-2 ring-red-300` | Confirm Delete (inside modal) |
+| Intent                  | Tailwind Classes                                             | Examples                      |
+| ----------------------- | ------------------------------------------------------------ | ----------------------------- |
+| Save / Create / Confirm | `bg-green-600 hover:bg-green-700 text-white`                 | Save, Create, Add, Submit     |
+| Update / Edit / Modify  | `bg-amber-500 hover:bg-amber-600 text-white`                 | Update, Edit, Modify, Rename  |
+| Delete / Remove         | `bg-red-600 hover:bg-red-700 text-white`                     | Delete, Remove, Discard       |
+| Navigate / View / Open  | `bg-blue-600 hover:bg-blue-700 text-white`                   | View, Open, Details, Preview  |
+| Cancel / Back           | `bg-gray-100 hover:bg-gray-200 text-gray-700`                | Cancel, Close, Back           |
+| Neutral / Secondary     | `border border-gray-300 hover:bg-gray-50 text-gray-700`      | Export, Download, Copy        |
+| Danger confirmation     | `bg-red-700 hover:bg-red-800 text-white ring-2 ring-red-300` | Confirm Delete (inside modal) |
 
 All buttons must include: `transition-colors`, `font-medium`, consistent padding
 (`px-4 py-2` standard / `px-3 py-1.5` compact), `rounded`, and disabled state
@@ -1165,10 +1200,10 @@ All buttons must include: `transition-colors`, `font-medium`, consistent padding
 Create and use this component everywhere. Never inline raw `<button>` HTML for action buttons.
 
 ```tsx
-import type { ButtonHTMLAttributes } from 'react';
+import type { ButtonHTMLAttributes } from 'react'
 
-type ButtonVariant = 'save' | 'update' | 'delete' | 'navigate' | 'cancel' | 'neutral';
-type ButtonSize = 'sm' | 'md' | 'lg';
+type ButtonVariant = 'save' | 'update' | 'delete' | 'navigate' | 'cancel' | 'neutral'
+type ButtonSize = 'sm' | 'md' | 'lg'
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   save: 'bg-green-600 hover:bg-green-700 text-white',
@@ -1177,18 +1212,18 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   navigate: 'bg-blue-600 hover:bg-blue-700 text-white',
   cancel: 'bg-gray-100 hover:bg-gray-200 text-gray-700',
   neutral: 'border border-gray-300 hover:bg-gray-50 text-gray-700',
-};
+}
 
 const SIZE_CLASSES: Record<ButtonSize, string> = {
   sm: 'px-3 py-1.5 text-sm',
   md: 'px-4 py-2 text-sm',
   lg: 'px-6 py-3 text-base',
-};
+}
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: ButtonVariant;
-  size?: ButtonSize;
-  loading?: boolean;
+  variant?: ButtonVariant
+  size?: ButtonSize
+  loading?: boolean
 }
 
 export function Button({
@@ -1204,9 +1239,9 @@ export function Button({
     VARIANT_CLASSES[variant],
     SIZE_CLASSES[size],
     'rounded font-medium transition-colors inline-flex items-center gap-2',
-    (disabled || loading) ? 'opacity-50 cursor-not-allowed' : '',
+    disabled || loading ? 'opacity-50 cursor-not-allowed' : '',
     className,
-  ].join(' ');
+  ].join(' ')
 
   return (
     <button className={classes} disabled={disabled || loading} {...rest}>
@@ -1215,7 +1250,7 @@ export function Button({
       )}
       {children}
     </button>
-  );
+  )
 }
 
 // Usage examples:
@@ -1246,14 +1281,22 @@ so users can share and bookmark pages.
       </tr>
     </thead>
     <tbody className="divide-y divide-gray-100">
-      {pagedItems.map(item => (
+      {pagedItems.map((item) => (
         <tr key={item.id} className="hover:bg-gray-50 transition-colors">
           <td className="px-4 py-3 text-gray-900">{item.name}</td>
-          <td className="px-4 py-3"><Badge variant={item.statusVariant}>{item.status}</Badge></td>
+          <td className="px-4 py-3">
+            <Badge variant={item.statusVariant}>{item.status}</Badge>
+          </td>
           <td className="px-4 py-3 flex justify-end gap-2">
-            <Button variant="navigate" size="sm">View</Button>
-            <Button variant="update" size="sm">Edit</Button>
-            <Button variant="delete" size="sm">Delete</Button>
+            <Button variant="navigate" size="sm">
+              View
+            </Button>
+            <Button variant="update" size="sm">
+              Edit
+            </Button>
+            <Button variant="delete" size="sm">
+              Delete
+            </Button>
           </td>
         </tr>
       ))}
@@ -1276,11 +1319,13 @@ so users can share and bookmark pages.
 These apply to every component in every project without needing to be specified per feature.
 
 **Layout**
+
 - Page content wrapper: `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`
 - Cards / panels: `bg-white rounded-lg border border-gray-200 shadow-sm p-6`
 - Vertical rhythm between sections: `space-y-6` or `space-y-8`
 
 **Typography**
+
 - Page title: `text-2xl font-bold text-gray-900`
 - Section heading: `text-lg font-semibold text-gray-900`
 - Body text: `text-sm text-gray-700`
@@ -1289,12 +1334,14 @@ These apply to every component in every project without needing to be specified 
 - Never use `text-black` — `text-gray-900` is the darkest value
 
 **Interactive States**
+
 - Every clickable element must have a `hover:` state
 - Focus ring: `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`
 - Transitions: `transition-colors duration-150` on all interactive elements
 - Disabled: `opacity-50 cursor-not-allowed`
 
 **Form Inputs**
+
 ```
 Standard: w-full px-3 py-2 text-sm border border-gray-300 rounded-md shadow-sm
           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
@@ -1306,26 +1353,29 @@ Error msg: mt-1 text-xs text-red-600
 
 **Status Badges — `shared/components/Badge/Badge.tsx`**
 
-| Variant | Classes | Common Uses |
-|---------|---------|-------------|
+| Variant   | Classes                       | Common Uses                 |
+| --------- | ----------------------------- | --------------------------- |
 | `success` | `bg-green-100 text-green-800` | Active, Approved, Completed |
-| `warning` | `bg-amber-100 text-amber-800` | Pending, In Review |
-| `danger` | `bg-red-100 text-red-800` | Suspended, Rejected |
-| `info` | `bg-blue-100 text-blue-800` | Draft, Scheduled |
-| `neutral` | `bg-gray-100 text-gray-700` | Inactive, Archived |
+| `warning` | `bg-amber-100 text-amber-800` | Pending, In Review          |
+| `danger`  | `bg-red-100 text-red-800`     | Suspended, Rejected         |
+| `info`    | `bg-blue-100 text-blue-800`   | Draft, Scheduled            |
+| `neutral` | `bg-gray-100 text-gray-700`   | Inactive, Archived          |
 
 **Loading / Empty / Error States**
+
 - Loading: **skeleton loader** (animated gray blocks) — never a raw `"Loading..."` string or bare spinner
 - Empty: icon + heading ("No items found") + subtitle + optional CTA button
 - Error: red-bordered card + error icon + message + "Try again" button
 
 **Modals & Destructive Actions**
+
 - All destructive actions (delete, deactivate, suspend) require a **confirmation modal** before executing.
 - Confirm button inside a delete modal always uses `variant="delete"` with an explicit label: `"Yes, delete [item name]"`.
 - Overlay: `fixed inset-0 bg-black/50 backdrop-blur-sm z-50`
 - Panel: `bg-white rounded-xl shadow-2xl p-6 max-w-md w-full mx-4`
 
 **Responsive Design**
+
 - All UIs are **mobile-first**. Every layout must be usable at 375px and scale to 1440px+.
 - Navigation collapses to hamburger menu on mobile.
 - Tables switch to card-based list layout on small screens.
@@ -1342,20 +1392,24 @@ This is the **one place a class component is required** — React's error bounda
 no hook equivalent.
 
 ```tsx
-import { Component, type ErrorInfo, type ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react'
 
-interface Props { children: ReactNode; }
-interface State { hasError: boolean; }
+interface Props {
+  children: ReactNode
+}
+interface State {
+  hasError: boolean
+}
 
 export class GlobalErrorBoundary extends Component<Props, State> {
-  state: State = { hasError: false };
+  state: State = { hasError: false }
 
   static getDerivedStateFromError(): State {
-    return { hasError: true };
+    return { hasError: true }
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo): void {
-    console.error('[Global Error]', error, info);
+    console.error('[Global Error]', error, info)
     // Forward to monitoring service (Sentry, Datadog, etc.)
   }
 
@@ -1365,9 +1419,9 @@ export class GlobalErrorBoundary extends Component<Props, State> {
         <div className="max-w-md mx-auto mt-20 bg-white border border-red-200 rounded-lg p-6 text-center">
           <p className="text-sm text-red-600">Something went wrong. Please refresh the page.</p>
         </div>
-      );
+      )
     }
-    return this.props.children;
+    return this.props.children
   }
 }
 ```
@@ -1380,24 +1434,29 @@ error boundary — the boundary only catches render errors.
 
 Every component that fetches data must explicitly handle all three async states:
 
-| State | UI Requirement |
-|-------|---------------|
-| Loading | Skeleton loader — never a raw spinner with text |
-| Error | Red-bordered card, user-friendly message, "Try again" button |
-| Empty | Icon + heading + subtitle + optional CTA |
+| State   | UI Requirement                                               |
+| ------- | ------------------------------------------------------------ |
+| Loading | Skeleton loader — never a raw spinner with text              |
+| Error   | Red-bordered card, user-friendly message, "Try again" button |
+| Empty   | Icon + heading + subtitle + optional CTA                     |
 
 ### TanStack Query Pattern (Preferred)
 
 ```tsx
-const { data: user, isLoading, isError, refetch } = useQuery({
+const {
+  data: user,
+  isLoading,
+  isError,
+  refetch,
+} = useQuery({
   queryKey: ['users', id],
   queryFn: () => userApi.getById(id),
-});
+})
 
-if (isLoading) return <Skeleton />;
-if (isError) return <ErrorCard onRetry={refetch} />;
-if (!user) return <EmptyState />;
-return <UserCard user={user} />;
+if (isLoading) return <Skeleton />
+if (isError) return <ErrorCard onRetry={refetch} />
+if (!user) return <EmptyState />
+return <UserCard user={user} />
 ```
 
 ---
@@ -1436,10 +1495,14 @@ for lists that can be reordered — see [Section 9](#9-component-design-principl
 
 ```tsx
 // ✅ Correct
-{users.map(user => <UserRow key={user.id} user={user} />)}
+{
+  users.map((user) => <UserRow key={user.id} user={user} />)
+}
 
 // ❌ Wrong
-{users.map((user, index) => <UserRow key={index} user={user} />)}
+{
+  users.map((user, index) => <UserRow key={index} user={user} />)
+}
 ```
 
 ### Bundle Size
@@ -1455,12 +1518,12 @@ for lists that can be reordered — see [Section 9](#9-component-design-principl
 
 ### Testing Stack
 
-| Test Type | Tool |
-|-----------|------|
-| Unit tests | **Vitest** (Vite-native, Jest-compatible API) |
-| Component tests | **React Testing Library** + Vitest |
-| E2E tests | **Playwright** |
-| HTTP mocking | **MSW** (Mock Service Worker) |
+| Test Type       | Tool                                          |
+| --------------- | --------------------------------------------- |
+| Unit tests      | **Vitest** (Vite-native, Jest-compatible API) |
+| Component tests | **React Testing Library** + Vitest            |
+| E2E tests       | **Playwright**                                |
+| HTTP mocking    | **MSW** (Mock Service Worker)                 |
 
 ```bash
 npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom msw
@@ -1470,21 +1533,21 @@ npm install -D vitest @testing-library/react @testing-library/jest-dom jsdom msw
 
 ```typescript
 // user.api.test.ts
-import { describe, it, expect, vi } from 'vitest';
-import { userApi } from './user.api';
-import { api } from '../../../core/api/axiosInstance';
+import { describe, it, expect, vi } from 'vitest'
+import { userApi } from './user.api'
+import { api } from '../../../core/api/axiosInstance'
 
-vi.mock('../../../core/api/axiosInstance');
+vi.mock('../../../core/api/axiosInstance')
 
 describe('userApi', () => {
   it('fetches users', async () => {
-    const mock = { data: [{ id: 1, firstName: 'Alice', email: 'alice@test.com' }], totalCount: 1 };
-    (api.get as any).mockResolvedValue({ data: mock });
+    const mock = { data: [{ id: 1, firstName: 'Alice', email: 'alice@test.com' }], totalCount: 1 }
+    ;(api.get as any).mockResolvedValue({ data: mock })
 
-    const result = await userApi.getAll();
-    expect(result).toEqual(mock);
-  });
-});
+    const result = await userApi.getAll()
+    expect(result).toEqual(mock)
+  })
+})
 ```
 
 ### Component Testing Rules
@@ -1495,23 +1558,28 @@ describe('userApi', () => {
 
 ```tsx
 // UserCard.test.tsx
-import { render, screen } from '@testing-library/react';
-import { UserCard } from './UserCard';
+import { render, screen } from '@testing-library/react'
+import { UserCard } from './UserCard'
 
 it('renders the user name', () => {
-  render(<UserCard user={{ id: 1, firstName: 'Alice', lastName: 'Smith' } as User} onDelete={() => {}} />);
-  expect(screen.getByText('Alice Smith')).toBeInTheDocument();
-});
+  render(
+    <UserCard
+      user={{ id: 1, firstName: 'Alice', lastName: 'Smith' } as User}
+      onDelete={() => {}}
+    />,
+  )
+  expect(screen.getByText('Alice Smith')).toBeInTheDocument()
+})
 ```
 
 ### Coverage Targets — Identical
 
-| Layer | Minimum Coverage |
-|-------|-----------------|
-| API modules / business logic | 80% line coverage |
-| Route guards / auth store | 90% line coverage |
-| Utilities / pure functions | 95% line coverage |
-| Components | 60% — focus on critical paths |
+| Layer                        | Minimum Coverage              |
+| ---------------------------- | ----------------------------- |
+| API modules / business logic | 80% line coverage             |
+| Route guards / auth store    | 90% line coverage             |
+| Utilities / pure functions   | 95% line coverage             |
+| Components                   | 60% — focus on critical paths |
 
 ---
 
@@ -1535,17 +1603,17 @@ it('renders the user name', () => {
 
 ### Naming Conventions
 
-| Artifact | Convention | Example |
-|----------|-----------|---------|
-| Component | PascalCase | `UserCard`, `DashboardPage` |
-| Hook | camelCase, `use` prefix | `useAuth`, `useDebounce` |
-| Zustand store hook | `useXStore` | `useCartStore`, `useAuthStore` |
-| Interface / Type | PascalCase | `User`, `CreateUserDto`, `PagedResponse<T>` |
-| Enum | PascalCase name, `SCREAMING_SNAKE` values | `UserStatus.ACTIVE` |
-| Constants | `SCREAMING_SNAKE_CASE` | `MAX_RETRY_ATTEMPTS` |
-| Functions & variables | camelCase | `getUser()`, `isLoading` |
-| Props interface | `ComponentNameProps` | `UserCardProps` |
-| Tailwind classes | utility-first, no BEM needed | `className="flex items-center gap-2"` |
+| Artifact              | Convention                                | Example                                     |
+| --------------------- | ----------------------------------------- | ------------------------------------------- |
+| Component             | PascalCase                                | `UserCard`, `DashboardPage`                 |
+| Hook                  | camelCase, `use` prefix                   | `useAuth`, `useDebounce`                    |
+| Zustand store hook    | `useXStore`                               | `useCartStore`, `useAuthStore`              |
+| Interface / Type      | PascalCase                                | `User`, `CreateUserDto`, `PagedResponse<T>` |
+| Enum                  | PascalCase name, `SCREAMING_SNAKE` values | `UserStatus.ACTIVE`                         |
+| Constants             | `SCREAMING_SNAKE_CASE`                    | `MAX_RETRY_ATTEMPTS`                        |
+| Functions & variables | camelCase                                 | `getUser()`, `isLoading`                    |
+| Props interface       | `ComponentNameProps`                      | `UserCardProps`                             |
+| Tailwind classes      | utility-first, no BEM needed              | `className="flex items-center gap-2"`       |
 
 ### Import Order
 
@@ -1570,11 +1638,11 @@ Group imports with a blank line between each group:
 
 ```tsx
 // ❌ WRONG — unsanitized user content
-<div dangerouslySetInnerHTML={{ __html: comment.body }} />
+;<div dangerouslySetInnerHTML={{ __html: comment.body }} />
 
 // ✅ CORRECT — sanitized, admin-controlled content only
-import DOMPurify from 'dompurify';
-<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(cmsContent) }} />
+import DOMPurify from 'dompurify'
+;<div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(cmsContent) }} />
 ```
 
 ### CSRF Protection
@@ -1612,7 +1680,7 @@ VITE_API_URL=https://api.myapp.com/api
 
 ```typescript
 // Access anywhere
-const apiUrl = import.meta.env.VITE_API_URL;
+const apiUrl = import.meta.env.VITE_API_URL
 ```
 
 ### Feature Flags
@@ -1623,13 +1691,13 @@ Feature flags live in env files or a remote config endpoint. Access them via a
 ```typescript
 // core/config/useFeatureFlags.ts
 interface FeatureFlags {
-  newDashboard: boolean;
+  newDashboard: boolean
 }
 
 export function useFeatureFlags(): FeatureFlags {
   return {
     newDashboard: import.meta.env.VITE_FEATURE_NEW_DASHBOARD === 'true',
-  };
+  }
 }
 ```
 
@@ -1643,30 +1711,30 @@ export function useFeatureFlags(): FeatureFlags {
 
 ## 17. Quick Reference: Decision Matrix
 
-| Decision | Answer |
-|----------|--------|
-| Class or function components? | **Function components always** — except the global Error Boundary (React requirement) |
-| Where do separate template/style files go? | **Nowhere** — JSX + Tailwind classes live in the same `.tsx` file |
-| Where do HTTP calls go? | **API module — never directly in a component** |
-| Local state? | **`useState` / `useReducer`** |
-| Global client state? | **Zustand** |
-| Server state / data fetching? | **TanStack Query** — `useQuery` / `useMutation` |
-| Event streams (debounce, etc.)? | **Custom hook** (`useDebounce`, `useEffect`) |
-| Forms? | **React Hook Form + Zod** — always, except trivial single-field |
-| Routing library? | **React Router v6** (`createBrowserRouter`) |
-| Route guards? | **Wrapper components** (`<ProtectedRoute>`) rendering `<Outlet />` or `<Navigate />` |
-| Lazy loading? | **Yes — every feature route, no exceptions** |
-| Memoization? | **`React.memo` / `useMemo` / `useCallback`** — on components/values that re-render often |
-| List keys? | **Stable `item.id`** — never array index for reorderable lists |
-| External state library beyond Zustand? | **No** — escalate to Redux Toolkit only if truly needed |
-| Access token storage? | **Memory only** — Zustand store, never persisted |
-| Refresh token storage? | **`localStorage`** |
-| CSS framework? | **Tailwind CSS** — no plain CSS for component styles |
-| Save button color? | **Green** — `bg-green-600 hover:bg-green-700` |
-| Update/Edit button color? | **Amber** — `bg-amber-500 hover:bg-amber-600` |
-| Delete button color? | **Red** — `bg-red-600 hover:bg-red-700` |
-| Cancel button color? | **Gray** — `bg-gray-100 hover:bg-gray-200 text-gray-700` |
-| Tables need pagination? | **Yes — always.** Default 10 rows. `page`/`pageSize` in URL via `useSearchParams`. |
-| Table with search/filter? | **`POST /search`** with `{ query, paging: { pageNumber, pageSize }, sorting: { field, sortOrder } }` |
-| Test runner? | **Vitest** for unit/component, **Playwright** for E2E |
-| HTML sanitization? | **DOMPurify** before any `dangerouslySetInnerHTML` |
+| Decision                                   | Answer                                                                                               |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| Class or function components?              | **Function components always** — except the global Error Boundary (React requirement)                |
+| Where do separate template/style files go? | **Nowhere** — JSX + Tailwind classes live in the same `.tsx` file                                    |
+| Where do HTTP calls go?                    | **API module — never directly in a component**                                                       |
+| Local state?                               | **`useState` / `useReducer`**                                                                        |
+| Global client state?                       | **Zustand**                                                                                          |
+| Server state / data fetching?              | **TanStack Query** — `useQuery` / `useMutation`                                                      |
+| Event streams (debounce, etc.)?            | **Custom hook** (`useDebounce`, `useEffect`)                                                         |
+| Forms?                                     | **React Hook Form + Zod** — always, except trivial single-field                                      |
+| Routing library?                           | **React Router v6** (`createBrowserRouter`)                                                          |
+| Route guards?                              | **Wrapper components** (`<ProtectedRoute>`) rendering `<Outlet />` or `<Navigate />`                 |
+| Lazy loading?                              | **Yes — every feature route, no exceptions**                                                         |
+| Memoization?                               | **`React.memo` / `useMemo` / `useCallback`** — on components/values that re-render often             |
+| List keys?                                 | **Stable `item.id`** — never array index for reorderable lists                                       |
+| External state library beyond Zustand?     | **No** — escalate to Redux Toolkit only if truly needed                                              |
+| Access token storage?                      | **Memory only** — Zustand store, never persisted                                                     |
+| Refresh token storage?                     | **`localStorage`**                                                                                   |
+| CSS framework?                             | **Tailwind CSS** — no plain CSS for component styles                                                 |
+| Save button color?                         | **Green** — `bg-green-600 hover:bg-green-700`                                                        |
+| Update/Edit button color?                  | **Amber** — `bg-amber-500 hover:bg-amber-600`                                                        |
+| Delete button color?                       | **Red** — `bg-red-600 hover:bg-red-700`                                                              |
+| Cancel button color?                       | **Gray** — `bg-gray-100 hover:bg-gray-200 text-gray-700`                                             |
+| Tables need pagination?                    | **Yes — always.** Default 10 rows. `page`/`pageSize` in URL via `useSearchParams`.                   |
+| Table with search/filter?                  | **`POST /search`** with `{ query, paging: { pageNumber, pageSize }, sorting: { field, sortOrder } }` |
+| Test runner?                               | **Vitest** for unit/component, **Playwright** for E2E                                                |
+| HTML sanitization?                         | **DOMPurify** before any `dangerouslySetInnerHTML`                                                   |

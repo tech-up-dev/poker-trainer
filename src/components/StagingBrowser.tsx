@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -13,15 +13,13 @@ type StagedItem = {
 }
 
 type LoadState =
-  | { kind: 'loading' }
-  | { kind: 'error'; message: string }
-  | { kind: 'loaded'; items: StagedItem[] }
+  { kind: 'loading' } | { kind: 'error'; message: string } | { kind: 'loaded'; items: StagedItem[] }
 
 // Per-item promote status, keyed by `${type}:${id}`.
 type PromoteStatus = 'idle' | 'promoting' | { version: number } | { error: string }
 
 // Content types this build exposes, mapped to their editor route. The Staging
-// list only shows these types (others stay hidden — e.g. unreleased types on M1),
+// list only shows these types (others stay hidden, e.g. unreleased types on M1),
 // and each gets an Edit button to its route.
 const EDITOR_ROUTE: Partial<Record<ContentType, string>> = {
   lesson: '/admin',
@@ -63,26 +61,35 @@ export function StagingBrowser(): JSX.Element {
   const [promote, setPromote] = useState<Record<string, PromoteStatus>>({})
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [promotingAll, setPromotingAll] = useState(false)
-
-  // Returns the next LoadState without calling setState — lets callers
-  // set state in a .then() callback, which satisfies react-hooks/set-state-in-effect.
-  const load = useCallback((): Promise<LoadState> => {
-    return supabaseProd.functions
-      .invoke('list-from-staging', { body: {} })
-      .then(({ data, error }) => {
-        if (error) return { kind: 'error' as const, message: error.message }
-        const result = data as { ok: boolean; items?: StagedItem[]; message?: string }
-        if (!result.ok)
-          return { kind: 'error' as const, message: result.message ?? 'Unknown error' }
-        return { kind: 'loaded' as const, items: result.items ?? [] }
-      })
-  }, [])
+  // Bumped to trigger a reload of the staging list (mount + Refresh button).
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
-    load().then(setState).catch((e: unknown) =>
-      setState({ kind: 'error', message: e instanceof Error ? e.message : String(e) })
-    )
-  }, [load])
+    let cancelled = false
+
+    async function fetchStaged(): Promise<void> {
+      setState({ kind: 'loading' })
+      const { data, error } = await supabaseProd.functions.invoke('list-from-staging', {
+        body: {},
+      })
+      if (cancelled) return
+      if (error) {
+        setState({ kind: 'error', message: error.message })
+        return
+      }
+      const result = data as { ok: boolean; items?: StagedItem[]; message?: string }
+      if (!result.ok) {
+        setState({ kind: 'error', message: result.message ?? 'Unknown error' })
+        return
+      }
+      setState({ kind: 'loaded', items: result.items ?? [] })
+    }
+
+    void fetchStaged()
+    return () => {
+      cancelled = true
+    }
+  }, [reloadKey])
 
   async function promoteItem(item: StagedItem): Promise<boolean> {
     setPromote((p) => ({ ...p, [key(item)]: 'promoting' }))
@@ -93,9 +100,7 @@ export function StagingBrowser(): JSX.Element {
       setPromote((p) => ({ ...p, [key(item)]: { error: error.message } }))
       return false
     }
-    const result = data as
-      | { ok: true; version_number: number }
-      | { ok: false; message: string }
+    const result = data as { ok: true; version_number: number } | { ok: false; message: string }
     if (!result.ok) {
       setPromote((p) => ({ ...p, [key(item)]: { error: result.message } }))
       return false
@@ -125,13 +130,13 @@ export function StagingBrowser(): JSX.Element {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold">Staging</h1>
           <p className="text-slate-400">
-            Everything saved to staging but not necessarily promoted. Promote items
-            to production, or open one in its editor to make changes.
+            Everything saved to staging but not necessarily promoted. Promote items to production,
+            or open one in its editor to make changes.
           </p>
         </div>
         <button
           type="button"
-          onClick={() => { setState({ kind: 'loading' }); void load().then(setState) }}
+          onClick={() => setReloadKey((k) => k + 1)}
           className="px-3 py-1.5 text-sm rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
         >
           Refresh
@@ -147,13 +152,11 @@ export function StagingBrowser(): JSX.Element {
       return <p className="text-sm text-slate-400">Loading staged content…</p>
     }
     if (state.kind === 'error') {
-      return (
-        <p className="text-sm text-red-400">Failed to load staging: {state.message}</p>
-      )
+      return <p className="text-sm text-red-400">Failed to load staging: {state.message}</p>
     }
     // Only surface content types this build exposes (have an editor route). On
     // M1 that's lesson + glossary, so tips/references staged by later builds stay
-    // hidden — the client shouldn't see types that aren't released yet.
+    // hidden, the client shouldn't see types that aren't released yet.
     const visibleItems = state.items.filter((item) => EDITOR_ROUTE[item.content_type])
 
     if (visibleItems.length === 0) {
@@ -203,9 +206,7 @@ export function StagingBrowser(): JSX.Element {
                       <div className="flex items-center gap-2 shrink-0">
                         <button
                           type="button"
-                          onClick={() =>
-                            setExpanded((e) => ({ ...e, [key(item)]: !isOpen }))
-                          }
+                          onClick={() => setExpanded((e) => ({ ...e, [key(item)]: !isOpen }))}
                           className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
                         >
                           {isOpen ? 'Hide' : 'View'}

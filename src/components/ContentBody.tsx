@@ -17,8 +17,8 @@ export function ContentBody({
     return (
       <div className="space-y-3">
         <div className="text-sm text-slate-400">
-          <span className="text-slate-200">{lesson.title}</span> ·{' '}
-          {lesson.questions.length} questions
+          <span className="text-slate-200">{lesson.title}</span> · {lesson.questions.length}{' '}
+          questions
           {lesson.difficulty !== undefined ? ` · ${lesson.difficulty}` : ''}
         </div>
         <ul className="space-y-3">
@@ -46,9 +46,7 @@ function QuestionCard({ question, index }: QuestionCardProps): JSX.Element {
     <article className="rounded border border-slate-700 bg-slate-950/60 p-4 space-y-3">
       <header className="flex flex-wrap items-center gap-2 text-xs">
         <span className="font-mono text-slate-400">Q{index + 1}</span>
-        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300">
-          {question.type}
-        </span>
+        <span className="px-2 py-0.5 rounded bg-slate-800 text-slate-300">{question.type}</span>
         <span className="font-mono text-slate-500">{question.question_id}</span>
       </header>
       <p className="text-sm text-slate-100 leading-relaxed">{question.prompt}</p>
@@ -62,19 +60,11 @@ function QuestionCard({ question, index }: QuestionCardProps): JSX.Element {
                 : 'pl-3 border-l-2 border-slate-700'
             }
           >
-            <div
-              className={
-                answer.is_correct
-                  ? 'text-green-300 font-medium'
-                  : 'text-slate-300'
-              }
-            >
+            <div className={answer.is_correct ? 'text-green-300 font-medium' : 'text-slate-300'}>
               {answer.is_correct ? '✓ ' : ''}
               {answer.text}
             </div>
-            <div className="text-xs text-slate-500 leading-relaxed">
-              {answer.explanation}
-            </div>
+            <div className="text-xs text-slate-500 leading-relaxed">{answer.explanation}</div>
           </li>
         ))}
       </ul>
@@ -84,10 +74,7 @@ function QuestionCard({ question, index }: QuestionCardProps): JSX.Element {
       {question.glossary_terms !== undefined && question.glossary_terms.length > 0 ? (
         <div className="flex flex-wrap gap-1 text-xs">
           {question.glossary_terms.map((term) => (
-            <span
-              key={term}
-              className="px-2 py-0.5 rounded bg-slate-800 text-slate-400"
-            >
+            <span key={term} className="px-2 py-0.5 rounded bg-slate-800 text-slate-400">
               {term}
             </span>
           ))}

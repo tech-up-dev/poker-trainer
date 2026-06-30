@@ -15,11 +15,7 @@ type ValidationState =
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | { error: string }
 
-type PromoteStatus =
-  | 'idle'
-  | 'promoting'
-  | { promoted: number }
-  | { error: string }
+type PromoteStatus = 'idle' | 'promoting' | { promoted: number } | { error: string }
 
 type GlossaryEditorProps = {
   onPublishedContextChange: (ctx: {
@@ -31,7 +27,10 @@ type GlossaryEditorProps = {
   initialText?: string
 }
 
-export function GlossaryEditor({ onPublishedContextChange, initialText }: GlossaryEditorProps): JSX.Element {
+export function GlossaryEditor({
+  onPublishedContextChange,
+  initialText,
+}: GlossaryEditorProps): JSX.Element {
   const [inputText, setInputText] = useState(initialText ?? '')
   const [validationResult, setValidationResult] = useState<ValidationState | null>(null)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('idle')
@@ -41,8 +40,7 @@ export function GlossaryEditor({ onPublishedContextChange, initialText }: Glossa
   // promotion key off this once a save has happened.
   const [savedId, setSavedId] = useState<string | null>(null)
 
-  const explicitId =
-    validationResult?.ok === true ? validationResult.data.term_id ?? null : null
+  const explicitId = validationResult?.ok === true ? (validationResult.data.term_id ?? null) : null
   const effectiveId = explicitId ?? savedId
 
   useEffect(() => {
@@ -117,7 +115,7 @@ export function GlossaryEditor({ onPublishedContextChange, initialText }: Glossa
     if (validationResult?.ok !== true) return
     if (promoteStatus === 'promoting') return
     // Promotion publishes the staged copy, so the editor content must have been
-    // saved to staging first — otherwise we'd promote a stale version.
+    // saved to staging first, otherwise we'd promote a stale version.
     if (saveStatus !== 'saved' || effectiveId === null) return
     setPromoteStatus('promoting')
     const { data, error } = await supabaseProd.functions.invoke('promote-to-prod', {
@@ -207,7 +205,7 @@ export function GlossaryEditor({ onPublishedContextChange, initialText }: Glossa
 
       {canSave && saveStatus !== 'saved' ? (
         <p className="text-sm text-slate-400">
-          Save to staging first — promotion publishes the staged copy.
+          Save to staging first; promotion publishes the staged copy.
         </p>
       ) : null}
 
@@ -216,26 +214,20 @@ export function GlossaryEditor({ onPublishedContextChange, initialText }: Glossa
 
         {isSaving ? <p className="text-sm text-slate-400">Saving…</p> : null}
         {saveStatus === 'saved' && effectiveId !== null ? (
-          <p className="text-sm text-green-400">
-            Saved to staging as {effectiveId}
-          </p>
+          <p className="text-sm text-green-400">Saved to staging as {effectiveId}</p>
         ) : null}
         {typeof saveStatus === 'object' ? (
           <p className="text-sm text-red-400">Save failed: {saveStatus.error}</p>
         ) : null}
 
-        {isPromoting ? (
-          <p className="text-sm text-slate-400">Promoting…</p>
-        ) : null}
+        {isPromoting ? <p className="text-sm text-slate-400">Promoting…</p> : null}
         {typeof promoteStatus === 'object' && 'promoted' in promoteStatus ? (
           <p className="text-sm text-green-400">
             Promoted to production as v{promoteStatus.promoted}
           </p>
         ) : null}
         {typeof promoteStatus === 'object' && 'error' in promoteStatus ? (
-          <p className="text-sm text-red-400">
-            Promote failed: {promoteStatus.error}
-          </p>
+          <p className="text-sm text-red-400">Promote failed: {promoteStatus.error}</p>
         ) : null}
       </div>
 
@@ -262,7 +254,7 @@ function renderValidationPanel(state: ValidationState): JSX.Element {
     return (
       <div className="rounded border border-green-600 bg-green-600/10 text-green-300 px-4 py-3">
         <strong className="text-green-200">✓ Valid glossary entry</strong>
-        {' — '}
+        {' · '}
         {state.data.term}
         {state.data.importance ? ` · ${state.data.importance}` : ''}
       </div>

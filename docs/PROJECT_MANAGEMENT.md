@@ -106,6 +106,7 @@ For each milestone, maintain a tracking sheet (in your preferred tool: a markdow
 ### Update cadence
 
 Update the milestone scorecard:
+
 - After each focused work session (a few sentences in "Notes")
 - After every significant integration point (e.g., when a module crosses module-DoD)
 - Before each weekly client call
@@ -146,6 +147,7 @@ Update the milestone scorecard:
 ```
 
 Bring to every call:
+
 - Live deploy URL (test in private window before call)
 - Latest staging + production Supabase dashboards
 - Updated proposal page URL (only mention if changes happened)
@@ -224,10 +226,12 @@ Maybe 30 minutes. Anything you want to add?"
 Lead with the working flow. Show, then comment. Avoid narrating every click.
 
 Pause and check in:
+
 - "Any questions on this flow before I move on?"
 - "Does that match what you had in mind?"
 
 Close with a clear next step:
+
 - "M2 kicks off Monday. First week I'll focus on X and Y. I'll have something to show by Thursday's call."
 
 ---
@@ -237,6 +241,7 @@ Close with a clear next step:
 ### Reporting structure for the client
 
 Steve doesn't want long written status reports. He prefers:
+
 - Conversational updates on the weekly call
 - Short async messages when there's something to share or ask
 - Tangible demos over written progress descriptions
@@ -244,17 +249,20 @@ Steve doesn't want long written status reports. He prefers:
 ### What to communicate proactively
 
 **Always share:**
+
 - When a milestone is submitted for review
 - When a milestone is approved
 - Blockers that are client-side (something you need from him)
 - Major design decisions you're about to make (give him the chance to weigh in before code lands)
 
 **Share if substantive:**
+
 - Discoveries or trade-offs that affect future work
 - Suggestions for scope adjustments
 - Risks that have materialized
 
 **Don't bother with:**
+
 - Daily progress lists
 - Detailed code-level updates (he doesn't need them)
 - Technical issues you can resolve yourself
@@ -330,6 +338,7 @@ Track risks throughout the project. Review and update at least weekly.
 ### Initial risks for this project
 
 **Content readiness lag**
+
 - **Likelihood:** Medium
 - **Impact:** High (affects M1 demo and M2 testing)
 - **Mitigation:** Schema spec is delivered early; client authors content in parallel with M1-M2 development. Sample content is in place for testing without final client content. Flag early if content isn't progressing.
@@ -337,6 +346,7 @@ Track risks throughout the project. Review and update at least weekly.
 - **Status:** Open
 
 **Design ambiguity for novel screens**
+
 - **Likelihood:** Medium
 - **Impact:** Medium (could cause rework if direction shifts mid-build)
 - **Mitigation:** Iterative design loops with Excalidraw/Figma mocks before code lands. Client signs off on each screen before build.
@@ -344,6 +354,7 @@ Track risks throughout the project. Review and update at least weekly.
 - **Status:** Open
 
 **Avatar artwork delivery delay**
+
 - **Likelihood:** Medium (designer dependency)
 - **Impact:** Low (placeholders work fine until artwork arrives; integration is fast)
 - **Mitigation:** Use placeholder avatars in M1; integrate final artwork as a polish pass when delivered.
@@ -351,6 +362,7 @@ Track risks throughout the project. Review and update at least weekly.
 - **Status:** Open
 
 **GoHighLevel webhook reliability**
+
 - **Likelihood:** Low (standard Stripe-backed setup confirmed)
 - **Impact:** Medium (CRM sync could lag)
 - **Mitigation:** Implement retry with exponential backoff. Log all sync events. Manual reconciliation tooling if needed.
@@ -358,6 +370,7 @@ Track risks throughout the project. Review and update at least weekly.
 - **Status:** Open
 
 **iOS PWA limitations affecting push**
+
 - **Likelihood:** Medium (iOS PWA push has known constraints)
 - **Impact:** Medium (push reminders are M4 feature)
 - **Mitigation:** Confirmed iOS 16.4+ supports installed PWA push. Document limitations clearly. Provide fallback (email notifications) as Plan B for affected users.
@@ -365,6 +378,7 @@ Track risks throughout the project. Review and update at least weekly.
 - **Status:** Open
 
 **Scope creep on member-facing UX**
+
 - **Likelihood:** High (it's a new product; design instincts evolve)
 - **Impact:** Medium (timeline pressure if unchecked)
 - **Mitigation:** Anchor every new UI request against the V1 Feature Checklist. New ideas that aren't on the checklist go to a "V2 backlog" file, not into V1. Honest conversation if scope expands materially.
@@ -372,6 +386,7 @@ Track risks throughout the project. Review and update at least weekly.
 - **Status:** Open
 
 **Production database accident**
+
 - **Likelihood:** Low (staging-first policy in place)
 - **Impact:** Critical
 - **Mitigation:** Never run destructive operations against production. Always link to staging first. CLI shows current linked project; verify before destructive commands. Daily backups on Supabase Pro plan.
@@ -379,6 +394,7 @@ Track risks throughout the project. Review and update at least weekly.
 - **Status:** Open
 
 **Client travel or unavailability mid-milestone**
+
 - **Likelihood:** Low to Medium
 - **Impact:** Low (work can continue on areas not needing client input)
 - **Mitigation:** Prioritize client-input-dependent work early in a milestone. Have async fallback (Loom + written notes) for review if a call slips.
@@ -497,13 +513,13 @@ This gives the client agency and avoids the developer being either too generous 
 
 ### Change types and default handling
 
-| Type | Example | Default handling |
-|------|---------|------------------|
-| Clarification of existing scope | "Wait, the validator should show 4 errors, not all of them?" | Confirm and proceed |
-| Small enhancement | "Could the error panel have a copy-to-clipboard button?" | Absorb if < 1 hour |
-| Medium enhancement | "Add a search bar to the references library" | Discuss; usually absorb in current milestone if it fits |
-| Significant addition | "Add a leaderboard for daily streaks" | Scope conversation |
-| Out-of-scope feature | "Add a discussion forum" | Add to V2 backlog; not in V1 |
+| Type                            | Example                                                      | Default handling                                        |
+| ------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------- |
+| Clarification of existing scope | "Wait, the validator should show 4 errors, not all of them?" | Confirm and proceed                                     |
+| Small enhancement               | "Could the error panel have a copy-to-clipboard button?"     | Absorb if < 1 hour                                      |
+| Medium enhancement              | "Add a search bar to the references library"                 | Discuss; usually absorb in current milestone if it fits |
+| Significant addition            | "Add a leaderboard for daily streaks"                        | Scope conversation                                      |
+| Out-of-scope feature            | "Add a discussion forum"                                     | Add to V2 backlog; not in V1                            |
 
 ---
 
@@ -662,42 +678,42 @@ Things to keep visibility on as the project progresses.
 
 ### From the client (Steve)
 
-| Item | When needed | Status |
-|------|-------------|--------|
-| Stripe account access (test + live keys) | M3 start | Pending |
-| GoHighLevel account / API access | M3 start | Confirmed standard Stripe-backed |
-| Supabase access for production | M3 start (or earlier for verification) | Invites sent for staging + prod |
-| Vercel + domain access | M4 deploy (or earlier for staging custom subdomain) | Pending |
-| Custom domain registered | M4 | Pending |
-| Email sender (transactional email service) credentials | M3 (for password resets) | Pending |
-| 6 player-type avatar artwork | M4 polish | Pending (designer being hired) |
-| Logo and brand assets (colors, fonts) | M4 polish (or earlier for design pass) | Pending |
-| Content for M1 demo (sample lessons) | M1 demo | Sample content created; final content lands ongoing |
-| Content for production launch | Before launch | Client authoring in parallel |
-| Legal / IP agreement signed | Early in project | Drafted by client |
+| Item                                                   | When needed                                         | Status                                              |
+| ------------------------------------------------------ | --------------------------------------------------- | --------------------------------------------------- |
+| Stripe account access (test + live keys)               | M3 start                                            | Pending                                             |
+| GoHighLevel account / API access                       | M3 start                                            | Confirmed standard Stripe-backed                    |
+| Supabase access for production                         | M3 start (or earlier for verification)              | Invites sent for staging + prod                     |
+| Vercel + domain access                                 | M4 deploy (or earlier for staging custom subdomain) | Pending                                             |
+| Custom domain registered                               | M4                                                  | Pending                                             |
+| Email sender (transactional email service) credentials | M3 (for password resets)                            | Pending                                             |
+| 6 player-type avatar artwork                           | M4 polish                                           | Pending (designer being hired)                      |
+| Logo and brand assets (colors, fonts)                  | M4 polish (or earlier for design pass)              | Pending                                             |
+| Content for M1 demo (sample lessons)                   | M1 demo                                             | Sample content created; final content lands ongoing |
+| Content for production launch                          | Before launch                                       | Client authoring in parallel                        |
+| Legal / IP agreement signed                            | Early in project                                    | Drafted by client                                   |
 
 ### From the developer (Blagojche)
 
-| Item | When | Status |
-|------|------|--------|
-| CLAUDE.md and code standards in repo | Day 1 | Done |
-| Repo set up under client's GitHub | M1 kickoff | Done |
-| Supabase staging and prod projects | M1 kickoff | Done |
-| Test deliverable (validate-and-publish round trip) | Pre-M1 | Done |
-| Schema documentation | Pre-M1 | Done |
-| Developer guide | Now | In progress |
-| QA guide | Now | In progress |
-| DevOps guide | Now | In progress |
-| Project management guide | Now | In progress |
-| Client dependencies list | Now | In progress |
+| Item                                               | When       | Status      |
+| -------------------------------------------------- | ---------- | ----------- |
+| CLAUDE.md and code standards in repo               | Day 1      | Done        |
+| Repo set up under client's GitHub                  | M1 kickoff | Done        |
+| Supabase staging and prod projects                 | M1 kickoff | Done        |
+| Test deliverable (validate-and-publish round trip) | Pre-M1     | Done        |
+| Schema documentation                               | Pre-M1     | Done        |
+| Developer guide                                    | Now        | In progress |
+| QA guide                                           | Now        | In progress |
+| DevOps guide                                       | Now        | In progress |
+| Project management guide                           | Now        | In progress |
+| Client dependencies list                           | Now        | In progress |
 
 ### From other parties
 
-| Item | Source | When |
-|------|--------|------|
-| Avatar SVGs | Designer (via Steve) | M4 polish; placeholders OK until then |
-| Logo SVG and brand guide | Designer (via Steve) | M4 polish |
-| Email sender setup (DKIM, SPF, DMARC records) | Steve's domain provider | M3 |
+| Item                                          | Source                  | When                                  |
+| --------------------------------------------- | ----------------------- | ------------------------------------- |
+| Avatar SVGs                                   | Designer (via Steve)    | M4 polish; placeholders OK until then |
+| Logo SVG and brand guide                      | Designer (via Steve)    | M4 polish                             |
+| Email sender setup (DKIM, SPF, DMARC records) | Steve's domain provider | M3                                    |
 
 ---
 

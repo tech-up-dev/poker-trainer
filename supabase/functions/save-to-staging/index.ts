@@ -2,7 +2,7 @@
 // Hosted on the production Supabase project. Validates the caller is an admin
 // (production auth), then writes/upserts the content row to the staging DB
 // using the staging service-role key. The frontend never touches the staging
-// DB directly — all staging writes go through here.
+// DB directly; all staging writes go through here.
 //
 // Content id resolution lives here because it needs to read staging to guarantee
 // uniqueness:
