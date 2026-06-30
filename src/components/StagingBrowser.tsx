@@ -64,27 +64,24 @@ export function StagingBrowser(): JSX.Element {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [promotingAll, setPromotingAll] = useState(false)
 
-  // load() only sets the result state — callers are responsible for setting
-  // { kind: 'loading' } beforehand (event handlers are fine; effects are not).
-  const load = useCallback(async (): Promise<void> => {
-    const { data, error } = await supabaseProd.functions.invoke('list-from-staging', {
-      body: {},
-    })
-    if (error) {
-      setState({ kind: 'error', message: error.message })
-      return
-    }
-    const result = data as { ok: boolean; items?: StagedItem[]; message?: string }
-    if (!result.ok) {
-      setState({ kind: 'error', message: result.message ?? 'Unknown error' })
-      return
-    }
-    setState({ kind: 'loaded', items: result.items ?? [] })
+  // Returns the next LoadState without calling setState — lets callers
+  // set state in a .then() callback, which satisfies react-hooks/set-state-in-effect.
+  const load = useCallback((): Promise<LoadState> => {
+    return supabaseProd.functions
+      .invoke('list-from-staging', { body: {} })
+      .then(({ data, error }) => {
+        if (error) return { kind: 'error' as const, message: error.message }
+        const result = data as { ok: boolean; items?: StagedItem[]; message?: string }
+        if (!result.ok)
+          return { kind: 'error' as const, message: result.message ?? 'Unknown error' }
+        return { kind: 'loaded' as const, items: result.items ?? [] }
+      })
   }, [])
 
-  // Initial state is already { kind: 'loading' }, so no setState needed here.
   useEffect(() => {
-    void load()
+    load().then(setState).catch((e: unknown) =>
+      setState({ kind: 'error', message: e instanceof Error ? e.message : String(e) })
+    )
   }, [load])
 
   async function promoteItem(item: StagedItem): Promise<boolean> {
@@ -134,7 +131,7 @@ export function StagingBrowser(): JSX.Element {
         </div>
         <button
           type="button"
-          onClick={() => { setState({ kind: 'loading' }); void load() }}
+          onClick={() => { setState({ kind: 'loading' }); void load().then(setState) }}
           className="px-3 py-1.5 text-sm rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
         >
           Refresh
