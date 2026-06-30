@@ -1,14 +1,9 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 
-type Theme = 'dark' | 'light'
+import { ThemeContext, type Theme } from './theme-context'
 
 const STORAGE_KEY = 'bss-theme'
-
-const ThemeContext = createContext<{
-  theme: Theme
-  toggleTheme: () => void
-} | null>(null)
 
 function getInitialTheme(): Theme {
   const stored = window.localStorage.getItem(STORAGE_KEY)
@@ -34,10 +29,4 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       {children}
     </ThemeContext.Provider>
   )
-}
-
-export function useTheme() {
-  const ctx = useContext(ThemeContext)
-  if (!ctx) throw new Error('useTheme must be used within ThemeProvider')
-  return ctx
 }

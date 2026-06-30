@@ -1,8 +1,12 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { JSX, ReactNode } from 'react'
 
 import type { GlossaryEntry } from '../../shared/schemas/glossary'
 import { getGlossaryEntryById, getGlossaryEntryByTerm } from '../lib/glossary'
+import {
+  GlossaryDrawerContext,
+  useGlossaryDrawer,
+} from '../lib/glossary-drawer-context'
 
 type DrawerStatus = 'closed' | 'loading' | 'ready' | 'error'
 
@@ -11,17 +15,6 @@ type DrawerState = {
   stack: GlossaryEntry[]
   errorMessage: string | null
 }
-
-type GlossaryDrawerContextValue = {
-  openTerm: (term: string) => void
-  pushRelatedTerm: (termId: string) => void
-  back: () => void
-  close: () => void
-}
-
-const GlossaryDrawerContext = createContext<GlossaryDrawerContextValue | null>(
-  null,
-)
 
 const IMPORTANCE_LABEL: Record<NonNullable<GlossaryEntry['importance']>, string> =
   {
@@ -122,14 +115,6 @@ export function GlossaryDrawerProvider({
       <GlossaryDrawer state={state} onBack={back} onClose={close} />
     </GlossaryDrawerContext.Provider>
   )
-}
-
-export function useGlossaryDrawer(): GlossaryDrawerContextValue {
-  const ctx = useContext(GlossaryDrawerContext)
-  if (!ctx) {
-    throw new Error('useGlossaryDrawer must be used within GlossaryDrawerProvider')
-  }
-  return ctx
 }
 
 function GlossaryDrawer({

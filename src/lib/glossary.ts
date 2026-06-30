@@ -40,7 +40,7 @@ function getCache(): Promise<GlossaryCache> {
 }
 
 // glossary_terms in lesson content (shared/schemas/lesson.ts) holds literal term
-// text per docs/schema-spec.md "Glossary references" — match on GlossaryEntry.term.
+// text per docs/schema-spec.md "Glossary references"; match on GlossaryEntry.term.
 export async function getGlossaryEntryByTerm(
   term: string,
 ): Promise<GlossaryEntry | null> {

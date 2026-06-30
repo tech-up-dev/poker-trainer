@@ -1,6 +1,6 @@
 import type { JSX } from 'react'
 
-import { useTheme } from '../lib/theme'
+import { useTheme } from '../lib/theme-context'
 
 // Brand-tokenized toggle. Lives on the canvas/surface/gold tokens so it
 // repaints correctly in both themes without any conditional classes.
