@@ -117,7 +117,7 @@ export function GlossaryEditor({ onPublishedContextChange, initialText }: Glossa
     if (validationResult?.ok !== true) return
     if (promoteStatus === 'promoting') return
     // Promotion publishes the staged copy, so the editor content must have been
-    // saved to staging first — otherwise we'd promote a stale version.
+    // saved to staging first, otherwise we'd promote a stale version.
     if (saveStatus !== 'saved' || effectiveId === null) return
     setPromoteStatus('promoting')
     const { data, error } = await supabaseProd.functions.invoke('promote-to-prod', {
@@ -207,7 +207,7 @@ export function GlossaryEditor({ onPublishedContextChange, initialText }: Glossa
 
       {canSave && saveStatus !== 'saved' ? (
         <p className="text-sm text-slate-400">
-          Save to staging first — promotion publishes the staged copy.
+          Save to staging first; promotion publishes the staged copy.
         </p>
       ) : null}
 
@@ -262,7 +262,7 @@ function renderValidationPanel(state: ValidationState): JSX.Element {
     return (
       <div className="rounded border border-green-600 bg-green-600/10 text-green-300 px-4 py-3">
         <strong className="text-green-200">✓ Valid glossary entry</strong>
-        {' — '}
+        {' · '}
         {state.data.term}
         {state.data.importance ? ` · ${state.data.importance}` : ''}
       </div>

@@ -227,7 +227,7 @@ export function BulkImport(): JSX.Element {
             className="rounded border border-red-600 bg-red-600/10 px-4 py-3 space-y-1"
           >
             <p className="text-red-200 text-sm font-medium">
-              Item {item.index + 1} — no matching content type
+              Item {item.index + 1}: no matching content type
             </p>
             <ul className="space-y-1">
               {item.errors.map((err, i) => (
