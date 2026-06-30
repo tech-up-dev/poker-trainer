@@ -12,7 +12,7 @@ type FeedbackDrawerProps = {
 
 // Slide-up drawer shown after a member locks in an MCQ answer. Shows the
 // correct/incorrect indicator (icon, not color alone) and explanations for
-// every answer so the member learns why each option is right or wrong —
+// every answer so the member learns why each option is right or wrong,
 // per docs/QA_GUIDE.md "Multiple-choice question interface".
 export function FeedbackDrawer({
   question,

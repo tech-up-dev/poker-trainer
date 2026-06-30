@@ -4,21 +4,21 @@ import type { JSX } from 'react'
 import type { Question } from '../../shared/schemas/lesson'
 import { linkifyGlossaryTerms } from '../lib/glossary-text'
 import { FeedbackDrawer } from './FeedbackDrawer'
+import { PokerTable } from './PokerTable'
 
 const LETTERS = ['A', 'B', 'C', 'D']
 
 type QuestionCardProps = {
   question: Question
-  // Fired once the member dismisses the feedback drawer via Continue — this is
+  // Fired once the member dismisses the feedback drawer via Continue; this is
   // the "feedback has been viewed" signal a session/lesson runner should gate
   // its own next-question navigation on (docs/QA_GUIDE.md, MCQ checklist).
   onContinue: () => void
 }
 
 // Renders an MCQ prompt and exactly four answers; locks the choice on select
-// and opens the slide-up feedback drawer. hand_scenario questions render a
-// placeholder above the prompt until the poker table component (a separate,
-// in-progress task) lands.
+// and opens the slide-up feedback drawer. hand_scenario questions render the
+// PokerTable above the prompt, driven by question.table_state.
 export function QuestionCard({ question, onContinue }: QuestionCardProps): JSX.Element {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
@@ -38,15 +38,13 @@ export function QuestionCard({ question, onContinue }: QuestionCardProps): JSX.E
 
   function handleSaveForLater(): void {
     // Persistence for saved/starred questions isn't built yet (planned for a
-    // later milestone) — this is a UI affordance only, intentionally a no-op.
+    // later milestone); this is a UI affordance only, intentionally a no-op.
   }
 
   return (
     <div className="space-y-4">
-      {question.type === 'hand_scenario' ? (
-        <div className="rounded-xl border border-dashed border-line bg-surface p-6 text-center text-sm text-ink-2">
-          Poker table renders here (separate component, in progress)
-        </div>
+      {question.type === 'hand_scenario' && question.table_state ? (
+        <PokerTable tableState={question.table_state} />
       ) : null}
 
       <p className="text-lg leading-relaxed text-ink">

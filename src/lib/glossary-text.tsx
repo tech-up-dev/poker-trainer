@@ -4,7 +4,7 @@ import { GlossaryTerm } from '../components/GlossaryTerm'
 
 // Wraps every occurrence of each glossary_terms entry inside `text` with a
 // tappable <GlossaryTerm>. Per docs/schema-spec.md "Glossary references":
-// glossary_terms is the explicit allow-list — only listed terms get linked,
+// glossary_terms is the explicit allow-list, only listed terms get linked,
 // the app does not auto-link arbitrary words.
 export function linkifyGlossaryTerms(
   text: string,

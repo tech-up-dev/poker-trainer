@@ -43,7 +43,7 @@ export function MemberHomePage(): JSX.Element {
 }
 
 // Steps through a real published lesson's questions one at a time. "Next" is
-// only enabled after the current question's feedback has been viewed —
+// only enabled after the current question's feedback has been viewed,
 // docs/QA_GUIDE.md "Session-level navigation... enabled only after feedback
 // has been viewed."
 function LessonDemo(): JSX.Element {

@@ -1,10 +1,10 @@
 import type { JSX, ReactNode } from 'react'
 
-import { useGlossaryDrawer } from './GlossaryDrawer'
+import { useGlossaryDrawer } from '../lib/glossary-drawer-context'
 
 type GlossaryTermProps = {
   // Term text as listed in a question's glossary_terms array (shared/schemas/lesson.ts).
-  // Looked up against GlossaryEntry.term — see src/lib/glossary.ts.
+  // Looked up against GlossaryEntry.term, see src/lib/glossary.ts.
   term: string
   children?: ReactNode
 }
