@@ -64,8 +64,9 @@ export function StagingBrowser(): JSX.Element {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [promotingAll, setPromotingAll] = useState(false)
 
+  // load() only sets the result state — callers are responsible for setting
+  // { kind: 'loading' } beforehand (event handlers are fine; effects are not).
   const load = useCallback(async (): Promise<void> => {
-    setState({ kind: 'loading' })
     const { data, error } = await supabaseProd.functions.invoke('list-from-staging', {
       body: {},
     })
@@ -81,6 +82,7 @@ export function StagingBrowser(): JSX.Element {
     setState({ kind: 'loaded', items: result.items ?? [] })
   }, [])
 
+  // Initial state is already { kind: 'loading' }, so no setState needed here.
   useEffect(() => {
     void load()
   }, [load])
@@ -132,7 +134,7 @@ export function StagingBrowser(): JSX.Element {
         </div>
         <button
           type="button"
-          onClick={() => void load()}
+          onClick={() => { setState({ kind: 'loading' }); void load() }}
           className="px-3 py-1.5 text-sm rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
         >
           Refresh
