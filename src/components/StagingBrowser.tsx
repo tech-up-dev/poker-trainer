@@ -13,9 +13,7 @@ type StagedItem = {
 }
 
 type LoadState =
-  | { kind: 'loading' }
-  | { kind: 'error'; message: string }
-  | { kind: 'loaded'; items: StagedItem[] }
+  { kind: 'loading' } | { kind: 'error'; message: string } | { kind: 'loaded'; items: StagedItem[] }
 
 // Per-item promote status, keyed by `${type}:${id}`.
 type PromoteStatus = 'idle' | 'promoting' | { version: number } | { error: string }
@@ -102,9 +100,7 @@ export function StagingBrowser(): JSX.Element {
       setPromote((p) => ({ ...p, [key(item)]: { error: error.message } }))
       return false
     }
-    const result = data as
-      | { ok: true; version_number: number }
-      | { ok: false; message: string }
+    const result = data as { ok: true; version_number: number } | { ok: false; message: string }
     if (!result.ok) {
       setPromote((p) => ({ ...p, [key(item)]: { error: result.message } }))
       return false
@@ -134,8 +130,8 @@ export function StagingBrowser(): JSX.Element {
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold">Staging</h1>
           <p className="text-slate-400">
-            Everything saved to staging but not necessarily promoted. Promote items
-            to production, or open one in its editor to make changes.
+            Everything saved to staging but not necessarily promoted. Promote items to production,
+            or open one in its editor to make changes.
           </p>
         </div>
         <button
@@ -156,9 +152,7 @@ export function StagingBrowser(): JSX.Element {
       return <p className="text-sm text-slate-400">Loading staged content…</p>
     }
     if (state.kind === 'error') {
-      return (
-        <p className="text-sm text-red-400">Failed to load staging: {state.message}</p>
-      )
+      return <p className="text-sm text-red-400">Failed to load staging: {state.message}</p>
     }
     // Only surface content types this build exposes (have an editor route). On
     // M1 that's lesson + glossary, so tips/references staged by later builds stay
@@ -212,9 +206,7 @@ export function StagingBrowser(): JSX.Element {
                       <div className="flex items-center gap-2 shrink-0">
                         <button
                           type="button"
-                          onClick={() =>
-                            setExpanded((e) => ({ ...e, [key(item)]: !isOpen }))
-                          }
+                          onClick={() => setExpanded((e) => ({ ...e, [key(item)]: !isOpen }))}
                           className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
                         >
                           {isOpen ? 'Hide' : 'View'}

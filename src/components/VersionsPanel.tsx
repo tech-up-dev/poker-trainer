@@ -47,7 +47,7 @@ export function VersionsPanel({
       const { data, error } = await supabaseProd
         .from('content_versions')
         .select(
-          'id, content_id, content_type, version_number, created_at, created_by, source_version'
+          'id, content_id, content_type, version_number, created_at, created_by, source_version',
         )
         .eq('content_id', contentId)
         .eq('content_type', contentType)
@@ -78,10 +78,9 @@ export function VersionsPanel({
     setConfirmTarget(null)
 
     setRollbackStatus({ running: targetVersion })
-    const { data, error } = await supabaseProd.functions.invoke(
-      'rollback-to-version',
-      { body: { content_id: contentId, content_type: contentType, target_version: targetVersion } }
-    )
+    const { data, error } = await supabaseProd.functions.invoke('rollback-to-version', {
+      body: { content_id: contentId, content_type: contentType, target_version: targetVersion },
+    })
 
     if (error) {
       setRollbackStatus({ error: error.message })
@@ -118,8 +117,7 @@ export function VersionsPanel({
     onAfterRollback?.(pubData?.content ?? null)
   }
 
-  const rollbackInFlight =
-    typeof rollbackStatus === 'object' && 'running' in rollbackStatus
+  const rollbackInFlight = typeof rollbackStatus === 'object' && 'running' in rollbackStatus
 
   return (
     <section className="space-y-2" aria-live="polite">
@@ -144,22 +142,16 @@ function renderVersionsBody(
   versions: Version[] | null,
   loadError: string | null,
   rollbackInFlight: boolean,
-  onRollback: (v: number) => void
+  onRollback: (v: number) => void,
 ): JSX.Element {
   if (loadError !== null) {
-    return (
-      <p className="text-sm text-red-400">
-        Failed to load versions: {loadError}
-      </p>
-    )
+    return <p className="text-sm text-red-400">Failed to load versions: {loadError}</p>
   }
   if (versions === null) {
     return <p className="text-sm text-slate-400">Loading versions…</p>
   }
   if (versions.length === 0) {
-    return (
-      <p className="text-sm text-slate-400">No production versions yet.</p>
-    )
+    return <p className="text-sm text-slate-400">No production versions yet.</p>
   }
 
   const currentVersionNumber = versions[0].version_number
@@ -169,10 +161,7 @@ function renderVersionsBody(
       {versions.map((v) => {
         const isCurrent = v.version_number === currentVersionNumber
         return (
-          <li
-            key={v.id}
-            className="flex items-center justify-between px-4 py-2 text-sm"
-          >
+          <li key={v.id} className="flex items-center justify-between px-4 py-2 text-sm">
             <div className="space-x-2">
               <span className="font-mono text-slate-200">v{v.version_number}</span>
               <span className="text-slate-500">
@@ -206,11 +195,7 @@ function renderVersionsBody(
 function renderRollbackStatus(status: RollbackStatus): JSX.Element | null {
   if (status === 'idle') return null
   if ('running' in status) {
-    return (
-      <p className="text-sm text-slate-400">
-        Rolling back to v{status.running}…
-      </p>
-    )
+    return <p className="text-sm text-slate-400">Rolling back to v{status.running}…</p>
   }
   if ('done' in status) {
     return (

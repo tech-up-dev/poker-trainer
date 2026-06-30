@@ -109,12 +109,12 @@ These two rollback layers are independent. Reverting code does not affect conten
 
 Branches and environments map cleanly:
 
-| Branch | Vercel environment | Supabase project | Audience |
-|--------|---------------------|-------------------|----------|
-| `master` | Production | Production | Live members |
-| `dev` | Preview | Staging | Internal + client review |
-| `feat/*` | Preview (auto) | Staging | Feature in flight |
-| `fix/*` | Preview (auto) | Staging | Bugfix in flight |
+| Branch   | Vercel environment | Supabase project | Audience                 |
+| -------- | ------------------ | ---------------- | ------------------------ |
+| `master` | Production         | Production       | Live members             |
+| `dev`    | Preview            | Staging          | Internal + client review |
+| `feat/*` | Preview (auto)     | Staging          | Feature in flight        |
+| `fix/*`  | Preview (auto)     | Staging          | Bugfix in flight         |
 
 ---
 
@@ -157,11 +157,13 @@ For each project, record (in a secrets vault, NOT in git):
 ### Database password rotation
 
 Rotate the database password if:
+
 - Personnel changes
 - Suspected compromise
 - Annually as a baseline
 
 To rotate:
+
 1. Settings → Database → Reset database password
 2. Update any external systems using the password
 3. Document the rotation date
@@ -195,10 +197,12 @@ VITE_SUPABASE_ANON_KEY=<anon-key>
 ```
 
 For Production:
+
 - `VITE_SUPABASE_URL` → production project URL
 - `VITE_SUPABASE_ANON_KEY` → production project anon key
 
 For Preview and Development:
+
 - `VITE_SUPABASE_URL` → staging project URL
 - `VITE_SUPABASE_ANON_KEY` → staging project anon key
 
@@ -245,6 +249,7 @@ Once the client provides the domain (e.g., `app.poker-trainer.com`):
 9. Delete the feature branch
 
 To deploy to production:
+
 1. Open a PR from `dev` → `master`
 2. Title: "Release: <date or version>"
 3. Description: changelog of what's in this release
@@ -256,11 +261,13 @@ To deploy to production:
 Tracking work in GitHub Issues (see the "GitHub Projects" section at the end of this document for project board structure).
 
 Issue templates:
+
 - **Feature**: user story format, acceptance criteria
 - **Bug**: reproduction steps, severity, environment
 - **Task**: technical task with definition of done
 
 Labels (suggested):
+
 - `m1`, `m2`, `m3`, `m4`: milestone
 - `frontend`, `backend`, `pipeline`, `auth`, `pwa`: area
 - `p0`, `p1`, `p2`, `p3`: priority/severity
@@ -411,6 +418,7 @@ supabase secrets set --project-ref <prod-ref> \
 These secrets are accessible only inside Edge Functions via `Deno.env.get(...)`. They never reach the client.
 
 Auto-injected by Supabase into Edge Functions:
+
 - `SUPABASE_URL` (the function's own project)
 - `SUPABASE_ANON_KEY`
 - `SUPABASE_SERVICE_ROLE_KEY` (the function's own project)
@@ -428,14 +436,14 @@ Never put service role keys, Stripe keys, or GHL keys in `.env.local`. The local
 
 ### Rotation policy
 
-| Secret | When to rotate |
-|--------|----------------|
-| Supabase database password | Annually or on suspicion of compromise |
-| Supabase service role key | Annually or after a security event |
-| Stripe webhook secret | When changing webhook endpoint |
-| Stripe secret key | If exposed, rotate immediately |
-| GHL API key | Annually or on personnel changes at GHL |
-| VAPID keys | Avoid rotation (would invalidate all push subscriptions) |
+| Secret                     | When to rotate                                           |
+| -------------------------- | -------------------------------------------------------- |
+| Supabase database password | Annually or on suspicion of compromise                   |
+| Supabase service role key  | Annually or after a security event                       |
+| Stripe webhook secret      | When changing webhook endpoint                           |
+| Stripe secret key          | If exposed, rotate immediately                           |
+| GHL API key                | Annually or on personnel changes at GHL                  |
+| VAPID keys                 | Avoid rotation (would invalidate all push subscriptions) |
 
 ---
 
@@ -606,6 +614,7 @@ Without a custom email sender, Supabase's default emails work but come from a Su
 ### Browser console
 
 In production, console errors should be rare. When they occur:
+
 - Capture the error message and stack
 - Note the URL, user (if known), and browser
 - File a bug per the QA bug reporting template
@@ -635,12 +644,14 @@ Set up automated uptime monitoring in V2 (UptimeRobot, Better Uptime, or similar
 Supabase Pro plan includes daily automated backups, retained for 7 days. Confirm the plan is on Pro for production (free plan does not include backups).
 
 For additional safety:
+
 - Weekly manual backup via `pg_dump` (the Supabase CLI can trigger this) into long-term storage
 - Test restore procedure at least once per quarter
 
 ### Code backups
 
 GitHub serves as the canonical code backup. Additionally:
+
 - Tag releases on `master` (e.g., `v1.0.0-m1`)
 - Optionally, mirror to a second remote (GitLab, Bitbucket)
 
@@ -659,6 +670,7 @@ Estimated recovery time: hours (depending on Supabase support response).
 **Scenario: Vercel is down**
 
 Vercel has high uptime but is not infallible. If down:
+
 - Wait for Vercel status to recover (status.vercel.com)
 - For extended outages, the app can be deployed elsewhere quickly (Netlify, Cloudflare Pages) using the same `npm run build` output
 - Code is in GitHub; new hosting can be set up in under an hour
@@ -667,6 +679,7 @@ Vercel has high uptime but is not infallible. If down:
 
 Less common but possible. Similar to Vercel: wait for recovery (status.supabase.com).
 For prolonged outages, the app degrades gracefully:
+
 - Service worker serves cached content
 - Members may see "offline" state for new actions
 - Auth flows fail but cached sessions remain valid
