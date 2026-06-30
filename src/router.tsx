@@ -9,12 +9,14 @@ import { TipEditorPage } from './pages/TipEditorPage'
 import { ReferenceEditorPage } from './pages/ReferenceEditorPage'
 import { GlossaryEditorPage } from './pages/GlossaryEditorPage'
 import { StagingBrowser } from './components/StagingBrowser'
+import { TablePreviewPage } from './pages/TablePreviewPage'
 
 // /login is public; everything under the admin shell sits behind RequireAuth. The
 // member-facing app (table, quiz, glossary) gets its own routes once the design
 // direction lands.
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  { path: '/table-preview', element: <TablePreviewPage /> },
   {
     element: <RequireAuth />,
     children: [
