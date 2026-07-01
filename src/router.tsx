@@ -14,6 +14,7 @@ import { StagingBrowser } from './components/StagingBrowser'
 import { TablePreviewPage } from './pages/TablePreviewPage'
 import { MemberDashboardPage } from './pages/MemberDashboardPage'
 import { LessonSessionPage } from './pages/LessonSessionPage'
+import { TableBuilderPage } from './pages/TableBuilderPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -35,6 +36,7 @@ export const router = createBrowserRouter([
           { path: 'admin/references', element: <ReferenceEditorPage /> },
           { path: 'admin/glossary', element: <GlossaryEditorPage /> },
           { path: 'admin/staging', element: <StagingBrowser /> },
+          { path: 'admin/table-builder', element: <TableBuilderPage /> },
           { path: '*', element: <Navigate to="/admin" replace /> },
         ],
       },
