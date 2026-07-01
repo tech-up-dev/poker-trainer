@@ -12,9 +12,10 @@ import { ReferenceEditorPage } from './pages/ReferenceEditorPage'
 import { GlossaryEditorPage } from './pages/GlossaryEditorPage'
 import { StagingBrowser } from './components/StagingBrowser'
 import { TablePreviewPage } from './pages/TablePreviewPage'
+import { TableBuilderPage } from './pages/TableBuilderPage'
 import { MemberDashboardPage } from './pages/MemberDashboardPage'
 import { LessonSessionPage } from './pages/LessonSessionPage'
-import { TableBuilderPage } from './pages/TableBuilderPage'
+import { SavedQuestionsPage } from './pages/SavedQuestionsPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -54,6 +55,14 @@ export const router = createBrowserRouter([
         element: (
           <GlossaryDrawerProvider>
             <LessonSessionPage />
+          </GlossaryDrawerProvider>
+        ),
+      },
+      {
+        path: '/play/saved-questions',
+        element: (
+          <GlossaryDrawerProvider>
+            <SavedQuestionsPage />
           </GlossaryDrawerProvider>
         ),
       },
