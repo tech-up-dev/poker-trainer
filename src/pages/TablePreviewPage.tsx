@@ -80,7 +80,7 @@ export function TablePreviewPage(): JSX.Element {
         <div className="space-y-3">
           <div>
             <p className="text-[13px] font-semibold" style={{ color: '#EAF1F8' }}>
-              Scenario 1 — Preflop 3-bet pot
+              Scenario 1 - Preflop 3-bet pot
             </p>
             <p className="text-[12px]" style={{ color: '#9DB2C9' }}>
               Hero: HJ · JJ · faces BTN 3-bet to $48
@@ -92,7 +92,7 @@ export function TablePreviewPage(): JSX.Element {
         <div className="space-y-3">
           <div>
             <p className="text-[13px] font-semibold" style={{ color: '#EAF1F8' }}>
-              Scenario 2 — Flop bet facing hero on BTN
+              Scenario 2 - Flop bet facing hero on BTN
             </p>
             <p className="text-[12px]" style={{ color: '#9DB2C9' }}>
               Hero: BTN · AKo · flop 7♥ 8♣ 2♦

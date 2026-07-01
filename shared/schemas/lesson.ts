@@ -9,11 +9,11 @@ export const AnswerSchema = z.object({
 })
 
 const SeatActionSchema = z.object({
-  action: z.enum(["Fold", "Check", "Limp", "Call", "Bet", "Raise", "3-bet", "4-bet", "All-in"], {
-    error: () => "action must be one of: Fold, Check, Limp, Call, Bet, Raise, 3-bet, 4-bet, All-in",
+  action: z.enum(['Fold', 'Check', 'Limp', 'Call', 'Bet', 'Raise', '3-bet', '4-bet', 'All-in'], {
+    error: () => 'action must be one of: Fold, Check, Limp, Call, Bet, Raise, 3-bet, 4-bet, All-in',
   }),
-  amount: z.number().nonnegative("amount must be zero or greater").optional(),
-});
+  amount: z.number().nonnegative('amount must be zero or greater').optional(),
+})
 
 export const HandScenarioStateSchema = z.object({
   street: z.enum(['preflop', 'flop', 'turn', 'river'], {

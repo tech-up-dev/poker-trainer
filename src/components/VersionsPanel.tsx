@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 
 import { supabaseProd } from '../lib/supabase-prod'
+import { downloadJson, exportFilename } from '../lib/download'
 
 import { ConfirmDialog } from './ConfirmDialog'
+import { ContentBody } from './ContentBody'
 
 type Version = {
   id: string
@@ -20,6 +22,14 @@ type RollbackStatus =
   | { running: number }
   | { done: { rolled_back_from: number; version_number: number } }
   | { error: string }
+
+// The content captured at a specific version, shown read-only when the admin
+// clicks Preview. Loads lazily from content_versions so the list stays cheap.
+type PreviewState =
+  | { kind: 'closed' }
+  | { kind: 'loading'; version: number }
+  | { kind: 'open'; version: number; content: unknown }
+  | { kind: 'error'; version: number; message: string }
 
 type VersionsPanelProps = {
   contentId: string
@@ -38,12 +48,14 @@ export function VersionsPanel({
   const [loadError, setLoadError] = useState<string | null>(null)
   const [rollbackStatus, setRollbackStatus] = useState<RollbackStatus>('idle')
   const [confirmTarget, setConfirmTarget] = useState<number | null>(null)
+  const [preview, setPreview] = useState<PreviewState>({ kind: 'closed' })
 
   useEffect(() => {
     let cancelled = false
 
     async function fetchVersions(): Promise<void> {
       setLoadError(null)
+      setPreview({ kind: 'closed' })
       const { data, error } = await supabaseProd
         .from('content_versions')
         .select(
@@ -117,12 +129,61 @@ export function VersionsPanel({
     onAfterRollback?.(pubData?.content ?? null)
   }
 
+  async function togglePreview(version: number): Promise<void> {
+    // Clicking the open version's Preview again closes it.
+    if (preview.kind !== 'closed' && preview.version === version) {
+      setPreview({ kind: 'closed' })
+      return
+    }
+    setPreview({ kind: 'loading', version })
+    const { data, error } = await supabaseProd
+      .from('content_versions')
+      .select('content')
+      .eq('content_id', contentId)
+      .eq('content_type', contentType)
+      .eq('version_number', version)
+      .maybeSingle()
+
+    if (error) {
+      setPreview({ kind: 'error', version, message: error.message })
+      return
+    }
+    if (!data) {
+      setPreview({ kind: 'error', version, message: 'Version not found' })
+      return
+    }
+    setPreview({ kind: 'open', version, content: data.content })
+  }
+
+  async function exportVersion(version: number): Promise<void> {
+    const { data } = await supabaseProd
+      .from('content_versions')
+      .select('content')
+      .eq('content_id', contentId)
+      .eq('content_type', contentType)
+      .eq('version_number', version)
+      .maybeSingle()
+    if (data) {
+      downloadJson(exportFilename(contentType, contentId, version), data.content)
+    }
+  }
+
   const rollbackInFlight = typeof rollbackStatus === 'object' && 'running' in rollbackStatus
+  const openPreviewVersion = preview.kind !== 'closed' ? preview.version : null
 
   return (
     <section className="space-y-2" aria-live="polite">
       <h2 className="text-lg font-semibold">Versions</h2>
-      {renderVersionsBody(versions, loadError, rollbackInFlight, requestRollback)}
+      {renderVersionsBody(
+        versions,
+        loadError,
+        rollbackInFlight,
+        requestRollback,
+        (v) => void togglePreview(v),
+        openPreviewVersion,
+        (v) => void exportVersion(v),
+      )}
+      {renderPreview(preview, contentType)}
       {renderRollbackStatus(rollbackStatus)}
       <ConfirmDialog
         open={confirmTarget !== null}
@@ -143,6 +204,9 @@ function renderVersionsBody(
   loadError: string | null,
   rollbackInFlight: boolean,
   onRollback: (v: number) => void,
+  onPreview: (v: number) => void,
+  openPreviewVersion: number | null,
+  onExport: (v: number) => void,
 ): JSX.Element {
   if (loadError !== null) {
     return <p className="text-sm text-red-400">Failed to load versions: {loadError}</p>
@@ -171,24 +235,62 @@ function renderVersionsBody(
                 <span className="text-slate-500">(from v{v.source_version})</span>
               ) : null}
             </div>
-            {isCurrent ? (
-              <span className="text-xs text-green-400 px-2 py-0.5 rounded bg-green-600/10 border border-green-600/30">
-                current
-              </span>
-            ) : (
+            <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
-                onClick={() => onRollback(v.version_number)}
-                disabled={rollbackInFlight}
-                className="text-xs px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                onClick={() => onPreview(v.version_number)}
+                className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
               >
-                Rollback
+                {openPreviewVersion === v.version_number ? 'Hide' : 'Preview'}
               </button>
-            )}
+              <button
+                type="button"
+                onClick={() => onExport(v.version_number)}
+                className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+              >
+                Export
+              </button>
+              {isCurrent ? (
+                <span className="text-xs text-green-400 px-2 py-0.5 rounded bg-green-600/10 border border-green-600/30">
+                  current
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => onRollback(v.version_number)}
+                  disabled={rollbackInFlight}
+                  className="text-xs px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Rollback
+                </button>
+              )}
+            </div>
           </li>
         )
       })}
     </ul>
+  )
+}
+
+function renderPreview(preview: PreviewState, contentType: string): JSX.Element | null {
+  if (preview.kind === 'closed') return null
+  if (preview.kind === 'loading') {
+    return <p className="text-sm text-slate-400">Loading v{preview.version}…</p>
+  }
+  if (preview.kind === 'error') {
+    return (
+      <p className="text-sm text-red-400">
+        Failed to load v{preview.version}: {preview.message}
+      </p>
+    )
+  }
+  return (
+    <div className="space-y-2 rounded border border-slate-700 bg-slate-950 p-3">
+      <div className="text-xs text-slate-400">Preview of v{preview.version}</div>
+      <div className="max-h-[24rem] overflow-y-auto pr-1">
+        <ContentBody content={preview.content} contentType={contentType} />
+      </div>
+    </div>
   )
 }
 

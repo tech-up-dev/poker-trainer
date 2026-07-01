@@ -72,7 +72,7 @@ const PLAYER_TYPES: Record<string, PlayerTypeInfo> = {
   },
   Y2K: {
     name: 'Y2K TAG',
-    desc: 'Plays tight and straightforward. Only 3-bets monsters. Can be bluffed on scary boards. Pressure them on later streets — they rarely call down light.',
+    desc: 'Plays tight and straightforward. Only 3-bets monsters. Can be bluffed on scary boards. Pressure them on later streets, they rarely call down light.',
     tags: ['Old-school TAG', 'Predictable', 'Folds to pressure'],
   },
   GTO: {
@@ -82,7 +82,7 @@ const PLAYER_TYPES: Record<string, PlayerTypeInfo> = {
   },
   DWM: {
     name: 'Drunk Whale Maniac',
-    desc: 'Loose, aggressive, and spewy. Can raise or bluff with any two cards. Stay aggressive against him — your big hands will get paid off.',
+    desc: 'Loose, aggressive, and spewy. Can raise or bluff with any two cards. Stay aggressive against him, your big hands will get paid off.',
     tags: ['Gambler', 'Over-bluffs', 'Spews chips'],
   },
   STP: {
@@ -218,7 +218,7 @@ function SeatDisplay({
         className={`flex flex-col gap-[4px] cursor-pointer transition-opacity ${dimmed ? 'opacity-40' : ''}`}
         style={{ alignItems: align, minWidth: 44, minHeight: 44 }}
         onClick={onTap}
-        aria-label={`${typeCode ?? ''} at ${position} — tap for player info`}
+        aria-label={`${typeCode ?? ''} at ${position}, tap for player info`}
       >
         <div className="flex">
           <CardBack />
