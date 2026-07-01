@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 
 import { supabaseProd } from '../lib/supabase-prod'
+import { downloadJson, exportFilename } from '../lib/download'
 
 import { ContentBody } from './ContentBody'
 
@@ -57,7 +58,20 @@ export function PublishedContent({
 
   return (
     <section className="space-y-3" aria-live="polite">
-      <h2 className="text-lg font-semibold">Production (Published)</h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-lg font-semibold">Production (Published)</h2>
+        {state.kind === 'loaded' ? (
+          <button
+            type="button"
+            onClick={() =>
+              downloadJson(exportFilename(contentType, contentId), state.content)
+            }
+            className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+          >
+            Export JSON
+          </button>
+        ) : null}
+      </div>
       {state.kind === 'loading' ? (
         <p className="text-sm text-slate-400">Loading…</p>
       ) : state.kind === 'error' ? (

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 
 import { supabaseProd } from '../lib/supabase-prod'
+import { downloadJson, exportFilename } from '../lib/download'
 
 import { ConfirmDialog } from './ConfirmDialog'
 import { ContentBody } from './ContentBody'
@@ -154,6 +155,19 @@ export function VersionsPanel({
     setPreview({ kind: 'open', version, content: data.content })
   }
 
+  async function exportVersion(version: number): Promise<void> {
+    const { data } = await supabaseProd
+      .from('content_versions')
+      .select('content')
+      .eq('content_id', contentId)
+      .eq('content_type', contentType)
+      .eq('version_number', version)
+      .maybeSingle()
+    if (data) {
+      downloadJson(exportFilename(contentType, contentId, version), data.content)
+    }
+  }
+
   const rollbackInFlight = typeof rollbackStatus === 'object' && 'running' in rollbackStatus
   const openPreviewVersion = preview.kind !== 'closed' ? preview.version : null
 
@@ -167,6 +181,7 @@ export function VersionsPanel({
         requestRollback,
         (v) => void togglePreview(v),
         openPreviewVersion,
+        (v) => void exportVersion(v),
       )}
       {renderPreview(preview, contentType)}
       {renderRollbackStatus(rollbackStatus)}
@@ -191,6 +206,7 @@ function renderVersionsBody(
   onRollback: (v: number) => void,
   onPreview: (v: number) => void,
   openPreviewVersion: number | null,
+  onExport: (v: number) => void,
 ): JSX.Element {
   if (loadError !== null) {
     return <p className="text-sm text-red-400">Failed to load versions: {loadError}</p>
@@ -226,6 +242,13 @@ function renderVersionsBody(
                 className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
               >
                 {openPreviewVersion === v.version_number ? 'Hide' : 'Preview'}
+              </button>
+              <button
+                type="button"
+                onClick={() => onExport(v.version_number)}
+                className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+              >
+                Export
               </button>
               {isCurrent ? (
                 <span className="text-xs text-green-400 px-2 py-0.5 rounded bg-green-600/10 border border-green-600/30">
