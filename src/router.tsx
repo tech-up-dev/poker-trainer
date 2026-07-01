@@ -12,7 +12,8 @@ import { ReferenceEditorPage } from './pages/ReferenceEditorPage'
 import { GlossaryEditorPage } from './pages/GlossaryEditorPage'
 import { StagingBrowser } from './components/StagingBrowser'
 import { TablePreviewPage } from './pages/TablePreviewPage'
-import { MemberHomePage } from './pages/MemberHomePage'
+import { MemberDashboardPage } from './pages/MemberDashboardPage'
+import { LessonSessionPage } from './pages/LessonSessionPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -44,9 +45,13 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/play',
+        element: <MemberDashboardPage />,
+      },
+      {
+        path: '/play/lessons/:lessonId',
         element: (
           <GlossaryDrawerProvider>
-            <MemberHomePage />
+            <LessonSessionPage />
           </GlossaryDrawerProvider>
         ),
       },

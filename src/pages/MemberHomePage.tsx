@@ -75,7 +75,7 @@ function LessonDemo(): JSX.Element {
       <QuestionCard
         key={question.question_id}
         question={question}
-        onContinue={() => setFeedbackViewed(true)}
+        onContinue={(_isCorrect) => setFeedbackViewed(true)}
       />
 
       <button

@@ -10,10 +10,9 @@ const LETTERS = ['A', 'B', 'C', 'D']
 
 type QuestionCardProps = {
   question: Question
-  // Fired once the member dismisses the feedback drawer via Continue; this is
-  // the "feedback has been viewed" signal a session/lesson runner should gate
-  // its own next-question navigation on (docs/QA_GUIDE.md, MCQ checklist).
-  onContinue: () => void
+  // Fired once the member dismisses the feedback drawer via Continue. Receives
+  // whether the selected answer was correct so the session runner can track score.
+  onContinue: (isCorrect: boolean) => void
 }
 
 // Renders an MCQ prompt and exactly four answers; locks the choice on select
@@ -32,8 +31,9 @@ export function QuestionCard({ question, onContinue }: QuestionCardProps): JSX.E
   }
 
   function handleContinue(): void {
+    const isCorrect = selectedIndex !== null && question.answers[selectedIndex].is_correct
     setFeedbackOpen(false)
-    onContinue()
+    onContinue(isCorrect)
   }
 
   function handleSaveForLater(): void {
