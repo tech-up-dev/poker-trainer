@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import type { JSX } from 'react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
-import { ThemeToggle } from '../components/ThemeToggle'
+import { MemberHeader } from '../components/MemberHeader'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 
 const DIFFICULTY_COLOR: Record<string, string> = {
@@ -30,10 +30,7 @@ export function MemberDashboardPage(): JSX.Element {
   return (
     <div className="min-h-screen bg-canvas text-ink px-4 py-6">
       <div className="max-w-md mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-lg font-semibold">Beat Small Stakes</h1>
-          <ThemeToggle />
-        </div>
+        <MemberHeader />
 
         <div>
           <h2 className="text-sm font-semibold text-ink-2 mb-3">Lessons</h2>
