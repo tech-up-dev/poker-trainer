@@ -579,7 +579,7 @@ function StepReview({
           <span>{String(obj.principle_tag ?? '')}</span>
           <span className="font-semibold text-[#EAF1F8]">Concept</span>
           <span className="line-clamp-2">{String(obj.concept ?? '')}</span>
-          {obj.difficulty && (
+          {Boolean(obj.difficulty) && (
             <>
               <span className="font-semibold text-[#EAF1F8]">Difficulty</span>
               <span>{String(obj.difficulty)}</span>
@@ -600,7 +600,7 @@ function StepReview({
             <div key={i} className="bg-[#0E2A47] border border-[#2a5079] rounded-lg px-3 py-2 space-y-1">
               <p className="text-xs font-semibold text-[#F4A024]">Q{i + 1} · {String(qObj.type ?? '')}</p>
               <p className="text-sm text-[#EAF1F8] line-clamp-2">{String(qObj.prompt ?? '')}</p>
-              {correctAnswer && (
+              {Boolean(correctAnswer) && (
                 <p className="text-xs text-[#3dbe8a]">
                   ✓ {String((correctAnswer as Record<string, unknown>).text ?? '')}
                 </p>
