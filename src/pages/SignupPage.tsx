@@ -76,6 +76,13 @@ export function SignupPage(): JSX.Element {
       return
     }
 
+    // Supabase returns a fake success for existing emails to prevent enumeration.
+    // An empty identities array is the signal that the email is already taken.
+    if (data.user && (data.user.identities?.length ?? 0) === 0) {
+      setError('An account with this email already exists. Try signing in instead.')
+      return
+    }
+
     // If Supabase returns a session the project has auto-confirm on.
     // Otherwise the user must confirm via email before they can sign in.
     if (data.session) {
