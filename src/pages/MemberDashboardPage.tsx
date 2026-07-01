@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import type { JSX } from 'react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
@@ -32,7 +32,12 @@ export function MemberDashboardPage(): JSX.Element {
       <div className="max-w-md mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold">Beat Small Stakes</h1>
-          <ThemeToggle />
+          <div className="flex items-center gap-3">
+            <Link to="/play/saved-questions" className="text-sm text-link hover:underline">
+              Saved
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
 
         <div>
