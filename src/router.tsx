@@ -13,6 +13,7 @@ import { GlossaryEditorPage } from './pages/GlossaryEditorPage'
 import { StagingBrowser } from './components/StagingBrowser'
 import { TablePreviewPage } from './pages/TablePreviewPage'
 import { TableBuilderPage } from './pages/TableBuilderPage'
+import { AuthoringWizardPage } from './pages/AuthoringWizardPage'
 import { MemberDashboardPage } from './pages/MemberDashboardPage'
 import { LessonSessionPage } from './pages/LessonSessionPage'
 import { SavedQuestionsPage } from './pages/SavedQuestionsPage'
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
           { path: 'admin/glossary', element: <GlossaryEditorPage /> },
           { path: 'admin/staging', element: <StagingBrowser /> },
           { path: 'admin/table-builder', element: <TableBuilderPage /> },
+          { path: 'admin/wizard', element: <AuthoringWizardPage /> },
           { path: '*', element: <Navigate to="/admin" replace /> },
         ],
       },
