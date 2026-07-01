@@ -1,7 +1,6 @@
 import type { JSX } from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 
-import { supabaseProd } from '../lib/supabase-prod'
 import { useAuth } from '../lib/auth-context'
 
 // Route guard for the CMS. Sends anyone without a session to the login page, and
@@ -23,18 +22,7 @@ export function RequireAuth(): JSX.Element {
   }
 
   if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center gap-4 px-4 text-center">
-        <p className="text-slate-300">This account doesn&apos;t have admin access.</p>
-        <button
-          type="button"
-          onClick={() => void supabaseProd.auth.signOut()}
-          className="px-4 py-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium"
-        >
-          Sign out
-        </button>
-      </div>
-    )
+    return <Navigate to="/play" replace />
   }
 
   return <Outlet />

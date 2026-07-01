@@ -14,6 +14,7 @@ import { ReferenceEditorPage } from './pages/ReferenceEditorPage'
 import { GlossaryEditorPage } from './pages/GlossaryEditorPage'
 import { StagingBrowser } from './components/StagingBrowser'
 import { TablePreviewPage } from './pages/TablePreviewPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { MemberDashboardPage } from './pages/MemberDashboardPage'
 import { LessonSessionPage } from './pages/LessonSessionPage'
 
@@ -24,6 +25,7 @@ export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/signup', element: <SignupPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
   { path: '/table-preview', element: <TablePreviewPage /> },
   {
     element: <RequireAuth />,
