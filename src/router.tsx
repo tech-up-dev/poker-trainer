@@ -16,6 +16,7 @@ import { TableBuilderPage } from './pages/TableBuilderPage'
 import { MemberDashboardPage } from './pages/MemberDashboardPage'
 import { LessonSessionPage } from './pages/LessonSessionPage'
 import { SavedQuestionsPage } from './pages/SavedQuestionsPage'
+import { SavedTipsPage } from './pages/SavedTipsPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -66,6 +67,7 @@ export const router = createBrowserRouter([
           </GlossaryDrawerProvider>
         ),
       },
+      { path: '/play/saved-tips', element: <SavedTipsPage /> },
     ],
   },
 ])
