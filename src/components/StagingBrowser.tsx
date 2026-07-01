@@ -3,6 +3,7 @@ import type { JSX } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { supabaseProd } from '../lib/supabase-prod'
+import { downloadJson, exportFilename } from '../lib/download'
 import type { ContentType } from '../../shared/schemas/content'
 
 type StagedItem = {
@@ -220,6 +221,18 @@ export function StagingBrowser(): JSX.Element {
                             Edit
                           </button>
                         ) : null}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            downloadJson(
+                              exportFilename(item.content_type, item.content_id),
+                              item.content,
+                            )
+                          }
+                          className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                        >
+                          Export
+                        </button>
                         <button
                           type="button"
                           onClick={() => void promoteItem(item)}
