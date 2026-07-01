@@ -11,8 +11,9 @@ const LETTERS = ['A', 'B', 'C', 'D']
 type QuestionCardProps = {
   question: Question
   // Fired once the member dismisses the feedback drawer via Continue. Receives
-  // whether the selected answer was correct so the session runner can track score.
-  onContinue: (isCorrect: boolean) => void
+  // whether the selected answer was correct and which index was selected so the
+  // session runner can track score and record missed questions for review.
+  onContinue: (isCorrect: boolean, selectedIndex: number) => void
 }
 
 // Renders an MCQ prompt and exactly four answers; locks the choice on select
@@ -31,9 +32,10 @@ export function QuestionCard({ question, onContinue }: QuestionCardProps): JSX.E
   }
 
   function handleContinue(): void {
-    const isCorrect = selectedIndex !== null && question.answers[selectedIndex].is_correct
+    const idx = selectedIndex ?? 0
+    const isCorrect = question.answers[idx].is_correct
     setFeedbackOpen(false)
-    onContinue(isCorrect)
+    onContinue(isCorrect, idx)
   }
 
   function handleSaveForLater(): void {

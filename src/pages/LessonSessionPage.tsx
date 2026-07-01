@@ -4,15 +4,21 @@ import type { JSX } from 'react'
 
 import type { Lesson, Question } from '../../shared/schemas/lesson'
 import { QuestionCard } from '../components/QuestionCard'
+import { linkifyGlossaryTerms } from '../lib/glossary-text'
 import { fetchPublishedLesson } from '../lib/lessons'
 import { upsertProgress } from '../lib/progress'
+
+type MissedQuestion = {
+  question: Question
+  selectedIndex: number
+}
 
 type SessionPhase =
   | { kind: 'loading' }
   | { kind: 'error'; message: string }
   | { kind: 'intro' }
   | { kind: 'quiz'; questionIndex: number; feedbackViewed: boolean }
-  | { kind: 'complete'; correct: number; total: number }
+  | { kind: 'complete'; correct: number; total: number; missed: MissedQuestion[] }
 
 function shuffled<T>(arr: T[]): T[] {
   const copy = [...arr]
@@ -29,6 +35,8 @@ const DIFFICULTY_LABEL: Record<string, string> = {
   advanced: 'Advanced',
 }
 
+const LETTERS = ['A', 'B', 'C', 'D']
+
 export function LessonSessionPage(): JSX.Element {
   const { lessonId } = useParams<{ lessonId: string }>()
   const navigate = useNavigate()
@@ -38,8 +46,9 @@ export function LessonSessionPage(): JSX.Element {
     lessonId ? { kind: 'loading' } : { kind: 'error', message: 'No lesson ID provided.' },
   )
   const [randomise, setRandomise] = useState(false)
-  // correctness tracked per question index in the ordered list
+  // correctness and selected answer tracked per question index in the ordered list
   const [correctMap, setCorrectMap] = useState<Record<number, boolean>>({})
+  const [answeredMap, setAnsweredMap] = useState<Record<number, number>>({})
 
   useEffect(() => {
     if (!lessonId) return
@@ -61,8 +70,6 @@ export function LessonSessionPage(): JSX.Element {
     )
   }, [lessonId])
 
-  // Build the ordered question list once, re-shuffle only when randomise toggles
-  // before the quiz starts (intro phase). Once the quiz starts the order is fixed.
   const orderedQuestions = useMemo<Question[]>(() => {
     if (!lesson) return []
     return randomise ? shuffled(lesson.questions) : [...lesson.questions]
@@ -70,11 +77,17 @@ export function LessonSessionPage(): JSX.Element {
 
   function startQuiz(): void {
     setCorrectMap({})
+    setAnsweredMap({})
     setPhase({ kind: 'quiz', questionIndex: 0, feedbackViewed: false })
   }
 
-  function handleFeedbackViewed(questionIndex: number, isCorrect: boolean): void {
+  function handleFeedbackViewed(
+    questionIndex: number,
+    isCorrect: boolean,
+    selectedIndex: number,
+  ): void {
     setCorrectMap((prev) => ({ ...prev, [questionIndex]: isCorrect }))
+    setAnsweredMap((prev) => ({ ...prev, [questionIndex]: selectedIndex }))
     setPhase((prev) =>
       prev.kind === 'quiz' ? { ...prev, feedbackViewed: true } : prev,
     )
@@ -83,9 +96,18 @@ export function LessonSessionPage(): JSX.Element {
   function handleNext(): void {
     if (phase.kind !== 'quiz') return
     const nextIndex = phase.questionIndex + 1
+
     if (nextIndex >= orderedQuestions.length) {
-      const correct = Object.values({ ...correctMap }).filter(Boolean).length
+      const finalCorrectMap = { ...correctMap }
+      const finalAnsweredMap = { ...answeredMap }
+      const correct = Object.values(finalCorrectMap).filter(Boolean).length
       const total = orderedQuestions.length
+
+      const missed: MissedQuestion[] = orderedQuestions
+        .map((q, i) => ({ question: q, selectedIndex: finalAnsweredMap[i] ?? 0, correct: finalCorrectMap[i] }))
+        .filter((entry) => entry.correct === false)
+        .map(({ question, selectedIndex }) => ({ question, selectedIndex }))
+
       void upsertProgress({
         lessonId: lessonId ?? '',
         questionsAnswered: total,
@@ -94,7 +116,8 @@ export function LessonSessionPage(): JSX.Element {
       }).catch(() => {
         // Progress save is best-effort; don't block the completion screen.
       })
-      setPhase({ kind: 'complete', correct, total })
+
+      setPhase({ kind: 'complete', correct, total, missed })
     } else {
       setPhase({ kind: 'quiz', questionIndex: nextIndex, feedbackViewed: false })
     }
@@ -192,12 +215,11 @@ export function LessonSessionPage(): JSX.Element {
     const { questionIndex, feedbackViewed } = phase
     const question = orderedQuestions[questionIndex]
     const total = orderedQuestions.length
-    const progress = ((questionIndex) / total) * 100
+    const progress = (questionIndex / total) * 100
 
     return (
       <div className="min-h-screen bg-canvas text-ink px-4 py-6">
         <div className="max-w-md mx-auto space-y-4">
-          {/* Header */}
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm text-ink-2">
               <span className="font-medium">{lesson.title}</span>
@@ -205,7 +227,6 @@ export function LessonSessionPage(): JSX.Element {
                 {questionIndex + 1} / {total}
               </span>
             </div>
-            {/* Progress bar */}
             <div className="h-1.5 rounded-full bg-line overflow-hidden">
               <div
                 className="h-full rounded-full bg-gold transition-all duration-300"
@@ -214,14 +235,14 @@ export function LessonSessionPage(): JSX.Element {
             </div>
           </div>
 
-          {/* Question */}
           <QuestionCard
             key={question.question_id}
             question={question}
-            onContinue={(isCorrect) => handleFeedbackViewed(questionIndex, isCorrect)}
+            onContinue={(isCorrect, selectedIndex) =>
+              handleFeedbackViewed(questionIndex, isCorrect, selectedIndex)
+            }
           />
 
-          {/* Next / Finish button */}
           <button
             type="button"
             disabled={!feedbackViewed}
@@ -236,28 +257,26 @@ export function LessonSessionPage(): JSX.Element {
   }
 
   // ── Complete screen ───────────────────────────────────────────────────────
-  const { correct, total } = phase
+  const { correct, total, missed } = phase
   const pct = total > 0 ? Math.round((correct / total) * 100) : 0
   const passed = pct >= 70
 
   return (
     <div className="min-h-screen bg-canvas text-ink px-4 py-10">
       <div className="max-w-md mx-auto space-y-6">
+        {/* Score card */}
         <div className="bg-surface border border-line rounded-xl p-6 text-center space-y-4">
           <div
             className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center text-2xl font-bold ${passed ? 'bg-success/15 text-success' : 'bg-error/15 text-error'}`}
           >
             {passed ? '✓' : '✕'}
           </div>
-
           <div className="space-y-1">
             <h2 className="text-xl font-bold">
               {passed ? 'Lesson complete!' : 'Keep practising'}
             </h2>
             <p className="text-ink-2 text-sm">{lesson.title}</p>
           </div>
-
-          {/* Score */}
           <div className="bg-canvas rounded-xl p-4 space-y-3">
             <div className="text-4xl font-bold text-gold">{pct}%</div>
             <p className="text-sm text-ink-2">
@@ -271,6 +290,77 @@ export function LessonSessionPage(): JSX.Element {
             </div>
           </div>
         </div>
+
+        {/* Missed questions review */}
+        {missed.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-semibold text-ink-2">
+              Review - {missed.length} missed question{missed.length !== 1 ? 's' : ''}
+            </h3>
+            {missed.map(({ question, selectedIndex }, i) => {
+              const correctAnswer = question.answers.find((a) => a.is_correct)
+              const correctIndex = question.answers.findIndex((a) => a.is_correct)
+              const wrongAnswer = question.answers[selectedIndex]
+              return (
+                <div
+                  key={`${question.question_id}-${i}`}
+                  className="bg-surface border border-line rounded-xl p-4 space-y-4"
+                >
+                  <p className="text-sm font-medium text-ink leading-relaxed">
+                    {linkifyGlossaryTerms(question.prompt, question.glossary_terms)}
+                  </p>
+
+                  {/* Wrong answer */}
+                  <div className="flex gap-3 p-3 rounded-lg bg-error/8 border border-error/20">
+                    <span
+                      aria-hidden="true"
+                      className="w-6 h-6 mt-0.5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-error text-on-gold"
+                    >
+                      ✕
+                    </span>
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-ink">
+                        <span className="text-ink-2 font-semibold mr-1">
+                          {LETTERS[selectedIndex]}
+                        </span>
+                        {wrongAnswer.text}
+                      </p>
+                      <p className="text-sm text-ink-2 leading-relaxed">
+                        {linkifyGlossaryTerms(wrongAnswer.explanation, question.glossary_terms)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Correct answer */}
+                  {correctAnswer && (
+                    <div className="flex gap-3 p-3 rounded-lg bg-success/8 border border-success/20">
+                      <span
+                        aria-hidden="true"
+                        className="w-6 h-6 mt-0.5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-success text-on-gold"
+                      >
+                        ✓
+                      </span>
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-ink">
+                          <span className="text-ink-2 font-semibold mr-1">
+                            {LETTERS[correctIndex]}
+                          </span>
+                          {correctAnswer.text}
+                        </p>
+                        <p className="text-sm text-ink-2 leading-relaxed">
+                          {linkifyGlossaryTerms(
+                            correctAnswer.explanation,
+                            question.glossary_terms,
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
 
         <div className="space-y-3">
           <button
