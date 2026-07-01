@@ -238,6 +238,7 @@ export function LessonSessionPage(): JSX.Element {
           <QuestionCard
             key={question.question_id}
             question={question}
+            lessonId={lessonId}
             onContinue={(isCorrect, selectedIndex) =>
               handleFeedbackViewed(questionIndex, isCorrect, selectedIndex)
             }

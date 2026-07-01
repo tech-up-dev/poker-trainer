@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import type { JSX } from 'react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { ThemeToggle } from '../components/ThemeToggle'
+import { TodaysTip } from '../components/TodaysTip'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 
 const DIFFICULTY_COLOR: Record<string, string> = {
@@ -32,8 +33,15 @@ export function MemberDashboardPage(): JSX.Element {
       <div className="max-w-md mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold">Beat Small Stakes</h1>
-          <ThemeToggle />
+          <div className="flex items-center gap-3">
+            <Link to="/play/saved-questions" className="text-sm text-link hover:underline">
+              Saved
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
+
+        <TodaysTip />
 
         <div>
           <h2 className="text-sm font-semibold text-ink-2 mb-3">Lessons</h2>
