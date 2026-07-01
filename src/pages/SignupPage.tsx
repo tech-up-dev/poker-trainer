@@ -3,7 +3,6 @@ import type { FormEvent, JSX } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { supabaseProd } from '../lib/supabase-prod'
-import { useAuth } from '../lib/auth-context'
 
 function EyeIcon({ open }: { open: boolean }): JSX.Element {
   if (open) {
@@ -40,46 +39,80 @@ function EyeIcon({ open }: { open: boolean }): JSX.Element {
   )
 }
 
-export function LoginPage(): JSX.Element {
+export function SignupPage(): JSX.Element {
   const navigate = useNavigate()
-  const { session, isAdmin, loading } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [ageVerified, setAgeVerified] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
-
-  // Don't auto-redirect - show the form even when a session exists so users can
-  // switch accounts. A banner lets them continue with the current account instead.
-  const existingEmail = session?.user.email ?? null
+  const [emailSent, setEmailSent] = useState(false)
 
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault()
     if (submitting) return
-    setSubmitting(true)
-    setError(null)
-
-    const { error: signInError } = await supabaseProd.auth.signInWithPassword({
-      email,
-      password,
-    })
-
-    if (signInError) {
-      setSubmitting(false)
-      setError(signInError.message)
+    if (!ageVerified) {
+      setError('You must be 18 or older to create an account.')
       return
     }
 
-    // Check admin entitlement directly so we can route without waiting for the
-    // auth-context listener to fire.
-    const { data } = await supabaseProd
-      .from('entitlements')
-      .select('entitlement_key')
-      .eq('entitlement_key', 'admin_access')
-      .eq('status', 'active')
-      .maybeSingle()
+    setSubmitting(true)
+    setError(null)
 
-    navigate(data ? '/admin' : '/play', { replace: true })
+    const { data, error: signUpError } = await supabaseProd.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { age_verified: true },
+        emailRedirectTo: `${window.location.origin}/play`,
+      },
+    })
+
+    setSubmitting(false)
+
+    if (signUpError) {
+      setError(signUpError.message)
+      return
+    }
+
+    // Supabase returns a fake success for existing emails to prevent enumeration.
+    // An empty identities array is the signal that the email is already taken.
+    if (data.user && (data.user.identities?.length ?? 0) === 0) {
+      setError('An account with this email already exists. Try signing in instead.')
+      return
+    }
+
+    // If Supabase returns a session the project has auto-confirm on.
+    // Otherwise the user must confirm via email before they can sign in.
+    if (data.session) {
+      navigate('/play', { replace: true })
+    } else {
+      setEmailSent(true)
+    }
+  }
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm space-y-8 text-center">
+          <div className="space-y-1">
+            <h1 className="text-2xl font-bold text-ink">Check your email</h1>
+            <p className="text-sm text-ink-2">
+              We sent a confirmation link to{' '}
+              <span className="text-ink font-medium">{email}</span>. Click it to
+              activate your account.
+            </p>
+          </div>
+          <Link
+            to="/login"
+            className="inline-block text-sm text-link hover:text-ink transition-colors"
+          >
+            Back to sign in
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -89,23 +122,8 @@ export function LoginPage(): JSX.Element {
         {/* Branding */}
         <div className="text-center space-y-1">
           <h1 className="text-2xl font-bold text-ink">Beat Small Stakes</h1>
-          <p className="text-sm text-ink-2">Sign in to your account</p>
+          <p className="text-sm text-ink-2">Create your account</p>
         </div>
-
-        {/* Already-signed-in banner */}
-        {!loading && existingEmail && (
-          <div className="bg-surface border border-line rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-            <p className="text-sm text-ink-2 truncate">
-              Signed in as <span className="text-ink font-medium">{existingEmail}</span>
-            </p>
-            <Link
-              to={isAdmin ? '/admin' : '/play'}
-              className="text-sm text-link hover:text-ink font-medium whitespace-nowrap transition-colors"
-            >
-              Continue &rarr;
-            </Link>
-          </div>
-        )}
 
         {/* Card */}
         <form
@@ -129,26 +147,19 @@ export function LoginPage(): JSX.Element {
           </div>
 
           <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label htmlFor="password" className="block text-sm font-medium text-ink">
-                Password
-              </label>
-              <Link
-                to="/forgot-password"
-                className="text-xs text-link hover:text-ink-2 transition-colors"
-              >
-                Forgot password?
-              </Link>
-            </div>
+            <label htmlFor="password" className="block text-sm font-medium text-ink">
+              Password
+            </label>
             <div className="relative">
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="••••••••"
+                minLength={8}
+                placeholder="Min. 8 characters"
                 className="w-full px-4 py-3 pr-11 rounded-xl bg-canvas border border-line text-ink text-sm placeholder:text-ink-3 focus:outline-none focus:border-link transition-colors"
               />
               <button
@@ -162,6 +173,23 @@ export function LoginPage(): JSX.Element {
             </div>
           </div>
 
+          {/* Age verification */}
+          <label className="flex items-start gap-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={ageVerified}
+              onChange={(e) => {
+                setAgeVerified(e.target.checked)
+                if (error) setError(null)
+              }}
+              className="mt-0.5 h-4 w-4 rounded border-line accent-gold flex-shrink-0"
+            />
+            <span className="text-sm text-ink-2 leading-snug">
+              I confirm I am{' '}
+              <span className="text-ink font-medium">18 years of age or older</span>
+            </span>
+          </label>
+
           {error !== null && (
             <p className="text-sm text-error" role="alert">
               {error}
@@ -173,13 +201,13 @@ export function LoginPage(): JSX.Element {
             disabled={submitting}
             className="w-full py-3 rounded-xl bg-gold text-on-gold font-semibold text-sm hover:bg-amber transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {submitting ? 'Signing in...' : 'Sign in'}
+            {submitting ? 'Creating account...' : 'Create account'}
           </button>
 
           <p className="text-center text-sm text-ink-2">
-            No account?{' '}
-            <Link to="/signup" className="text-link hover:text-ink transition-colors font-medium">
-              Sign up
+            Already have an account?{' '}
+            <Link to="/login" className="text-link hover:text-ink transition-colors font-medium">
+              Sign in
             </Link>
           </p>
         </form>

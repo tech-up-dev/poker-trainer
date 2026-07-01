@@ -1,9 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { FormEvent, JSX } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { supabaseProd } from '../lib/supabase-prod'
-import { useAuth } from '../lib/auth-context'
 
 function EyeIcon({ open }: { open: boolean }): JSX.Element {
   if (open) {
@@ -40,18 +39,25 @@ function EyeIcon({ open }: { open: boolean }): JSX.Element {
   )
 }
 
-export function LoginPage(): JSX.Element {
+export function ResetPasswordPage(): JSX.Element {
   const navigate = useNavigate()
-  const { session, isAdmin, loading } = useAuth()
-  const [email, setEmail] = useState('')
+  const [ready, setReady] = useState(false)
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [done, setDone] = useState(false)
 
-  // Don't auto-redirect - show the form even when a session exists so users can
-  // switch accounts. A banner lets them continue with the current account instead.
-  const existingEmail = session?.user.email ?? null
+  // Supabase fires PASSWORD_RECOVERY via onAuthStateChange when the page loads
+  // with a valid recovery token in the URL hash.
+  useEffect(() => {
+    const {
+      data: { subscription },
+    } = supabaseProd.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') setReady(true)
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault()
@@ -59,96 +65,74 @@ export function LoginPage(): JSX.Element {
     setSubmitting(true)
     setError(null)
 
-    const { error: signInError } = await supabaseProd.auth.signInWithPassword({
-      email,
-      password,
-    })
+    const { error: updateError } = await supabaseProd.auth.updateUser({ password })
 
-    if (signInError) {
-      setSubmitting(false)
-      setError(signInError.message)
+    setSubmitting(false)
+
+    if (updateError) {
+      setError(updateError.message)
       return
     }
 
-    // Check admin entitlement directly so we can route without waiting for the
-    // auth-context listener to fire.
-    const { data } = await supabaseProd
-      .from('entitlements')
-      .select('entitlement_key')
-      .eq('entitlement_key', 'admin_access')
-      .eq('status', 'active')
-      .maybeSingle()
+    setDone(true)
+    setTimeout(() => navigate('/login', { replace: true }), 2000)
+  }
 
-    navigate(data ? '/admin' : '/play', { replace: true })
+  if (done) {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm text-center space-y-3">
+          <h1 className="text-2xl font-bold text-ink">Password updated</h1>
+          <p className="text-sm text-ink-2">Redirecting you to sign in...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!ready) {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm text-center space-y-4">
+          <p className="text-sm text-ink-2">Verifying reset link...</p>
+          <p className="text-xs text-ink-3">
+            If nothing happens,{' '}
+            <Link to="/forgot-password" className="text-link hover:text-ink transition-colors">
+              request a new link
+            </Link>
+            .
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-8">
 
-        {/* Branding */}
         <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold text-ink">Beat Small Stakes</h1>
-          <p className="text-sm text-ink-2">Sign in to your account</p>
+          <h1 className="text-2xl font-bold text-ink">Set new password</h1>
+          <p className="text-sm text-ink-2">Choose a new password for your account.</p>
         </div>
 
-        {/* Already-signed-in banner */}
-        {!loading && existingEmail && (
-          <div className="bg-surface border border-line rounded-xl px-4 py-3 flex items-center justify-between gap-3">
-            <p className="text-sm text-ink-2 truncate">
-              Signed in as <span className="text-ink font-medium">{existingEmail}</span>
-            </p>
-            <Link
-              to={isAdmin ? '/admin' : '/play'}
-              className="text-sm text-link hover:text-ink font-medium whitespace-nowrap transition-colors"
-            >
-              Continue &rarr;
-            </Link>
-          </div>
-        )}
-
-        {/* Card */}
         <form
           onSubmit={handleSubmit}
           className="bg-surface border border-line rounded-2xl p-6 space-y-5"
         >
           <div className="space-y-1.5">
-            <label htmlFor="email" className="block text-sm font-medium text-ink">
-              Email
+            <label htmlFor="password" className="block text-sm font-medium text-ink">
+              New password
             </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="you@example.com"
-              className="w-full px-4 py-3 rounded-xl bg-canvas border border-line text-ink text-sm placeholder:text-ink-3 focus:outline-none focus:border-link transition-colors"
-            />
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label htmlFor="password" className="block text-sm font-medium text-ink">
-                Password
-              </label>
-              <Link
-                to="/forgot-password"
-                className="text-xs text-link hover:text-ink-2 transition-colors"
-              >
-                Forgot password?
-              </Link>
-            </div>
             <div className="relative">
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
+                autoComplete="new-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                placeholder="••••••••"
+                minLength={8}
+                placeholder="Min. 8 characters"
                 className="w-full px-4 py-3 pr-11 rounded-xl bg-canvas border border-line text-ink text-sm placeholder:text-ink-3 focus:outline-none focus:border-link transition-colors"
               />
               <button
@@ -173,15 +157,8 @@ export function LoginPage(): JSX.Element {
             disabled={submitting}
             className="w-full py-3 rounded-xl bg-gold text-on-gold font-semibold text-sm hover:bg-amber transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            {submitting ? 'Signing in...' : 'Sign in'}
+            {submitting ? 'Updating...' : 'Update password'}
           </button>
-
-          <p className="text-center text-sm text-ink-2">
-            No account?{' '}
-            <Link to="/signup" className="text-link hover:text-ink transition-colors font-medium">
-              Sign up
-            </Link>
-          </p>
         </form>
       </div>
     </div>

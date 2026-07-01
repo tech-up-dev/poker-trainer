@@ -6,12 +6,15 @@ import { RequireSession } from './components/RequireSession'
 import { GlossaryDrawerProvider } from './components/GlossaryDrawer'
 import { ValidatorPage } from './pages/ValidatorPage'
 import { LoginPage } from './pages/LoginPage'
+import { SignupPage } from './pages/SignupPage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { BulkImport } from './components/BulkImport'
 import { TipEditorPage } from './pages/TipEditorPage'
 import { ReferenceEditorPage } from './pages/ReferenceEditorPage'
 import { GlossaryEditorPage } from './pages/GlossaryEditorPage'
 import { StagingBrowser } from './components/StagingBrowser'
 import { TablePreviewPage } from './pages/TablePreviewPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { MemberDashboardPage } from './pages/MemberDashboardPage'
 import { LessonSessionPage } from './pages/LessonSessionPage'
 
@@ -20,6 +23,9 @@ import { LessonSessionPage } from './pages/LessonSessionPage'
 // RequireSession (any signed-in account, since member entitlements land in M3).
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  { path: '/signup', element: <SignupPage /> },
+  { path: '/forgot-password', element: <ForgotPasswordPage /> },
+  { path: '/reset-password', element: <ResetPasswordPage /> },
   { path: '/table-preview', element: <TablePreviewPage /> },
   {
     element: <RequireAuth />,
