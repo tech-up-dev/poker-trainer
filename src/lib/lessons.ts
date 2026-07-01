@@ -15,3 +15,14 @@ export async function fetchPublishedLesson(
   if (data === null) return null
   return data.content as Lesson
 }
+
+export async function fetchAllPublishedLessons(): Promise<Lesson[]> {
+  const { data, error } = await supabaseProd
+    .from('content_published')
+    .select('content')
+    .eq('content_type', 'lesson')
+    .order('content_id')
+
+  if (error) throw new Error(error.message)
+  return (data ?? []).map((row) => row.content as Lesson)
+}
