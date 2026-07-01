@@ -151,6 +151,7 @@ The end-of-M1 demo demonstrates:
 The end-of-M2 demo demonstrates:
 
 **Quiz engine:**
+
 - [ ] Lesson flows from concept intro through question sequence to final session score
 - [ ] Per-answer scoring is recorded
 - [ ] Session completion writes to user_progress
@@ -160,6 +161,7 @@ The end-of-M2 demo demonstrates:
 - [ ] Saved questions persist across sessions in a "Saved Questions" view
 
 **CMS authoring wizard:**
+
 - [ ] Wizard branches by question type (multiple_choice vs hand_scenario) on first selection
 - [ ] For multiple_choice: 4 answer slots required, exactly 1 marked correct, explanation required per answer
 - [ ] For hand_scenario: visual interactive table builder is reachable
@@ -169,6 +171,7 @@ The end-of-M2 demo demonstrates:
 - [ ] Author can edit and re-save without losing other fields
 
 **Bulk import/export:**
+
 - [ ] CSV import works for tabular content
 - [ ] JSON import works for arbitrary content shapes matching the schema
 - [ ] Markdown import works (lessons authored in Markdown convert to schema-conformant JSON)
@@ -176,12 +179,14 @@ The end-of-M2 demo demonstrates:
 - [ ] The import schema markdown spec (`docs/schema-spec.md`) is up to date with the final V1 content model
 
 **Content pipeline generalization:**
+
 - [ ] Tables renamed to `content_*` with `content_type` discriminator
 - [ ] Lessons, Tips, References, and Path nodes all run through the same Edge Functions
 - [ ] Versioning works identically for every content type
 - [ ] Rollback works identically for every content type
 
 **Pipeline hardening:**
+
 - [ ] Server-side re-validation runs inside the promote Edge Function before publishing
 - [ ] Server-side re-validation runs inside the rollback Edge Function before restoring
 - [ ] Admin auth gate is in place on the validator UI (`/admin/validator`)
@@ -190,6 +195,7 @@ The end-of-M2 demo demonstrates:
 - [ ] Non-admin users cannot reach `/admin/*` routes; redirected to home or login
 
 **Today's Tip + Saved Tips + References Library:**
+
 - [ ] Today's Tip surface on home/dashboard rotates daily
 - [ ] Members can save tips, organized in a Saved Tips list under their profile
 - [ ] References Library displays cheat sheets, Character Mapping reference, and methodology references
@@ -222,6 +228,7 @@ The end-of-M3 demo demonstrates:
 The end-of-M4 demo demonstrates:
 
 **Skills Path:**
+
 - [ ] Visual progression map renders with skill nodes and connecting paths
 - [ ] Node states: locked (greyed), available (highlighted), in progress, mastered
 - [ ] Completing a lesson updates the corresponding node state
@@ -229,6 +236,7 @@ The end-of-M4 demo demonstrates:
 - [ ] Members can still run lessons in randomized free-practice order from any unlocked node
 
 **Streaks and badges:**
+
 - [ ] Daily streak counter increments correctly across day boundaries (UTC)
 - [ ] Streak resets to 0 if a day is missed
 - [ ] Streak counter is visible on the dashboard
@@ -241,6 +249,7 @@ The end-of-M4 demo demonstrates:
 - [ ] Member sees their own rank on the leaderboard
 
 **Onboarding:**
+
 - [ ] First-login flow appears on the user's very first authenticated session
 - [ ] Onboarding is skippable from any step
 - [ ] Onboarding includes a warm-up lesson with a curated low-friction first session
@@ -248,6 +257,7 @@ The end-of-M4 demo demonstrates:
 - [ ] First-correct, first-streak, first-badge each trigger their own celebration animation
 
 **PWA push:**
+
 - [ ] Push permission flow runs after onboarding or via a settings toggle
 - [ ] User can subscribe to push notifications
 - [ ] Push subscription is stored server-side
@@ -258,12 +268,14 @@ The end-of-M4 demo demonstrates:
 - [ ] Clicking a push notification opens the relevant app screen
 
 **Progress dashboard:**
+
 - [ ] Per-member dashboard shows questions answered, accuracy rate, sessions completed
 - [ ] Improvement-over-time trend is visible (chart or stat group)
 - [ ] Today's Tip is visible on the dashboard
 - [ ] Outbound links to the client's website (upgrades, discounts) are present
 
 **Deploy:**
+
 - [ ] App is deployed to the client's domain via Vercel
 - [ ] SSL/TLS certificate is valid and HTTPS works
 - [ ] Both staging and production environments are fully configured
@@ -271,6 +283,7 @@ The end-of-M4 demo demonstrates:
 - [ ] Supabase content rollback is tested at least once (promote content, rollback, confirm previous version is live)
 
 **Full QA pass:**
+
 - [ ] Browser matrix (see below) verified
 - [ ] Accessibility checklist verified
 - [ ] Performance baselines met
@@ -508,17 +521,18 @@ The staging and production environments must be functionally equivalent but data
 
 V1 must work cleanly on:
 
-| Browser | OS | Notes |
-|---------|-----|-------|
-| Chrome (latest stable) | Windows | Primary desktop |
-| Chrome (latest stable) | macOS | Primary desktop |
-| Safari (latest stable) | macOS | Tested for PWA install |
-| Safari (latest stable) | iOS 16.4+ | Critical: PWA push support |
-| Chrome | Android | Primary mobile |
-| Firefox (latest stable) | Windows | Tested for compatibility |
-| Edge (latest stable) | Windows | Tested for compatibility |
+| Browser                 | OS        | Notes                      |
+| ----------------------- | --------- | -------------------------- |
+| Chrome (latest stable)  | Windows   | Primary desktop            |
+| Chrome (latest stable)  | macOS     | Primary desktop            |
+| Safari (latest stable)  | macOS     | Tested for PWA install     |
+| Safari (latest stable)  | iOS 16.4+ | Critical: PWA push support |
+| Chrome                  | Android   | Primary mobile             |
+| Firefox (latest stable) | Windows   | Tested for compatibility   |
+| Edge (latest stable)    | Windows   | Tested for compatibility   |
 
 Per browser, test:
+
 - [ ] Page renders correctly
 - [ ] Buttons clickable
 - [ ] Drawers open and close
@@ -546,6 +560,7 @@ WCAG 2.1 AA is the baseline target. Per page:
 - [ ] No reliance on color alone to convey meaning (errors have icons or labels, not just red color)
 
 Tools:
+
 - axe DevTools browser extension for automated checks
 - VoiceOver (macOS), TalkBack (Android), or NVDA (Windows) for screen reader spot-checks
 
@@ -553,16 +568,16 @@ Tools:
 
 ## Performance baselines
 
-| Metric | Target | How to measure |
-|--------|--------|----------------|
-| Largest Contentful Paint (LCP) | < 2.5s on 4G | Chrome DevTools Lighthouse |
-| First Input Delay (FID) | < 100ms | Lighthouse |
-| Cumulative Layout Shift (CLS) | < 0.1 | Lighthouse |
-| Time to Interactive (TTI) | < 4s on 4G | Lighthouse |
-| Bundle size (initial JS) | < 250 KB gzipped | `vite build` output |
-| Validator validation time | < 200ms for a 10-question lesson | Manual timing |
-| Promote Edge Function | < 1.5s end-to-end | Manual timing or function logs |
-| Page transitions | Feel instant (< 200ms perceived) | Manual feel |
+| Metric                         | Target                           | How to measure                 |
+| ------------------------------ | -------------------------------- | ------------------------------ |
+| Largest Contentful Paint (LCP) | < 2.5s on 4G                     | Chrome DevTools Lighthouse     |
+| First Input Delay (FID)        | < 100ms                          | Lighthouse                     |
+| Cumulative Layout Shift (CLS)  | < 0.1                            | Lighthouse                     |
+| Time to Interactive (TTI)      | < 4s on 4G                       | Lighthouse                     |
+| Bundle size (initial JS)       | < 250 KB gzipped                 | `vite build` output            |
+| Validator validation time      | < 200ms for a 10-question lesson | Manual timing                  |
+| Promote Edge Function          | < 1.5s end-to-end                | Manual timing or function logs |
+| Page transitions               | Feel instant (< 200ms perceived) | Manual feel                    |
 
 Run Lighthouse in incognito mode with no extensions, on a throttled 4G connection.
 

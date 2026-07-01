@@ -1,0 +1,7 @@
+{
+  "reference_id": "ref-preflop-opening-ranges",
+  "title": "Preflop Opening Ranges (9-max)",
+  "category": "cheat_sheet",
+  "body_markdown": "## Preflop Opening Ranges\n\nUse these ranges as a baseline and adjust based on player tendencies.\n\n| Position | Range |\n|----------|-------|\n| UTG | 15% |\n| UTG+1 | 17% |\n| MP | 20% |\n| HJ | 25% |\n| CO | 33% |\n| BTN | 45% |\n| SB | 55% |\n\n### Key adjustments\n\n- **vs OMC** (Old Man Coffee): tighten pre, widen for value post-flop — they fold too often to cbets\n- **vs PLF** (Pure Loose Fish): call more, bluff less — value bet relentlessly\n- **vs GTO** bot: use balanced ranges, mixed strategies on borderline hands",
+  "tags": ["preflop", "opening-ranges", "position"]
+}

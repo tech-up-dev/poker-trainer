@@ -8,30 +8,30 @@
 export function slugify(label: string): string {
   return label
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .replace(/-{2,}/g, "-");
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-')
 }
 
 // Canonical JSON of an object with keys sorted recursively, optionally dropping a
 // top-level key (the id field, which one side may carry and the other may not).
 // Two contents that differ only in key order or in the id field compare equal.
 export function stableStringify(value: unknown, omitKey?: string): string {
-  return JSON.stringify(canonicalize(value, omitKey));
+  return JSON.stringify(canonicalize(value, omitKey))
 }
 
 function canonicalize(value: unknown, omitKey?: string): unknown {
   if (Array.isArray(value)) {
-    return value.map((v) => canonicalize(v));
+    return value.map((v) => canonicalize(v))
   }
-  if (value !== null && typeof value === "object") {
-    const obj = value as Record<string, unknown>;
-    const out: Record<string, unknown> = {};
+  if (value !== null && typeof value === 'object') {
+    const obj = value as Record<string, unknown>
+    const out: Record<string, unknown> = {}
     for (const key of Object.keys(obj).sort()) {
-      if (omitKey !== undefined && key === omitKey) continue;
-      out[key] = canonicalize(obj[key]);
+      if (omitKey !== undefined && key === omitKey) continue
+      out[key] = canonicalize(obj[key])
     }
-    return out;
+    return out
   }
-  return value;
+  return value
 }

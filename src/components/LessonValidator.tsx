@@ -17,11 +17,7 @@ type ValidationState =
 
 type SaveStatus = 'idle' | 'saving' | 'saved' | { error: string }
 
-type PromoteStatus =
-  | 'idle'
-  | 'promoting'
-  | { promoted: number }
-  | { error: string }
+type PromoteStatus = 'idle' | 'promoting' | { promoted: number } | { error: string }
 
 type LessonValidatorProps = {
   onPublishedContextChange: (ctx: {
@@ -48,7 +44,7 @@ export function LessonValidator({
 
   // The id provided in the JSON, if any; null when the author left it out.
   const explicitId =
-    validationResult?.ok === true ? validationResult.data.lesson_id ?? null : null
+    validationResult?.ok === true ? (validationResult.data.lesson_id ?? null) : null
   // What versions/promote/published actually operate on: the author's id, or the
   // server-assigned one after a save.
   const effectiveId = explicitId ?? savedId
@@ -125,13 +121,12 @@ export function LessonValidator({
     if (validationResult?.ok !== true) return
     if (promoteStatus === 'promoting') return
     // Promotion publishes the staged copy, so the editor content must have been
-    // saved to staging first — otherwise we'd promote a stale version.
+    // saved to staging first, otherwise we'd promote a stale version.
     if (saveStatus !== 'saved' || effectiveId === null) return
     setPromoteStatus('promoting')
-    const { data, error } = await supabaseProd.functions.invoke(
-      'promote-to-prod',
-      { body: { content_id: effectiveId, content_type: 'lesson' } }
-    )
+    const { data, error } = await supabaseProd.functions.invoke('promote-to-prod', {
+      body: { content_id: effectiveId, content_type: 'lesson' },
+    })
     if (error) {
       setPromoteStatus({ error: error.message })
       return
@@ -216,7 +211,7 @@ export function LessonValidator({
 
       {canSave && saveStatus !== 'saved' ? (
         <p className="text-sm text-slate-400">
-          Save to staging first — promotion publishes the staged copy.
+          Save to staging first; promotion publishes the staged copy.
         </p>
       ) : null}
 
@@ -225,26 +220,20 @@ export function LessonValidator({
 
         {isSaving ? <p className="text-sm text-slate-400">Saving…</p> : null}
         {saveStatus === 'saved' && effectiveId !== null ? (
-          <p className="text-sm text-green-400">
-            Saved to staging as {effectiveId}
-          </p>
+          <p className="text-sm text-green-400">Saved to staging as {effectiveId}</p>
         ) : null}
         {typeof saveStatus === 'object' ? (
           <p className="text-sm text-red-400">Save failed: {saveStatus.error}</p>
         ) : null}
 
-        {isPromoting ? (
-          <p className="text-sm text-slate-400">Promoting…</p>
-        ) : null}
+        {isPromoting ? <p className="text-sm text-slate-400">Promoting…</p> : null}
         {typeof promoteStatus === 'object' && 'promoted' in promoteStatus ? (
           <p className="text-sm text-green-400">
             Promoted to production as v{promoteStatus.promoted}
           </p>
         ) : null}
         {typeof promoteStatus === 'object' && 'error' in promoteStatus ? (
-          <p className="text-sm text-red-400">
-            Promote failed: {promoteStatus.error}
-          </p>
+          <p className="text-sm text-red-400">Promote failed: {promoteStatus.error}</p>
         ) : null}
       </div>
 
@@ -271,7 +260,7 @@ function renderValidationPanel(state: ValidationState): JSX.Element {
     return (
       <div className="rounded border border-green-600 bg-green-600/10 text-green-300 px-4 py-3">
         <strong className="text-green-200">✓ Valid lesson</strong>
-        {' — '}
+        {' · '}
         {state.data.title} · {state.data.questions.length} questions
       </div>
     )

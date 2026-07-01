@@ -51,7 +51,7 @@ A few rules of thumb that hold across every template:
 
 ### Template 1: a small batch of multiple-choice questions
 
-````
+```
 Using the schema above, generate 10 multiple_choice questions on pre-flop
 opening ranges from UTG in 9-max live cash. Each question should test a
 different aspect of UTG play (opening hand selection, position-aware sizing,
@@ -68,11 +68,11 @@ Each question must:
 
 Output a JSON array of question objects matching the QuestionSchema. No
 markdown fences, no commentary before or after the array.
-````
+```
 
 ### Template 2: a hand-scenario batch
 
-````
+```
 Using the schema above, generate 5 hand_scenario questions on flop play out of
 position with top pair. For every question, populate table_state fully:
 
@@ -91,11 +91,11 @@ combo draw, etc.).
 
 Output a JSON array of question objects only. No commentary, no markdown
 fences.
-````
+```
 
 ### Template 3: a complete lesson
 
-````
+```
 Using the schema above, generate one complete Lesson object on the topic of
 c-bet sizing on dry boards.
 
@@ -116,7 +116,7 @@ answers, exactly 1 is_correct: true, teaching-quality explanation on every
 answer, and glossary_terms where appropriate.
 
 Output a single Lesson object as JSON. No commentary, no markdown fences.
-````
+```
 
 After Claude generates the JSON, paste it into the validator UI. The validator
 runs the schema described in the rest of this document. Any rejection comes
@@ -129,14 +129,14 @@ Claude with.
 
 A Lesson is a JSON object with the following top-level fields.
 
-| Field           | Type             | Required | Notes                                                                                                  |
-|-----------------|------------------|----------|--------------------------------------------------------------------------------------------------------|
-| `lesson_id`     | string           | yes      | Non-empty. Stable unique identifier. Lowercase, hyphen-separated, descriptive.                         |
-| `title`         | string           | yes      | Non-empty. Human-readable title shown in the app.                                                      |
-| `principle_tag` | string           | yes      | Non-empty. One of the five core teaching principles (see below).                                       |
-| `concept`       | string           | yes      | Non-empty. The specific poker concept the lesson teaches.                                              |
-| `difficulty`    | enum             | no       | One of `"beginner"`, `"intermediate"`, `"advanced"`.                                                   |
-| `questions`     | Question[]       | yes      | At least one question. Each must match the QuestionSchema (multiple_choice or hand_scenario).          |
+| Field           | Type       | Required | Notes                                                                                         |
+| --------------- | ---------- | -------- | --------------------------------------------------------------------------------------------- |
+| `lesson_id`     | string     | yes      | Non-empty. Stable unique identifier. Lowercase, hyphen-separated, descriptive.                |
+| `title`         | string     | yes      | Non-empty. Human-readable title shown in the app.                                             |
+| `principle_tag` | string     | yes      | Non-empty. One of the five core teaching principles (see below).                              |
+| `concept`       | string     | yes      | Non-empty. The specific poker concept the lesson teaches.                                     |
+| `difficulty`    | enum       | no       | One of `"beginner"`, `"intermediate"`, `"advanced"`.                                          |
+| `questions`     | Question[] | yes      | At least one question. Each must match the QuestionSchema (multiple_choice or hand_scenario). |
 
 ### `lesson_id`
 
@@ -228,12 +228,12 @@ Convention: snake_case, lowercase, descriptive, no spaces, hyphens dropped
 
 A quick rule the validator does not enforce but content authoring depends on:
 
-| Field                                  | Set type | Rule                                                                  |
-|----------------------------------------|----------|-----------------------------------------------------------------------|
-| `principle_tag`                         | **Closed** | One of the five values listed above. New principles require a doc + schema update. |
-| player-type codes in `villain_player_types` | **Closed** | One of the six codes listed in the HandScenarioState section below. New codes require a doc update. |
-| `concept`                              | **Open**   | Any snake_case identifier the author chooses. New concepts are added through the CMS as content is authored. |
-| `difficulty`                           | **Closed** | One of `"beginner"`, `"intermediate"`, `"advanced"`. Enforced by the validator. |
+| Field                                       | Set type   | Rule                                                                                                         |
+| ------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------ |
+| `principle_tag`                             | **Closed** | One of the five values listed above. New principles require a doc + schema update.                           |
+| player-type codes in `villain_player_types` | **Closed** | One of the six codes listed in the HandScenarioState section below. New codes require a doc update.          |
+| `concept`                                   | **Open**   | Any snake_case identifier the author chooses. New concepts are added through the CMS as content is authored. |
+| `difficulty`                                | **Closed** | One of `"beginner"`, `"intermediate"`, `"advanced"`. Enforced by the validator.                              |
 
 ### `difficulty`
 
@@ -256,9 +256,7 @@ the next section for the shape of each.
   "principle_tag": "character_mapping",
   "concept": "opening_ranges_utg",
   "difficulty": "intermediate",
-  "questions": [
-    /* one or more Question objects, see next section */
-  ]
+  "questions": [/* one or more Question objects, see next section */]
 }
 ```
 
@@ -268,13 +266,13 @@ the next section for the shape of each.
 
 Every question, regardless of type, shares the following fields.
 
-| Field            | Type         | Required | Notes                                                                                          |
-|------------------|--------------|----------|------------------------------------------------------------------------------------------------|
-| `question_id`    | string       | yes      | Non-empty. Unique within the lesson.                                                           |
-| `type`           | enum         | yes      | Exactly `"multiple_choice"` or `"hand_scenario"`. This is the discriminator.                   |
-| `prompt`         | string       | yes      | Non-empty. The question text shown to the member.                                              |
-| `answers`        | Answer[]     | yes      | Exactly four AnswerSchema objects, exactly one with `is_correct: true`.                        |
-| `glossary_terms` | string[]     | no       | Terms in the prompt or explanations that should render as tappable glossary links in the app.  |
+| Field            | Type     | Required | Notes                                                                                         |
+| ---------------- | -------- | -------- | --------------------------------------------------------------------------------------------- |
+| `question_id`    | string   | yes      | Non-empty. Unique within the lesson.                                                          |
+| `type`           | enum     | yes      | Exactly `"multiple_choice"` or `"hand_scenario"`. This is the discriminator.                  |
+| `prompt`         | string   | yes      | Non-empty. The question text shown to the member.                                             |
+| `answers`        | Answer[] | yes      | Exactly four AnswerSchema objects, exactly one with `is_correct: true`.                       |
+| `glossary_terms` | string[] | no       | Terms in the prompt or explanations that should render as tappable glossary links in the app. |
 
 `hand_scenario` questions additionally require `table_state` (see the
 HandScenarioState subschema). `multiple_choice` questions do not use
@@ -378,11 +376,11 @@ context). See the HandScenarioState subschema for the full shape.
 
 Every entry in `answers[]` is an object with the following fields.
 
-| Field         | Type    | Required | Notes                                                                                          |
-|---------------|---------|----------|------------------------------------------------------------------------------------------------|
-| `text`        | string  | yes      | Non-empty. The answer choice shown to the member.                                              |
-| `is_correct`  | boolean | yes      | Exactly one answer per question must be `true`.                                                |
-| `explanation` | string  | yes      | Non-empty. Teaching commentary shown after the member selects this answer.                     |
+| Field         | Type    | Required | Notes                                                                      |
+| ------------- | ------- | -------- | -------------------------------------------------------------------------- |
+| `text`        | string  | yes      | Non-empty. The answer choice shown to the member.                          |
+| `is_correct`  | boolean | yes      | Exactly one answer per question must be `true`.                            |
+| `explanation` | string  | yes      | Non-empty. Teaching commentary shown after the member selects this answer. |
 
 **Treat `explanation` as the most important field for content quality.**
 Every answer, right or wrong, gets a teaching-quality explanation. The
@@ -415,16 +413,16 @@ Example AnswerSchema object:
 The table context for a `hand_scenario` question. Required on every
 `hand_scenario`; not used on `multiple_choice`.
 
-| Field                  | Type                       | Required | Notes                                                                                          |
-|------------------------|----------------------------|----------|------------------------------------------------------------------------------------------------|
-| `street`               | enum                       | yes      | One of `"preflop"`, `"flop"`, `"turn"`, `"river"`.                                             |
-| `hero_position`        | string                     | yes      | Non-empty. Standard poker position abbreviation.                                               |
-| `hero_hole_cards`      | string[]                   | no       | Two cards as `"As"`, `"Kh"`, etc.                                                              |
-| `board_cards`          | string[]                   | no       | Community cards. 0 preflop, 3 flop, 4 turn, 5 river.                                           |
-| `pot_size`             | number (>= 0)              | no       | Pot size in dollars or big blinds. Be consistent within a lesson.                              |
-| `stack_sizes`          | Record\<string, number\>   | no       | Map of position string to remaining stack.                                                     |
-| `villain_player_types` | Record\<string, string\>   | no       | Map of position string to player type identifier.                                              |
-| `notes`                | string                     | no       | Any contextual notes ("3-handed", "history of LAG play from villain").                         |
+| Field                  | Type                     | Required | Notes                                                                  |
+| ---------------------- | ------------------------ | -------- | ---------------------------------------------------------------------- |
+| `street`               | enum                     | yes      | One of `"preflop"`, `"flop"`, `"turn"`, `"river"`.                     |
+| `hero_position`        | string                   | yes      | Non-empty. Standard poker position abbreviation.                       |
+| `hero_hole_cards`      | string[]                 | no       | Two cards as `"As"`, `"Kh"`, etc.                                      |
+| `board_cards`          | string[]                 | no       | Community cards. 0 preflop, 3 flop, 4 turn, 5 river.                   |
+| `pot_size`             | number (>= 0)            | no       | Pot size in dollars or big blinds. Be consistent within a lesson.      |
+| `stack_sizes`          | Record\<string, number\> | no       | Map of position string to remaining stack.                             |
+| `villain_player_types` | Record\<string, string\> | no       | Map of position string to player type identifier.                      |
+| `notes`                | string                   | no       | Any contextual notes ("3-handed", "history of LAG play from villain"). |
 
 #### Card notation
 
@@ -850,8 +848,7 @@ nearby; it is the difference between clean output and constant re-prompting.
 - **Validate before importing.** Paste Claude's output into the validator
   UI. The error messages tell you exactly what is wrong, and you can ask
   Claude to fix specific issues by referencing the path. Example follow-up
-  prompt: "Re-do question 3 — it currently has 3 answers but needs exactly
-  4. Add one more wrong answer with a teaching-quality explanation."
+  prompt: "Re-do question 3 — it currently has 3 answers but needs exactly 4. Add one more wrong answer with a teaching-quality explanation."
 
 - **Save successful prompts.** Once a prompt template produces clean output
   for one batch, save it as a snippet. Re-using a known-good prompt with

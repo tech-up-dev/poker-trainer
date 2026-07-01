@@ -2,16 +2,19 @@
 // Production-only operation: reads the target version's snapshot from
 // content_versions, writes a new version entry (created_by="rollback",
 // source_version=<target>), and upserts content_published to point at it.
-// Append-only — no prior versions are ever deleted.
+// Append-only; no prior versions are ever deleted.
 //
-// Rollback deliberately does NOT re-validate. The target snapshot already
-// passed validation at promote time; re-checking it against a possibly newer
-// schema could block recovery to a known-good version.
+// Like promote, rollback re-validates the target snapshot against the current
+// Zod schema before it can reach production (issue #23). Nothing goes live
+// without passing the real gate, even on a restore. If a schema change has made
+// an old snapshot invalid, the rollback is refused with the field errors so the
+// content can be fixed and re-promoted rather than silently shipping bad data.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { jsonResponse, preflight } from "../_shared/responses.ts";
 import { assertAdmin, AdminError } from "../_shared/admin.ts";
+import { revalidateContent } from "../_shared/validate-content.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return preflight(req);
@@ -71,6 +74,19 @@ Deno.serve(async (req) => {
       ok: false,
       message: `Version ${target_version} not found for ${content_type}:${content_id}`,
     }, 404);
+  }
+
+  // 1b. Re-validate the target snapshot against the current schema (issue #23).
+  // The final gate: a restore must still pass validation to reach production.
+  const check = revalidateContent(content_type, target.content);
+  if (!check.ok) {
+    return jsonResponse(req, {
+      ok: false,
+      message:
+        `Version ${target_version} no longer passes validation: ` +
+        check.errors.map((e) => `${e.path}: ${e.message}`).join("; "),
+      errors: check.errors,
+    }, 422);
   }
 
   // 2. Compute next version_number.

@@ -2,17 +2,25 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AdminLayout } from './layout/AdminLayout'
 import { RequireAuth } from './components/RequireAuth'
+import { RequireSession } from './components/RequireSession'
+import { GlossaryDrawerProvider } from './components/GlossaryDrawer'
 import { ValidatorPage } from './pages/ValidatorPage'
 import { LoginPage } from './pages/LoginPage'
 import { BulkImport } from './components/BulkImport'
+import { TipEditorPage } from './pages/TipEditorPage'
+import { ReferenceEditorPage } from './pages/ReferenceEditorPage'
 import { GlossaryEditorPage } from './pages/GlossaryEditorPage'
 import { StagingBrowser } from './components/StagingBrowser'
+import { TablePreviewPage } from './pages/TablePreviewPage'
+import { MemberDashboardPage } from './pages/MemberDashboardPage'
+import { LessonSessionPage } from './pages/LessonSessionPage'
 
-// /login is public; everything under the admin shell sits behind RequireAuth. The
-// member-facing app (table, quiz, glossary) gets its own routes once the design
-// direction lands.
+// /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
+// /play/* is the member-facing app (table, quiz, glossary) gated by
+// RequireSession (any signed-in account, since member entitlements land in M3).
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  { path: '/table-preview', element: <TablePreviewPage /> },
   {
     element: <RequireAuth />,
     children: [
@@ -23,10 +31,29 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="/admin" replace /> },
           { path: 'admin', element: <ValidatorPage /> },
           { path: 'admin/import', element: <BulkImport /> },
+          { path: 'admin/tips', element: <TipEditorPage /> },
+          { path: 'admin/references', element: <ReferenceEditorPage /> },
           { path: 'admin/glossary', element: <GlossaryEditorPage /> },
           { path: 'admin/staging', element: <StagingBrowser /> },
           { path: '*', element: <Navigate to="/admin" replace /> },
         ],
+      },
+    ],
+  },
+  {
+    element: <RequireSession />,
+    children: [
+      {
+        path: '/play',
+        element: <MemberDashboardPage />,
+      },
+      {
+        path: '/play/lessons/:lessonId',
+        element: (
+          <GlossaryDrawerProvider>
+            <LessonSessionPage />
+          </GlossaryDrawerProvider>
+        ),
       },
     ],
   },

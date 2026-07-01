@@ -10,4 +10,8 @@ export default defineConfig({
   optimizeDeps: {
     include: ['react', 'react-dom', 'react/jsx-runtime'],
   },
+  server: {
+    port: process.env.PORT ? Number(process.env.PORT) : 5173,
+    strictPort: false,
+  },
 })

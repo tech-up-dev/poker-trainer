@@ -6,13 +6,16 @@ import { GlossaryEditor } from '../components/GlossaryEditor'
 import { StagingContent } from '../components/StagingContent'
 import { PublishedContent } from '../components/PublishedContent'
 
-type PublishedContext = { contentId: string | null; contentType: string | null; refreshSignal: number }
+type PublishedContext = {
+  contentId: string | null
+  contentType: string | null
+  refreshSignal: number
+}
 
 export function GlossaryEditorPage(): JSX.Element {
   const location = useLocation()
   const preload = (location.state as { preloadContent?: unknown } | null)?.preloadContent
-  const initialText =
-    preload !== undefined ? JSON.stringify(preload, null, 2) : undefined
+  const initialText = preload !== undefined ? JSON.stringify(preload, null, 2) : undefined
 
   const [published, setPublished] = useState<PublishedContext>({
     contentId: null,
