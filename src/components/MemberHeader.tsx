@@ -37,7 +37,7 @@ export function MemberHeader(): JSX.Element {
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="text-sm text-ink-2 hover:text-ink transition-colors max-w-[180px] truncate"
+          className="text-sm text-ink-2 hover:text-ink transition-colors max-w-[180px] truncate cursor-pointer"
           aria-label="Account menu"
         >
           {email}
