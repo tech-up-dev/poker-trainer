@@ -34,6 +34,9 @@ export function MemberDashboardPage(): JSX.Element {
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold">Beat Small Stakes</h1>
           <div className="flex items-center gap-3">
+            <Link to="/play/references" className="text-sm text-link hover:underline">
+              Refs
+            </Link>
             <Link to="/play/saved-tips" className="text-sm text-link hover:underline">
               Tips
             </Link>
