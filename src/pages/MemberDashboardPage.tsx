@@ -4,6 +4,7 @@ import type { JSX } from 'react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { ThemeToggle } from '../components/ThemeToggle'
+import { TodaysTip } from '../components/TodaysTip'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 
 const DIFFICULTY_COLOR: Record<string, string> = {
@@ -39,6 +40,8 @@ export function MemberDashboardPage(): JSX.Element {
             <ThemeToggle />
           </div>
         </div>
+
+        <TodaysTip />
 
         <div>
           <h2 className="text-sm font-semibold text-ink-2 mb-3">Lessons</h2>
