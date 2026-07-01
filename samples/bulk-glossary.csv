@@ -1,0 +1,4 @@
+term,definition,importance,related_terms
+Pot Odds,"The ratio of the current pot to the cost of a call; use it to decide whether a call is profitable given your equity.",core,equity|implied-odds
+Fold Equity,"The extra value you gain from the chance an opponent folds to your bet or raise.",useful,semi-bluff|bluff-catcher
+C-bet,"A continuation bet made by the preflop raiser on the flop to keep the betting lead.",useful,initiative|range-advantage
