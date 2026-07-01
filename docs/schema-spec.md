@@ -129,6 +129,78 @@ Claude with.
 
 ---
 
+## Bulk import formats: JSON, CSV, Markdown
+
+The Bulk Import screen accepts three input formats. All three convert to the
+same objects and run through the same validator, so every rejection reports the
+same field path and message regardless of format.
+
+- **JSON** (paste or `.json` file): an array of items, a single item, or a
+  one-key wrapper such as `{ "glossary": [ ... ] }`. Each item's content type is
+  auto-detected. This is the canonical format; CSV and Markdown are conveniences
+  that produce the same objects.
+
+### CSV (`.csv`) - tabular content
+
+Best for the flat content types (glossary, tip, reference). One header row of
+field names, then one item per row. Rules:
+
+- Header names must match the schema field names exactly (`term`, `definition`,
+  `importance`, `body`, `title`, `category`, `reference_id`, etc.).
+- List-valued columns (`tags`, `related_terms`) hold a `|`-separated list, e.g.
+  `equity|implied-odds`. Commas are reserved for CSV cells; use `|` inside a cell.
+- Wrap any cell that contains a comma or newline in double quotes; escape a
+  literal quote by doubling it (`""`).
+- Empty cells are skipped, so optional fields stay unset. Ids may be omitted and
+  are generated on save.
+- Each row is auto-detected by content type, so a single CSV should hold one
+  type (all glossary rows, or all tips, etc.).
+
+Glossary example:
+
+```csv
+term,definition,importance,related_terms
+Pot Odds,"The ratio of pot size to call cost, used to gauge whether a call is profitable.",core,equity|implied-odds
+c-bet,A continuation bet by the preflop raiser on the flop.,useful,
+```
+
+Lessons are not supported via CSV (they are nested); use JSON or Markdown.
+
+### Markdown (`.md`) - prose-authored lessons
+
+For writing a single lesson as prose. Produces one `lesson` with
+`multiple_choice` questions (hand scenarios need the table builder or JSON).
+Structure:
+
+- `# Title` on the first heading line becomes the lesson `title`.
+- Metadata lines before the first question, as `- key: value`, set the top-level
+  fields: `principle_tag`, `concept`, `difficulty` (and optionally `lesson_id`).
+- Each question starts with `## Q: <prompt>`.
+- Answers are list items `- [ ] text :: explanation` (wrong) or
+  `- [x] text :: explanation` (correct). Exactly 4 answers, exactly one `[x]`.
+  The part before `::` is the answer text, the part after is its explanation.
+- An optional `> glossary: term one, term two` line under a question sets its
+  `glossary_terms`.
+- `question_id` values are generated automatically (`q1`, `q2`, ...).
+
+Example:
+
+```markdown
+# C-bet sizing on dry boards
+- principle_tag: character_mapping
+- concept: cbet_sizing_dry_boards
+- difficulty: intermediate
+
+## Q: On a K-7-2 rainbow flop as the preflop raiser vs one caller, what c-bet size?
+- [x] Small (25-33% pot) :: Dry boards favor the aggressor; a small bet denies equity cheaply.
+- [ ] Large (75% pot) :: Overbetting a dry board bloats the pot without needing protection.
+- [ ] Check :: Checking surrenders the range and initiative advantage.
+- [ ] All-in :: Wildly over-sized; folds out worse hands and only continues against better.
+> glossary: c-bet, dry board
+```
+
+---
+
 ## Top-level Lesson schema
 
 A Lesson is a JSON object with the following top-level fields.

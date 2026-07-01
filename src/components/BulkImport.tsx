@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import type { JSX } from 'react'
+import type { ChangeEvent, JSX } from 'react'
 
 import { supabaseProd } from '../lib/supabase-prod'
 import { detectAndValidate, type FieldError } from '../lib/validate'
+import { parseCsv, parseMarkdownLesson } from '../lib/parse-content'
 import type { ContentType } from '../../shared/schemas/content'
 
 // Bulk import is the client's main content workflow: he generates large batches
@@ -79,6 +80,21 @@ export function BulkImport(): JSX.Element {
     setPromoteState({ kind: 'idle' })
   }
 
+  // Detect + validate a batch of raw items (from JSON paste, CSV, or Markdown)
+  // through the one shared path, then show the per-item results.
+  function validateBatch(batch: unknown[]): void {
+    setSaveState({ kind: 'idle' })
+    setPromoteState({ kind: 'idle' })
+
+    const items: ItemResult[] = batch.map((item, index) => {
+      const result = detectAndValidate(item, CANDIDATE_TYPES)
+      if (result.ok) return { index, ok: true, contentType: result.contentType, data: result.data }
+      return { index, ok: false, errors: result.errors }
+    })
+
+    setParseState({ kind: 'validated', items })
+  }
+
   function handleValidate(): void {
     setSaveState({ kind: 'idle' })
     setPromoteState({ kind: 'idle' })
@@ -92,13 +108,40 @@ export function BulkImport(): JSX.Element {
       return
     }
 
-    const items: ItemResult[] = toBatch(parsed).map((item, index) => {
-      const result = detectAndValidate(item, CANDIDATE_TYPES)
-      if (result.ok) return { index, ok: true, contentType: result.contentType, data: result.data }
-      return { index, ok: false, errors: result.errors }
-    })
+    validateBatch(toBatch(parsed))
+  }
 
-    setParseState({ kind: 'validated', items })
+  // Import a file by extension: .json (array/object/wrapper), .csv (one row per
+  // item), or .md/.markdown (a single prose lesson). All converge on validateBatch.
+  async function handleFile(event: ChangeEvent<HTMLInputElement>): Promise<void> {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    setInputText('')
+
+    let text: string
+    try {
+      text = await file.text()
+    } catch {
+      setParseState({ kind: 'parseError', message: 'Could not read the file' })
+      return
+    }
+
+    const ext = file.name.split('.').pop()?.toLowerCase()
+    try {
+      if (ext === 'json') {
+        validateBatch(toBatch(JSON.parse(text)))
+      } else if (ext === 'csv') {
+        validateBatch(parseCsv(text))
+      } else if (ext === 'md' || ext === 'markdown') {
+        validateBatch([parseMarkdownLesson(text)])
+      } else {
+        setParseState({ kind: 'parseError', message: `Unsupported file type: .${ext ?? '?'}` })
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : 'Failed to parse file'
+      setParseState({ kind: 'parseError', message })
+    }
   }
 
   async function handleSaveValid(): Promise<void> {
@@ -156,12 +199,26 @@ export function BulkImport(): JSX.Element {
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold">Bulk Import</h1>
         <p className="text-slate-400">
-          Paste a JSON array, a single object, or a wrapper like{' '}
-          <code className="text-slate-300">{'{ "glossary": [ … ] }'}</code>. Each item's type is
-          detected automatically ({CANDIDATE_TYPES.join(', ')}). Validate the batch, then save every
-          valid item to staging in one step. Missing ids are generated for you.
+          Paste JSON below, or import a <strong>.json</strong>, <strong>.csv</strong>, or{' '}
+          <strong>.md</strong> file. Each item's type is detected automatically (
+          {CANDIDATE_TYPES.join(', ')}). Validate the batch, then save every valid item to staging in
+          one step. Missing ids are generated for you. See{' '}
+          <code className="text-slate-300">docs/schema-spec.md</code> for the CSV columns and
+          Markdown structure.
         </p>
       </header>
+
+      <div>
+        <label className="inline-flex items-center gap-2 text-sm cursor-pointer px-3 py-1.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-100 w-fit">
+          Import file (.json, .csv, .md)
+          <input
+            type="file"
+            accept=".json,.csv,.md,.markdown"
+            onChange={(e) => void handleFile(e)}
+            className="sr-only"
+          />
+        </label>
+      </div>
 
       <div>
         <label htmlFor="bulk-json" className="sr-only">
