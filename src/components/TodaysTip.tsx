@@ -36,7 +36,16 @@ export function TodaysTip(): JSX.Element {
     )
   }
 
-  if (!tip) return <></>
+  if (!tip) {
+    return (
+      <div className="bg-surface border border-line rounded-xl p-4">
+        <p className="text-xs font-semibold uppercase tracking-widest text-gold mb-2">
+          Today's Tip
+        </p>
+        <p className="text-sm text-ink-2">No tip available today.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-surface border border-line rounded-xl p-4 space-y-3">

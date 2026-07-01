@@ -22,6 +22,77 @@
   --color-error: #e2574b;
 }
 
+/* Markdown body inside References Library accordion cards */
+.prose-reference {
+  color: var(--color-ink);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+.prose-reference h1,
+.prose-reference h2,
+.prose-reference h3 {
+  font-weight: 700;
+  color: var(--color-ink);
+  margin: 1rem 0 0.375rem;
+}
+.prose-reference h1 { font-size: 1.1rem; }
+.prose-reference h2 { font-size: 1rem; }
+.prose-reference h3 { font-size: 0.9rem; }
+.prose-reference p { margin: 0.5rem 0; }
+.prose-reference ul,
+.prose-reference ol {
+  padding-left: 1.25rem;
+  margin: 0.5rem 0;
+}
+.prose-reference li { margin: 0.25rem 0; }
+.prose-reference strong { font-weight: 700; color: var(--color-ink); }
+.prose-reference em { font-style: italic; color: var(--color-ink-2); }
+.prose-reference code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  background: var(--color-elevated);
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  padding: 0.1em 0.35em;
+}
+.prose-reference pre {
+  background: var(--color-elevated);
+  border: 1px solid var(--color-line);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+}
+.prose-reference pre code {
+  background: none;
+  border: none;
+  padding: 0;
+}
+.prose-reference table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.8rem;
+}
+.prose-reference th,
+.prose-reference td {
+  border: 1px solid var(--color-line);
+  padding: 0.4rem 0.65rem;
+  text-align: left;
+}
+.prose-reference th {
+  background: var(--color-elevated);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+.prose-reference tr:nth-child(even) td { background: var(--color-elevated); }
+.prose-reference hr {
+  border: none;
+  border-top: 1px solid var(--color-line);
+  margin: 1rem 0;
+}
+.prose-reference a { color: var(--color-link); text-decoration: underline; }
+
 :root.light {
   --color-canvas: #f4f6fa;
   --color-surface: #ffffff;
