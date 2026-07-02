@@ -11,6 +11,10 @@ type Position = (typeof POSITIONS)[number]
 
 const PLAYER_TYPE_CODES = ['OMC', 'PLF', 'Y2K', 'GTO', 'DWM', 'STP'] as const
 
+const SEAT_ACTIONS = ['Fold', 'Check', 'Limp', 'Call', 'Bet', 'Raise', '3-bet', '4-bet', 'All-in'] as const
+type SeatAction = (typeof SEAT_ACTIONS)[number]
+const ACTIONS_WITH_AMOUNT: SeatAction[] = ['Call', 'Bet', 'Raise', '3-bet', '4-bet', 'All-in']
+
 const STREETS = ['preflop', 'flop', 'turn', 'river'] as const
 type Street = (typeof STREETS)[number]
 
@@ -196,6 +200,23 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
 
   function setSeatStack(pos: string, stack: number): void {
     patch({ stack_sizes: { ...(value.stack_sizes ?? {}), [pos]: stack } })
+  }
+
+  function setSeatAction(pos: string, action: SeatAction | null): void {
+    const next = { ...(value.seat_actions ?? {}) }
+    if (action === null) {
+      delete next[pos]
+    } else {
+      next[pos] = { action, amount: next[pos]?.amount }
+    }
+    patch({ seat_actions: Object.keys(next).length > 0 ? next : undefined })
+  }
+
+  function setSeatActionAmount(pos: string, amount: number | undefined): void {
+    const existing = value.seat_actions?.[pos]
+    if (!existing) return
+    const next = { ...(value.seat_actions ?? {}), [pos]: { ...existing, amount } }
+    patch({ seat_actions: next })
   }
 
   function pickHoleCard(index: 0 | 1, card: string | null): void {
@@ -480,6 +501,34 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
                   style={{ userSelect: 'text' }}
                 />
               </label>
+
+              {/* Seat action */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <label className="text-[12px] text-[#9DB2C9]">Action</label>
+                <select
+                  value={value.seat_actions?.[selectedSeat]?.action ?? ''}
+                  onChange={(e) => setSeatAction(selectedSeat, e.target.value === '' ? null : e.target.value as SeatAction)}
+                  className="rounded bg-[#07182C] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+                >
+                  <option value="">- none -</option>
+                  {SEAT_ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
+                </select>
+                {value.seat_actions?.[selectedSeat]?.action &&
+                  ACTIONS_WITH_AMOUNT.includes(value.seat_actions[selectedSeat].action as SeatAction) && (
+                  <label className="flex items-center gap-1 text-[12px] text-[#9DB2C9]">
+                    $
+                    <input
+                      type="number"
+                      min={0}
+                      value={value.seat_actions?.[selectedSeat]?.amount ?? ''}
+                      onChange={(e) => setSeatActionAmount(selectedSeat, e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)))}
+                      placeholder="amt"
+                      className="w-20 rounded bg-[#07182C] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+                      style={{ userSelect: 'text' }}
+                    />
+                  </label>
+                )}
+              </div>
             </div>
           )}
 
@@ -503,6 +552,38 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
                   {holeCards[i] ? <Card card={holeCards[i] as string} /> : <EmptyCardSlot />}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Hero action */}
+          <div className="space-y-2">
+            <p className="text-[11px] font-semibold text-[#9DB2C9] uppercase tracking-widest">
+              Hero action
+            </p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <select
+                value={value.seat_actions?.[heroPos]?.action ?? ''}
+                onChange={(e) => setSeatAction(heroPos, e.target.value === '' ? null : e.target.value as SeatAction)}
+                className="rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+              >
+                <option value="">- none -</option>
+                {SEAT_ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
+              </select>
+              {value.seat_actions?.[heroPos]?.action &&
+                ACTIONS_WITH_AMOUNT.includes(value.seat_actions[heroPos].action as SeatAction) && (
+                <label className="flex items-center gap-1 text-[12px] text-[#9DB2C9]">
+                  $
+                  <input
+                    type="number"
+                    min={0}
+                    value={value.seat_actions?.[heroPos]?.amount ?? ''}
+                    onChange={(e) => setSeatActionAmount(heroPos, e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)))}
+                    placeholder="amt"
+                    className="w-20 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+                    style={{ userSelect: 'text' }}
+                  />
+                </label>
+              )}
             </div>
           </div>
 
