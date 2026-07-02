@@ -4,6 +4,7 @@ import type { JSX } from 'react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { MemberHeader } from '../components/MemberHeader'
+import { TodaysTip } from '../components/TodaysTip'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 
 const DIFFICULTY_COLOR: Record<string, string> = {
@@ -31,6 +32,8 @@ export function MemberDashboardPage(): JSX.Element {
     <div className="min-h-screen bg-canvas text-ink px-4 py-6">
       <div className="max-w-md mx-auto space-y-6">
         <MemberHeader />
+
+        <TodaysTip />
 
         <div>
           <h2 className="text-sm font-semibold text-ink-2 mb-3">Lessons</h2>

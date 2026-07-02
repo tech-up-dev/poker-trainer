@@ -31,8 +31,8 @@ export function ProfilePage(): JSX.Element {
       .then(({ data, error: dbErr }) => {
         if (dbErr) setError(dbErr.message)
         else setEntitlement(data)
+        setLoading(false)
       })
-      .finally(() => setLoading(false))
   }, [session])
 
   async function handleManageBilling(): Promise<void> {
