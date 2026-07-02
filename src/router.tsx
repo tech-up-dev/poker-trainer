@@ -17,6 +17,7 @@ import { TablePreviewPage } from './pages/TablePreviewPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { MemberDashboardPage } from './pages/MemberDashboardPage'
 import { LessonSessionPage } from './pages/LessonSessionPage'
+import { ProfilePage } from './pages/ProfilePage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -52,6 +53,10 @@ export const router = createBrowserRouter([
       {
         path: '/play',
         element: <MemberDashboardPage />,
+      },
+      {
+        path: '/play/profile',
+        element: <ProfilePage />,
       },
       {
         path: '/play/lessons/:lessonId',
