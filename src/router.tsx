@@ -23,6 +23,7 @@ import { ProfilePage } from './pages/ProfilePage'
 import { SavedQuestionsPage } from './pages/SavedQuestionsPage'
 import { SavedTipsPage } from './pages/SavedTipsPage'
 import { ReferencesLibraryPage } from './pages/ReferencesLibraryPage'
+import { CheckoutSuccessPage } from './pages/CheckoutSuccessPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -83,6 +84,7 @@ export const router = createBrowserRouter([
       },
       { path: '/play/saved-tips', element: <SavedTipsPage /> },
       { path: '/play/references', element: <ReferencesLibraryPage /> },
+      { path: '/play/checkout/success', element: <CheckoutSuccessPage /> },
     ],
   },
 ])
