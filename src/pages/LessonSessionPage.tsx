@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { JSX } from 'react'
 
@@ -7,6 +7,7 @@ import { QuestionCard } from '../components/QuestionCard'
 import { linkifyGlossaryTerms } from '../lib/glossary-text'
 import { fetchPublishedLesson } from '../lib/lessons'
 import { upsertProgress } from '../lib/progress'
+import { logAnswerEvent } from '../lib/answer-events'
 
 type MissedQuestion = {
   question: Question
@@ -49,6 +50,7 @@ export function LessonSessionPage(): JSX.Element {
   // correctness and selected answer tracked per question index in the ordered list
   const [correctMap, setCorrectMap] = useState<Record<number, boolean>>({})
   const [answeredMap, setAnsweredMap] = useState<Record<number, number>>({})
+  const questionStartedAt = useRef<number>(Date.now())
 
   useEffect(() => {
     if (!lessonId) return
@@ -78,6 +80,7 @@ export function LessonSessionPage(): JSX.Element {
   function startQuiz(): void {
     setCorrectMap({})
     setAnsweredMap({})
+    questionStartedAt.current = Date.now()
     setPhase({ kind: 'quiz', questionIndex: 0, feedbackViewed: false })
   }
 
@@ -86,6 +89,19 @@ export function LessonSessionPage(): JSX.Element {
     isCorrect: boolean,
     selectedIndex: number,
   ): void {
+    const timeTakenMs = Date.now() - questionStartedAt.current
+    const question = orderedQuestions[questionIndex]
+    if (question?.question_id) {
+      void logAnswerEvent({
+        lessonId: lessonId ?? '',
+        questionId: question.question_id,
+        isCorrect,
+        selectedAnswerIndex: selectedIndex,
+        timeTakenMs,
+      }).catch(() => {
+        // Best-effort — never block the quiz flow.
+      })
+    }
     setCorrectMap((prev) => ({ ...prev, [questionIndex]: isCorrect }))
     setAnsweredMap((prev) => ({ ...prev, [questionIndex]: selectedIndex }))
     setPhase((prev) =>
@@ -119,6 +135,7 @@ export function LessonSessionPage(): JSX.Element {
 
       setPhase({ kind: 'complete', correct, total, missed })
     } else {
+      questionStartedAt.current = Date.now()
       setPhase({ kind: 'quiz', questionIndex: nextIndex, feedbackViewed: false })
     }
   }
