@@ -1,14 +1,17 @@
 import type { JSX } from 'react'
-import { Navigate, Outlet } from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
 import { useAuth } from '../lib/auth-context'
 
-// Route guard for the member-facing app. Unlike RequireAuth (admin-only), this
-// only requires a signed-in session; member entitlements/auth land in M3, so
-// for now any authenticated account (including the admin's) can reach these
-// routes. RLS on content_published already requires `auth.role() = 'authenticated'`.
+// Route guard for the member-facing app. Requires both a valid session and an
+// active quiz_app_access entitlement. Users without a subscription are sent to
+// /play/profile where the subscribe UI lives. The profile and checkout/success
+// routes are exempted so users can complete or manage their subscription.
+const EXEMPT_PATHS = ['/play/profile', '/play/checkout/success']
+
 export function RequireSession(): JSX.Element {
-  const { session, loading } = useAuth()
+  const { session, hasAccess, loading } = useAuth()
+  const location = useLocation()
 
   if (loading) {
     return (
@@ -20,6 +23,11 @@ export function RequireSession(): JSX.Element {
 
   if (!session) {
     return <Navigate to="/login" replace />
+  }
+
+  const isExempt = EXEMPT_PATHS.some((p) => location.pathname.startsWith(p))
+  if (!hasAccess && !isExempt) {
+    return <Navigate to="/play/profile" replace />
   }
 
   return <Outlet />
