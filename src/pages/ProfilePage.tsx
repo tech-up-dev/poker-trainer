@@ -5,6 +5,8 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
 import { supabaseProd } from '../lib/supabase-prod'
 import { MemberHeader } from '../components/MemberHeader'
+import { PRICING_PLANS, createCheckoutSession } from '../lib/checkout'
+import type { PricingPlan } from '../lib/checkout'
 
 type Entitlement = {
   entitlement_key: string
@@ -18,6 +20,7 @@ export function ProfilePage(): JSX.Element {
   const [entitlement, setEntitlement] = useState<Entitlement | null>(null)
   const [loading, setLoading] = useState(true)
   const [portalLoading, setPortalLoading] = useState(false)
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -34,6 +37,18 @@ export function ProfilePage(): JSX.Element {
         setLoading(false)
       })
   }, [session])
+
+  async function handleSubscribe(plan: PricingPlan): Promise<void> {
+    setCheckoutLoading(plan.id)
+    setError(null)
+    try {
+      const { url } = await createCheckoutSession(plan.priceId)
+      window.location.href = url
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not start checkout. Please try again.')
+      setCheckoutLoading(null)
+    }
+  }
 
   async function handleManageBilling(): Promise<void> {
     setPortalLoading(true)
@@ -123,8 +138,40 @@ export function ProfilePage(): JSX.Element {
                 </div>
               </div>
             ) : (
-              <div className="bg-surface border border-line rounded-xl p-5">
-                <p className="text-sm text-ink-2">No active subscription found.</p>
+              <div className="bg-surface border border-line rounded-xl p-5 space-y-4">
+                <div>
+                  <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">
+                    Subscribe
+                  </p>
+                  <p className="text-sm text-ink-2 mt-1">
+                    Get full access to all lessons, tips, and references.
+                  </p>
+                </div>
+
+                <div className="space-y-3">
+                  {PRICING_PLANS.map((plan) => (
+                    <div
+                      key={plan.id}
+                      className="border border-line rounded-xl p-4 flex items-center justify-between gap-4"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold">{plan.label}</p>
+                        <p className="text-xs text-ink-2">
+                          <span className="text-ink font-semibold text-base">{plan.price}</span>
+                          {' '}{plan.period}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleSubscribe(plan)}
+                        disabled={checkoutLoading !== null}
+                        className="shrink-0 px-4 py-2 rounded-lg bg-gold text-on-gold text-sm font-semibold hover:bg-amber transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                      >
+                        {checkoutLoading === plan.id ? 'Redirecting...' : 'Subscribe'}
+                      </button>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
