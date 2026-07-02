@@ -734,22 +734,17 @@ export function AuthoringWizardPage(): JSX.Element {
   }
 
   function handleEditCompleted(idx: number): void {
-    // Push current back to completed at end, pull idx out to edit
     const e = validateQuestion()
-    if (Object.keys(e).length > 0) {
-      setErrors(e)
-      return
-    }
+    if (Object.keys(e).length > 0) { setErrors(e); return }
     setErrors({})
+    // Commit current question back into the completed list, then swap the
+    // selected one out to be the new current.
     const allQ = [...completedQuestions, currentQuestion]
     const toEdit = allQ[idx]
     allQ.splice(idx, 1)
-    const last = allQ.pop()
-    setCompletedQuestions(allQ)
-    setCurrentQuestion(last ?? blankQuestion(questionType, allQ.length))
-    // If editing, put the selected one as current (simplified: just replace current)
     setCompletedQuestions(allQ)
     setCurrentQuestion(toEdit)
+    if (questionType === 'hand_scenario') setStep('table')
   }
 
   function handleDeleteCompleted(idx: number): void {
