@@ -15,6 +15,8 @@ import { GlossaryEditorPage } from './pages/GlossaryEditorPage'
 import { StagingBrowser } from './components/StagingBrowser'
 import { TablePreviewPage } from './pages/TablePreviewPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
+import { TableBuilderPage } from './pages/TableBuilderPage'
+import { AuthoringWizardPage } from './pages/AuthoringWizardPage'
 import { MemberDashboardPage } from './pages/MemberDashboardPage'
 import { LessonSessionPage } from './pages/LessonSessionPage'
 import { ProfilePage } from './pages/ProfilePage'
@@ -42,6 +44,8 @@ export const router = createBrowserRouter([
           { path: 'admin/references', element: <ReferenceEditorPage /> },
           { path: 'admin/glossary', element: <GlossaryEditorPage /> },
           { path: 'admin/staging', element: <StagingBrowser /> },
+          { path: 'admin/table-builder', element: <TableBuilderPage /> },
+          { path: 'admin/wizard', element: <AuthoringWizardPage /> },
           { path: '*', element: <Navigate to="/admin" replace /> },
         ],
       },
