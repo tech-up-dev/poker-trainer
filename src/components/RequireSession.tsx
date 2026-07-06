@@ -25,7 +25,8 @@ export function RequireSession(): JSX.Element {
     return <Navigate to="/login" replace />
   }
 
-  const isExempt = EXEMPT_PATHS.some((p) => location.pathname.startsWith(p))
+  // DEMO BYPASS - remove before Stripe credentials are wired up
+  const isExempt = true || EXEMPT_PATHS.some((p) => location.pathname.startsWith(p))
   if (!hasAccess && !isExempt) {
     return <Navigate to="/play/profile" replace />
   }
