@@ -3,6 +3,7 @@ import type { JSX } from 'react'
 
 import type { Question } from '../../shared/schemas/lesson'
 import { linkifyGlossaryTerms } from '../lib/glossary-text'
+import { saveQuestion, unsaveQuestion } from '../lib/saved-questions'
 import { FeedbackDrawer } from './FeedbackDrawer'
 import { PokerTable } from './PokerTable'
 
@@ -10,6 +11,9 @@ const LETTERS = ['A', 'B', 'C', 'D']
 
 type QuestionCardProps = {
   question: Question
+  // When provided, the "Save for later" button in FeedbackDrawer is active and
+  // persists the starred state to user_saved_questions.
+  lessonId?: string
   // Fired once the member dismisses the feedback drawer via Continue. Receives
   // whether the selected answer was correct and which index was selected so the
   // session runner can track score and record missed questions for review.
@@ -19,9 +23,10 @@ type QuestionCardProps = {
 // Renders an MCQ prompt and exactly four answers; locks the choice on select
 // and opens the slide-up feedback drawer. hand_scenario questions render the
 // PokerTable above the prompt, driven by question.table_state.
-export function QuestionCard({ question, onContinue }: QuestionCardProps): JSX.Element {
+export function QuestionCard({ question, lessonId, onContinue }: QuestionCardProps): JSX.Element {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [isSaved, setIsSaved] = useState(false)
 
   const locked = selectedIndex !== null
 
@@ -39,8 +44,14 @@ export function QuestionCard({ question, onContinue }: QuestionCardProps): JSX.E
   }
 
   function handleSaveForLater(): void {
-    // Persistence for saved/starred questions isn't built yet (planned for a
-    // later milestone); this is a UI affordance only, intentionally a no-op.
+    if (!lessonId || !question.question_id) return
+    const next = !isSaved
+    setIsSaved(next)
+    const op = next
+      ? saveQuestion(lessonId, question.question_id)
+      : unsaveQuestion(lessonId, question.question_id)
+    // Best-effort write; keep optimistic UI state on failure.
+    op.catch(() => {})
   }
 
   return (
@@ -82,6 +93,7 @@ export function QuestionCard({ question, onContinue }: QuestionCardProps): JSX.E
         <FeedbackDrawer
           question={question}
           selectedIndex={selectedIndex}
+          isSaved={isSaved}
           onContinue={handleContinue}
           onSaveForLater={handleSaveForLater}
         />

@@ -6,6 +6,7 @@ import { linkifyGlossaryTerms } from '../lib/glossary-text'
 type FeedbackDrawerProps = {
   question: Question
   selectedIndex: number
+  isSaved: boolean
   onContinue: () => void
   onSaveForLater: () => void
 }
@@ -17,6 +18,7 @@ type FeedbackDrawerProps = {
 export function FeedbackDrawer({
   question,
   selectedIndex,
+  isSaved,
   onContinue,
   onSaveForLater,
 }: FeedbackDrawerProps): JSX.Element {
@@ -97,7 +99,7 @@ export function FeedbackDrawer({
             onClick={onSaveForLater}
             className="min-h-11 flex-1 px-4 rounded-lg text-sm font-semibold border border-line text-ink bg-canvas hover:bg-elevated"
           >
-            Save for later
+            {isSaved ? 'Saved ✓' : 'Save for later'}
           </button>
           <button
             type="button"

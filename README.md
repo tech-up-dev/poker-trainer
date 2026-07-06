@@ -111,7 +111,10 @@ Navigate to `/login` and sign in with the bootstrap admin:
 > **Rotate this password** on first login in any real environment — it lives in
 > the migration and is not a secret. Swap the email placeholder before going live.
 
-The CMS is at `/admin` (lesson validator) and `/admin/import` (bulk import).
+The CMS lives under `/admin`: lesson validator (`/admin`), bulk import
+(`/admin/import`), the Tip, Reference, and Glossary editors, the visual table
+builder (`/admin/table-builder`), and the Staging browser (`/admin/staging`). The
+member-facing app is under `/play`.
 
 ---
 
@@ -179,12 +182,17 @@ Author in CMS → validate (Zod, client) → save to staging
 - **Two Supabase projects** (staging + production) from day one.
 - **Two-layer rollback:** code via Vercel's one-click revert; content via the
   Supabase versioned publish above. They roll back independently.
-- **Bulk import** is the main content workflow: paste a JSON batch (generated with
-  Claude using [`docs/schema-spec.md`](docs/schema-spec.md)) into the validator;
-  green means valid and saved to staging.
+- **Bulk import** is the main content workflow: paste a JSON batch, or import a
+  `.json`, `.csv`, or `.md` file (generated with Claude using
+  [`docs/schema-spec.md`](docs/schema-spec.md)). Each item's content type is
+  auto-detected, validated, and saved to staging; missing ids are generated. CSV
+  suits the flat types (glossary, tip, reference); Markdown authors a prose lesson.
+- **Export** downloads any content item as JSON in the same format import accepts,
+  from the staging browser, the editor panels, and each version in the history.
 
 The schema doc at [`docs/schema-spec.md`](docs/schema-spec.md) is the canonical
-format reference — paste it into Claude to generate matching JSON.
+format reference (JSON, CSV, and Markdown); paste it into Claude to generate
+matching content. Ready-to-try samples live in [`samples/`](samples/).
 
 ---
 

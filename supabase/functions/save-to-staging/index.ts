@@ -24,9 +24,8 @@ import { slugify, stableStringify } from "../../../shared/utils/slug.ts";
 
 type StagingRow = { content_id: string; content: unknown };
 
-// deno-lint-ignore no-explicit-any
 async function resolveContentId(
-  staging: any,
+  staging: ReturnType<typeof createClient>,
   contentType: ContentType,
   contentObj: Record<string, unknown>,
 ): Promise<string> {

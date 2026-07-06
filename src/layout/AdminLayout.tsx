@@ -43,6 +43,9 @@ export function AdminLayout(): JSX.Element {
             <NavLink to="/admin/staging" className={navClass}>
               Staging
             </NavLink>
+            <NavLink to="/admin/table-builder" className={navClass}>
+              Table Builder
+            </NavLink>
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm text-slate-400">
             {session?.user.email ? <span>{session.user.email}</span> : null}

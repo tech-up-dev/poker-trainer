@@ -1,0 +1,18 @@
+title,category,body_markdown,tags
+"Preflop Opening Ranges (9-max)",cheat_sheet,"## Preflop Opening Ranges
+
+Use these as a baseline and widen or tighten against opponent tendencies.
+
+- UTG: 15%
+- MP: 20%
+- CO: 33%
+- BTN: 45%
+- SB: 55%",preflop|ranges|position
+"Character Mapping (6 player types)",character_mapping,"## The Six Player Types
+
+- OMC: Old Man Coffee (tight-passive)
+- PLF: Passive Loose Fish (calling station)
+- Y2K: Y2K Tag (dated tight-aggressive)
+- GTO: GTO Boy (balanced, over-complicates)
+- DWM: Drunk Whale Maniac (loose-aggressive)
+- STP: Smart Thinking Player (strong, adaptive)",character-mapping|reads

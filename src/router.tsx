@@ -12,8 +12,13 @@ import { ReferenceEditorPage } from './pages/ReferenceEditorPage'
 import { GlossaryEditorPage } from './pages/GlossaryEditorPage'
 import { StagingBrowser } from './components/StagingBrowser'
 import { TablePreviewPage } from './pages/TablePreviewPage'
+import { TableBuilderPage } from './pages/TableBuilderPage'
+import { AuthoringWizardPage } from './pages/AuthoringWizardPage'
 import { MemberDashboardPage } from './pages/MemberDashboardPage'
 import { LessonSessionPage } from './pages/LessonSessionPage'
+import { SavedQuestionsPage } from './pages/SavedQuestionsPage'
+import { SavedTipsPage } from './pages/SavedTipsPage'
+import { ReferencesLibraryPage } from './pages/ReferencesLibraryPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -35,6 +40,8 @@ export const router = createBrowserRouter([
           { path: 'admin/references', element: <ReferenceEditorPage /> },
           { path: 'admin/glossary', element: <GlossaryEditorPage /> },
           { path: 'admin/staging', element: <StagingBrowser /> },
+          { path: 'admin/table-builder', element: <TableBuilderPage /> },
+          { path: 'admin/wizard', element: <AuthoringWizardPage /> },
           { path: '*', element: <Navigate to="/admin" replace /> },
         ],
       },
@@ -55,6 +62,16 @@ export const router = createBrowserRouter([
           </GlossaryDrawerProvider>
         ),
       },
+      {
+        path: '/play/saved-questions',
+        element: (
+          <GlossaryDrawerProvider>
+            <SavedQuestionsPage />
+          </GlossaryDrawerProvider>
+        ),
+      },
+      { path: '/play/saved-tips', element: <SavedTipsPage /> },
+      { path: '/play/references', element: <ReferencesLibraryPage /> },
     ],
   },
 ])
