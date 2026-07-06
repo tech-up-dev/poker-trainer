@@ -88,7 +88,12 @@ function assembleLesson(
   currentQuestion: DraftQuestion,
   vocabTerms: string[],
 ): unknown {
-  const allQuestions = [...completedQuestions, currentQuestion]
+  // Only include currentQuestion if the user has started filling it in.
+  // After "Done with questions" a blank currentQuestion is created as a reset;
+  // including it would produce a ghost empty question in the assembled lesson.
+  const allQuestions = currentQuestion.prompt.trim()
+    ? [...completedQuestions, currentQuestion]
+    : [...completedQuestions]
   return {
     title: title.trim(),
     principle_tag: principleTag.trim(),
