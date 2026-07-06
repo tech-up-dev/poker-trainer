@@ -84,6 +84,9 @@ position with top pair. For every question, populate table_state fully:
 - stack_sizes (object with at least hero and the active villain; 100bb to 200bb)
 - villain_player_types (object mapping the active villain's position to a
   player type identifier from: OMC, PLF, Y2K, GTO, DWM, STP)
+- seat_actions (object mapping each acting position to { action, amount? };
+  action is one of Fold, Check, Limp, Call, Bet, Raise, 3-bet, 4-bet, All-in;
+  include amount for Bet/Raise/Call/All-in, omit it for Fold/Check)
 
 Every answer needs a teaching-quality explanation. Include glossary_terms for
 any term a recreational player might want defined (c-bet, overpair, draw,
@@ -109,7 +112,8 @@ Top-level fields:
 Questions: exactly 10, mixed as follows:
 - 6 multiple_choice
 - 4 hand_scenario (vary the street across flop and turn; populate table_state
-  fully each time)
+  fully each time, including seat_actions for each acting position using the
+  vocabulary Fold/Check/Limp/Call/Bet/Raise/3-bet/4-bet/All-in)
 
 For every question: unique question_id, one- or two-sentence prompt, exactly 4
 answers, exactly 1 is_correct: true, teaching-quality explanation on every
@@ -232,6 +236,7 @@ A quick rule the validator does not enforce but content authoring depends on:
 | ------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------ |
 | `principle_tag`                             | **Closed** | One of the five values listed above. New principles require a doc + schema update.                           |
 | player-type codes in `villain_player_types` | **Closed** | One of the six codes listed in the HandScenarioState section below. New codes require a doc update.          |
+| `action` in `seat_actions`                  | **Closed** | One of the nine actions listed in the HandScenarioState section below. Enforced by the validator.           |
 | `concept`                                   | **Open**   | Any snake_case identifier the author chooses. New concepts are added through the CMS as content is authored. |
 | `difficulty`                                | **Closed** | One of `"beginner"`, `"intermediate"`, `"advanced"`. Enforced by the validator.                              |
 
@@ -362,6 +367,10 @@ context). See the HandScenarioState subschema for the full shape.
     "villain_player_types": {
       "BB": "PLF"
     },
+    "seat_actions": {
+      "UTG": { "action": "Raise", "amount": 6 },
+      "BB": { "action": "Call", "amount": 4 }
+    },
     "notes": "Villain has been calling wide preflop and folding turn often when missed."
   },
   "glossary_terms": ["c-bet", "top pair", "dry board", "protection"]
@@ -422,6 +431,7 @@ The table context for a `hand_scenario` question. Required on every
 | `pot_size`             | number (>= 0)            | no       | Pot size in dollars or big blinds. Be consistent within a lesson.      |
 | `stack_sizes`          | Record\<string, number\> | no       | Map of position string to remaining stack.                             |
 | `villain_player_types` | Record\<string, string\> | no       | Map of position string to player type identifier.                      |
+| `seat_actions`         | Record\<string, SeatAction\> | no   | Map of position string to that seat's action this street. See below.   |
 | `notes`                | string                   | no       | Any contextual notes ("3-handed", "history of LAG play from villain"). |
 
 #### Card notation
@@ -489,10 +499,35 @@ The six Character Mapping player types:
 - `"Y2K"` — Y2K Tag: early-2000s tight-aggressive style; solid by old standards but predictable; can be exploited with modern lines
 - `"GTO"` — GTO Boy: plays balanced, theory-driven ranges; hard to exploit, but predictable in unbalanced spots
 - `"DWM"` — Drunk Whale Maniac: aggressive recreational; plays too many hands, bets too much, doesn't fold; value-bet thin
-- `"STP"` — Solid Thinking Player: strong adaptive opponent; balanced ranges, reads hand histories, exploits population leaks
+- `"STP"` — Smart Thinking Player: strong adaptive opponent; balanced ranges, reads hand histories, exploits population leaks
 
 If hero is the only character in the scenario (a pure decision question with
 no villain read), omit `villain_player_types` entirely.
+
+#### `seat_actions`
+
+An optional map from position string to the action that seat took on this
+street. Optional and additive: existing lessons without `seat_actions` stay
+valid. Each value is a `SeatAction` object:
+
+| Field    | Type          | Required | Notes                                                                   |
+| -------- | ------------- | -------- | ----------------------------------------------------------------------- |
+| `action` | enum          | yes      | One of the closed action set below.                                     |
+| `amount` | number (>= 0) | no       | Chips/dollars put in for Bet/Raise/Call/All-in; omit for Fold/Check.    |
+
+Action vocabulary (**closed set**): `"Fold"`, `"Check"`, `"Limp"`, `"Call"`,
+`"Bet"`, `"Raise"`, `"3-bet"`, `"4-bet"`, `"All-in"`.
+
+Use the same position strings as keys here as in `stack_sizes` and
+`villain_player_types`.
+
+```json
+{
+  "UTG": { "action": "Raise", "amount": 6 },
+  "CO": { "action": "3-bet", "amount": 18 },
+  "BB": { "action": "Fold" }
+}
+```
 
 #### `notes`
 
