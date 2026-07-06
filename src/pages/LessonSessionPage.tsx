@@ -235,8 +235,8 @@ export function LessonSessionPage(): JSX.Element {
     const progress = (questionIndex / total) * 100
 
     return (
-      <div className="min-h-screen bg-canvas text-ink px-4 py-6">
-        <div className="max-w-md mx-auto space-y-4">
+      <div className="min-h-screen bg-canvas text-ink px-4 py-6 overflow-y-auto">
+        <div className="max-w-md mx-auto space-y-4 pb-6">
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm text-ink-2">
               <span className="font-medium">{lesson.title}</span>

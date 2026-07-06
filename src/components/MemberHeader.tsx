@@ -30,14 +30,14 @@ export function MemberHeader(): JSX.Element {
   }
 
   return (
-    <div className="flex items-center justify-between">
-      <h1 className="text-lg font-semibold text-ink">Beat Small Stakes</h1>
+    <div className="flex items-center justify-between gap-2">
+      <h1 className="text-lg font-semibold text-ink shrink-0">Beat Small Stakes</h1>
 
-      <div className="relative" ref={ref}>
+      <div className="relative min-w-0" ref={ref}>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="text-sm text-ink-2 hover:text-ink transition-colors max-w-[180px] truncate cursor-pointer"
+          className="text-sm text-ink-2 hover:text-ink transition-colors block max-w-[160px] truncate cursor-pointer"
           aria-label="Account menu"
         >
           {email}

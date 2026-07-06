@@ -327,7 +327,7 @@ export function PokerTable({ tableState }: PokerTableProps): JSX.Element {
   const scoutInfo = scoutTypeCode ? PLAYER_TYPES[scoutTypeCode] : null;
 
   return (
-    <div className="w-full max-w-sm mx-auto" style={{ userSelect: 'none' }}>
+    <div className="w-full max-w-sm mx-auto pb-10" style={{ userSelect: 'none' }}>
       {/* Oval table */}
       <div className="relative w-full" style={{ height: 290 }}>
         {/* Leather rail */}

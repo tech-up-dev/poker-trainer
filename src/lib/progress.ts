@@ -29,8 +29,14 @@ export type ProgressPayload = {
 }
 
 export async function upsertProgress(payload: ProgressPayload): Promise<void> {
+  const {
+    data: { user },
+  } = await supabaseProd.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
   const { error } = await supabaseProd.from('user_progress').upsert(
     {
+      user_id: user.id,
       content_id: payload.lessonId,
       content_type: 'lesson',
       questions_answered: payload.questionsAnswered,
