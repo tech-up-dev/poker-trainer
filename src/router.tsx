@@ -49,7 +49,7 @@ export const router = createBrowserRouter([
           { path: 'admin/glossary', element: <GlossaryEditorPage /> },
           { path: 'admin/staging', element: <StagingBrowser /> },
           { path: 'admin/table-builder', element: <TableBuilderPage /> },
-          { path: 'admin/wizard', element: <AuthoringWizardPage /> },
+          { path: 'admin/wizard', element: <GlossaryDrawerProvider><AuthoringWizardPage /></GlossaryDrawerProvider> },
           { path: '*', element: <Navigate to="/admin" replace /> },
         ],
       },
