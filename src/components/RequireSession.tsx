@@ -10,7 +10,7 @@ import { useAuth } from '../lib/auth-context'
 const EXEMPT_PATHS = ['/play/profile', '/play/checkout/success']
 
 export function RequireSession(): JSX.Element {
-  const { session, hasAccess, loading } = useAuth()
+  const { session, hasAccess, isAdmin, loading } = useAuth()
   const location = useLocation()
 
   if (loading) {
@@ -25,7 +25,8 @@ export function RequireSession(): JSX.Element {
     return <Navigate to="/login" replace />
   }
 
-  const isExempt = EXEMPT_PATHS.some((p) => location.pathname.startsWith(p))
+  // Admins bypass the entitlement check so they can test the member-facing app.
+  const isExempt = isAdmin || EXEMPT_PATHS.some((p) => location.pathname.startsWith(p))
   if (!hasAccess && !isExempt) {
     return <Navigate to="/play/profile" replace />
   }
