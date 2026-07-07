@@ -1,43 +1,9 @@
 import { useState } from 'react'
 import type { FormEvent, JSX } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
-
-function EyeIcon({ open }: { open: boolean }): JSX.Element {
-  if (open) {
-    return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="w-4 h-4"
-      >
-        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    )
-  }
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="w-4 h-4"
-    >
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
-      <line x1="1" y1="1" x2="23" y2="23" />
-    </svg>
-  )
-}
 
 export function SignupPage(): JSX.Element {
   const navigate = useNavigate()
@@ -76,15 +42,11 @@ export function SignupPage(): JSX.Element {
       return
     }
 
-    // Supabase returns a fake success for existing emails to prevent enumeration.
-    // An empty identities array is the signal that the email is already taken.
     if (data.user && (data.user.identities?.length ?? 0) === 0) {
       setError('An account with this email already exists. Try signing in instead.')
       return
     }
 
-    // If Supabase returns a session the project has auto-confirm on.
-    // Otherwise the user must confirm via email before they can sign in.
     if (data.session) {
       navigate('/play', { replace: true })
     } else {
@@ -94,19 +56,19 @@ export function SignupPage(): JSX.Element {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-sm space-y-8 text-center">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-ink">Check your email</h1>
-            <p className="text-sm text-ink-2">
+      <div className="min-h-screen bg-[#18181b] flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm space-y-6 text-center">
+          <CheckCircle2 className="w-14 h-14 text-success mx-auto" />
+          <div className="space-y-2">
+            <h1 className="text-xl font-bold text-zinc-100">Check your email</h1>
+            <p className="text-sm text-zinc-400">
               We sent a confirmation link to{' '}
-              <span className="text-ink font-medium">{email}</span>. Click it to
-              activate your account.
+              <span className="text-zinc-100 font-medium">{email}</span>. Click it to activate your account.
             </p>
           </div>
           <Link
             to="/login"
-            className="inline-block text-sm text-link hover:text-ink transition-colors"
+            className="inline-block text-sm text-brand-400 hover:text-brand-300 transition-colors"
           >
             Back to sign in
           </Link>
@@ -116,41 +78,46 @@ export function SignupPage(): JSX.Element {
   }
 
   return (
-    <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm space-y-8">
+    <div className="min-h-screen bg-[#18181b] flex items-center justify-center px-4 py-12">
+      <div className="w-full max-w-sm space-y-6">
 
-        {/* Branding */}
-        <div className="text-center space-y-1">
-          <h1 className="text-2xl font-bold text-ink">Beat Small Stakes</h1>
-          <p className="text-sm text-ink-2">Create your account</p>
+        {/* Logo */}
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-14 h-14 rounded-2xl bg-brand-500 flex items-center justify-center shadow-lg">
+            <span className="text-2xl font-bold text-zinc-900">B</span>
+          </div>
+          <div className="text-center">
+            <h1 className="text-xl font-bold text-zinc-100">Beat Small Stakes</h1>
+            <p className="text-sm text-zinc-500 mt-0.5">Create your account</p>
+          </div>
         </div>
 
-        {/* Card */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-surface border border-line rounded-2xl p-6 space-y-5"
-        >
+        {/* Form card */}
+        <form onSubmit={handleSubmit} className="card-elevated space-y-4">
+
+          {/* Email */}
           <div className="space-y-1.5">
-            <label htmlFor="email" className="block text-sm font-medium text-ink">
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="you@example.com"
-              className="w-full px-4 py-3 rounded-xl bg-canvas border border-line text-ink text-sm placeholder:text-ink-3 focus:outline-none focus:border-link transition-colors"
-            />
+            <label htmlFor="email" className="label">Email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="you@example.com"
+                className="input pl-10"
+              />
+            </div>
           </div>
 
+          {/* Password */}
           <div className="space-y-1.5">
-            <label htmlFor="password" className="block text-sm font-medium text-ink">
-              Password
-            </label>
+            <label htmlFor="password" className="label">Password</label>
             <div className="relative">
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -160,15 +127,15 @@ export function SignupPage(): JSX.Element {
                 required
                 minLength={8}
                 placeholder="Min. 8 characters"
-                className="w-full px-4 py-3 pr-11 rounded-xl bg-canvas border border-line text-ink text-sm placeholder:text-ink-3 focus:outline-none focus:border-link transition-colors"
+                className="input pl-10 pr-11"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink-2 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
               >
-                <EyeIcon open={showPassword} />
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
           </div>
@@ -182,31 +149,31 @@ export function SignupPage(): JSX.Element {
                 setAgeVerified(e.target.checked)
                 if (error) setError(null)
               }}
-              className="mt-0.5 h-4 w-4 rounded border-line accent-gold flex-shrink-0"
+              className="mt-0.5 h-4 w-4 rounded border-zinc-600 accent-brand-500 flex-shrink-0"
             />
-            <span className="text-sm text-ink-2 leading-snug">
+            <span className="text-sm text-zinc-400 leading-snug">
               I confirm I am{' '}
-              <span className="text-ink font-medium">18 years of age or older</span>
+              <span className="text-zinc-100 font-medium">18 years of age or older</span>
             </span>
           </label>
 
           {error !== null && (
-            <p className="text-sm text-error" role="alert">
-              {error}
-            </p>
+            <p className="text-sm text-error" role="alert">{error}</p>
           )}
 
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 rounded-xl bg-gold text-on-gold font-semibold text-sm hover:bg-amber transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="btn-primary btn-lg w-full"
           >
-            {submitting ? 'Creating account...' : 'Create account'}
+            {submitting ? 'Creating account…' : (
+              <>Create account <ArrowRight className="w-4 h-4" /></>
+            )}
           </button>
 
-          <p className="text-center text-sm text-ink-2">
+          <p className="text-center text-sm text-zinc-500">
             Already have an account?{' '}
-            <Link to="/login" className="text-link hover:text-ink transition-colors font-medium">
+            <Link to="/login" className="text-brand-400 hover:text-brand-300 transition-colors font-medium">
               Sign in
             </Link>
           </p>

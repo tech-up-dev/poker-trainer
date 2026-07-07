@@ -3,16 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import type { JSX } from 'react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
-import { MemberHeader } from '../components/MemberHeader'
 import { TodaysTip } from '../components/TodaysTip'
-import { StreakBadge } from '../components/StreakBadge'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
 import type { LessonProgress } from '../lib/progress'
 
 const DIFFICULTY_COLOR: Record<string, string> = {
   beginner: 'text-success',
-  intermediate: 'text-gold',
+  intermediate: 'text-brand-400',
   advanced: 'text-error',
 }
 
@@ -37,45 +35,33 @@ export function MemberDashboardPage(): JSX.Element {
         for (const row of rows) map[row.lessonId] = row
         setProgressMap(map)
       })
-      .catch(() => {
-        // Best-effort — progress display degrades gracefully if unavailable.
-      })
+      .catch(() => {})
   }, [])
 
   return (
-    <div className="min-h-screen bg-canvas text-ink px-4 py-6">
-      <div className="max-w-md mx-auto space-y-6">
-        <MemberHeader />
+    <div className="max-w-2xl mx-auto space-y-6">
+      <TodaysTip />
 
-        <StreakBadge />
+      <div>
+        <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-3">
+          Lessons
+        </h2>
 
-        <TodaysTip />
+        {loading && <p className="text-zinc-400 text-sm">Loading lessons…</p>}
+        {error && <p className="text-error text-sm">{error}</p>}
+        {!loading && !error && lessons.length === 0 && (
+          <p className="text-zinc-500 text-sm">No lessons published yet.</p>
+        )}
 
-        <div>
-          <h2 className="text-sm font-semibold text-ink-2 mb-3">Lessons</h2>
-
-          {loading && (
-            <p className="text-ink-2 text-sm">Loading lessons…</p>
-          )}
-
-          {error && (
-            <p className="text-error text-sm">{error}</p>
-          )}
-
-          {!loading && !error && lessons.length === 0 && (
-            <p className="text-ink-2 text-sm">No lessons published yet.</p>
-          )}
-
-          <div className="space-y-3">
-            {lessons.map((lesson) => (
-              <LessonCard
-                key={lesson.lesson_id ?? lesson.title}
-                lesson={lesson}
-                progress={lesson.lesson_id ? progressMap[lesson.lesson_id] : undefined}
-                onStart={() => navigate(`/play/lessons/${lesson.lesson_id}`)}
-              />
-            ))}
-          </div>
+        <div className="space-y-3">
+          {lessons.map((lesson) => (
+            <LessonCard
+              key={lesson.lesson_id ?? lesson.title}
+              lesson={lesson}
+              progress={lesson.lesson_id ? progressMap[lesson.lesson_id] : undefined}
+              onStart={() => navigate(`/play/lessons/${lesson.lesson_id}`)}
+            />
+          ))}
         </div>
       </div>
     </div>
@@ -92,15 +78,15 @@ function LessonCard({
   onStart: () => void
 }): JSX.Element {
   const diffColor = lesson.difficulty
-    ? (DIFFICULTY_COLOR[lesson.difficulty] ?? 'text-ink-2')
-    : 'text-ink-2'
+    ? (DIFFICULTY_COLOR[lesson.difficulty] ?? 'text-zinc-400')
+    : 'text-zinc-400'
 
   const pct = progress && progress.questionsAnswered > 0
     ? Math.round((progress.questionsCorrect / progress.questionsAnswered) * 100)
     : null
 
   return (
-    <div className="bg-surface border border-line rounded-xl p-4 space-y-3">
+    <div className="card space-y-3">
       <div className="space-y-1">
         <div className="flex items-center justify-between gap-2">
           {lesson.difficulty && (
@@ -111,36 +97,38 @@ function LessonCard({
           {progress && pct !== null && (
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
               progress.completed
-                ? 'bg-success/15 text-success'
-                : 'bg-gold/15 text-gold'
+                ? 'bg-success/20 text-success'
+                : 'bg-brand-500/20 text-brand-400'
             }`}>
               {progress.completed ? `Completed ${pct}%` : `In progress ${pct}%`}
             </span>
           )}
         </div>
-        <h3 className="text-base font-semibold">{lesson.title}</h3>
+        <h3 className="text-base font-semibold text-zinc-100">{lesson.title}</h3>
         {lesson.concept && (
-          <p className="text-sm text-ink-2 leading-relaxed line-clamp-2">{lesson.concept}</p>
+          <p className="text-sm text-zinc-400 leading-relaxed line-clamp-2">{lesson.concept}</p>
         )}
       </div>
 
-      {progress && (
-        <div className="h-1 rounded-full bg-line overflow-hidden">
+      {progress && progress.questionsAnswered > 0 && (
+        <div className="progress-bar">
           <div
-            className={`h-full rounded-full transition-all ${progress.completed ? 'bg-success' : 'bg-gold'}`}
+            className={`h-full rounded-full transition-all duration-500 ${
+              progress.completed ? 'bg-success' : 'bg-brand-500'
+            }`}
             style={{ width: `${pct ?? 0}%` }}
           />
         </div>
       )}
 
       <div className="flex items-center justify-between">
-        <span className="text-xs text-ink-3">
+        <span className="text-xs text-zinc-500">
           {lesson.questions.length} question{lesson.questions.length !== 1 ? 's' : ''}
         </span>
         <button
           type="button"
           onClick={onStart}
-          className="px-4 py-2 rounded-lg text-sm font-semibold bg-gold text-on-gold hover:bg-amber transition-colors"
+          className="btn-primary btn-sm"
         >
           {progress?.completed ? 'Retry' : progress ? 'Continue' : 'Start'}
         </button>

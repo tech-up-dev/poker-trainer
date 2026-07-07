@@ -1,78 +1,71 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { JSX } from 'react'
+import { CheckCircle2, Loader2 } from 'lucide-react'
 
 import { useAuth } from '../lib/auth-context'
 import { pollForEntitlement } from '../lib/checkout'
 
-type State = 'polling' | 'success' | 'timeout'
+type Phase = 'polling' | 'success' | 'timeout'
 
 export function CheckoutSuccessPage(): JSX.Element {
   const { session } = useAuth()
   const navigate = useNavigate()
-  const [state, setState] = useState<State>('polling')
-  const pollingStarted = useRef(false)
+  const [phase, setPhase] = useState<Phase>('polling')
 
   useEffect(() => {
-    if (!session || pollingStarted.current) return
-    pollingStarted.current = true
+    const userId = session?.user?.id
+    if (!userId) return
 
-    pollForEntitlement(session.user.id).then((found) => {
-      if (found) {
-        setState('success')
-        setTimeout(() => navigate('/play', { replace: true }), 2000)
-      } else {
-        setState('timeout')
-      }
-    })
-  }, [session, navigate])
+    pollForEntitlement(userId)
+      .then((granted) => setPhase(granted ? 'success' : 'timeout'))
+      .catch(() => setPhase('timeout'))
+  }, [session])
+
+  useEffect(() => {
+    if (phase !== 'success') return
+    const t = setTimeout(() => navigate('/play', { replace: true }), 3000)
+    return () => clearTimeout(t)
+  }, [phase, navigate])
 
   return (
-    <div className="min-h-screen bg-canvas text-ink flex items-center justify-center px-4">
-      <div className="max-w-sm w-full text-center space-y-6">
-        {state === 'polling' && (
+    <div className="min-h-screen bg-[#18181b] flex items-center justify-center px-4">
+      <div className="card w-full max-w-sm text-center space-y-5">
+        {phase === 'polling' && (
           <>
-            <div className="w-12 h-12 rounded-full border-4 border-line border-t-gold animate-spin mx-auto" />
-            <div className="space-y-2">
-              <h1 className="text-xl font-semibold">Confirming your subscription</h1>
-              <p className="text-sm text-ink-2">
-                This usually takes a few seconds...
-              </p>
+            <Loader2 className="w-12 h-12 text-brand-500 animate-spin mx-auto" />
+            <div>
+              <h1 className="text-xl font-bold text-zinc-100">Confirming your subscription</h1>
+              <p className="text-sm text-zinc-500 mt-1">This usually takes a few seconds…</p>
             </div>
           </>
         )}
 
-        {state === 'success' && (
+        {phase === 'success' && (
           <>
-            <div className="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center mx-auto">
-              <svg className="w-6 h-6 text-success" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <div className="space-y-2">
-              <h1 className="text-xl font-semibold">You're in!</h1>
-              <p className="text-sm text-ink-2">Taking you to your lessons...</p>
+            <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
+            <div>
+              <h1 className="text-xl font-bold text-zinc-100">You're all set!</h1>
+              <p className="text-sm text-zinc-500 mt-1">Redirecting to your lessons…</p>
             </div>
           </>
         )}
 
-        {state === 'timeout' && (
+        {phase === 'timeout' && (
           <>
-            <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center mx-auto">
-              <svg className="w-6 h-6 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v4m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
-              </svg>
+            <div className="w-12 h-12 rounded-full bg-brand-500/20 flex items-center justify-center mx-auto">
+              <span className="text-brand-500 font-bold text-xl">!</span>
             </div>
-            <div className="space-y-2">
-              <h1 className="text-xl font-semibold">Payment received</h1>
-              <p className="text-sm text-ink-2">
-                Your subscription is being activated. It may take a moment to appear.
+            <div>
+              <h1 className="text-xl font-bold text-zinc-100">Almost there</h1>
+              <p className="text-sm text-zinc-500 mt-1">
+                Payment received — your access may take a moment to activate.
               </p>
             </div>
             <button
               type="button"
               onClick={() => navigate('/play', { replace: true })}
-              className="w-full py-3 rounded-xl bg-gold text-on-gold font-semibold text-sm hover:bg-amber transition-colors"
+              className="btn-primary w-full"
             >
               Go to lessons
             </button>

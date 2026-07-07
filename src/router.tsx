@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import { AdminLayout } from './layout/AdminLayout'
+import { MemberLayout } from './layout/MemberLayout'
 import { RequireAuth } from './components/RequireAuth'
 import { RequireSession } from './components/RequireSession'
 import { GlossaryDrawerProvider } from './components/GlossaryDrawer'
@@ -59,13 +60,21 @@ export const router = createBrowserRouter([
     element: <RequireSession />,
     children: [
       {
-        path: '/play',
-        element: <MemberDashboardPage />,
+        element: <MemberLayout />,
+        children: [
+          { path: '/play',                  element: <MemberDashboardPage /> },
+          { path: '/play/lessons',          element: <MemberDashboardPage /> },
+          { path: '/play/glossary',         element: <GlossaryDrawerProvider><SavedQuestionsPage /></GlossaryDrawerProvider> },
+          { path: '/play/library',          element: <ReferencesLibraryPage /> },
+          { path: '/play/stats',            element: <ProfilePage /> },
+          { path: '/play/profile',          element: <ProfilePage /> },
+          { path: '/play/saved-questions',  element: <GlossaryDrawerProvider><SavedQuestionsPage /></GlossaryDrawerProvider> },
+          { path: '/play/saved-tips',       element: <SavedTipsPage /> },
+          { path: '/play/references',       element: <ReferencesLibraryPage /> },
+          { path: '/play/checkout/success', element: <CheckoutSuccessPage /> },
+        ],
       },
-      {
-        path: '/play/profile',
-        element: <ProfilePage />,
-      },
+      // Lesson session is full-screen — outside MemberLayout so the nav doesn't show
       {
         path: '/play/lessons/:lessonId',
         element: (
@@ -74,17 +83,6 @@ export const router = createBrowserRouter([
           </GlossaryDrawerProvider>
         ),
       },
-      {
-        path: '/play/saved-questions',
-        element: (
-          <GlossaryDrawerProvider>
-            <SavedQuestionsPage />
-          </GlossaryDrawerProvider>
-        ),
-      },
-      { path: '/play/saved-tips', element: <SavedTipsPage /> },
-      { path: '/play/references', element: <ReferencesLibraryPage /> },
-      { path: '/play/checkout/success', element: <CheckoutSuccessPage /> },
     ],
   },
 ])

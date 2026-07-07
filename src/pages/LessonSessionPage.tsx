@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { JSX } from 'react'
+import { X, CheckCircle2 } from 'lucide-react'
 
 import type { Lesson, Question } from '../../shared/schemas/lesson'
 import { QuestionCard } from '../components/QuestionCard'
@@ -47,7 +48,6 @@ export function LessonSessionPage(): JSX.Element {
     lessonId ? { kind: 'loading' } : { kind: 'error', message: 'No lesson ID provided.' },
   )
   const [randomise, setRandomise] = useState(false)
-  // correctness and selected answer tracked per question index in the ordered list
   const [correctMap, setCorrectMap] = useState<Record<number, boolean>>({})
   const [answeredMap, setAnsweredMap] = useState<Record<number, number>>({})
   const questionStartedAt = useRef<number>(Date.now())
@@ -98,9 +98,7 @@ export function LessonSessionPage(): JSX.Element {
         isCorrect,
         selectedAnswerIndex: selectedIndex,
         timeTakenMs,
-      }).catch(() => {
-        // Best-effort — never block the quiz flow.
-      })
+      }).catch(() => {})
     }
     setCorrectMap((prev) => ({ ...prev, [questionIndex]: isCorrect }))
     setAnsweredMap((prev) => ({ ...prev, [questionIndex]: selectedIndex }))
@@ -129,9 +127,7 @@ export function LessonSessionPage(): JSX.Element {
         questionsAnswered: total,
         questionsCorrect: correct,
         completed: true,
-      }).catch(() => {
-        // Progress save is best-effort; don't block the completion screen.
-      })
+      }).catch(() => {})
 
       setPhase({ kind: 'complete', correct, total, missed })
     } else {
@@ -142,15 +138,15 @@ export function LessonSessionPage(): JSX.Element {
 
   if (phase.kind === 'loading') {
     return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center">
-        <p className="text-ink-2 text-sm">Loading lesson…</p>
+      <div className="min-h-screen bg-[#18181b] flex items-center justify-center">
+        <p className="text-zinc-500 text-sm">Loading lesson…</p>
       </div>
     )
   }
 
   if (phase.kind === 'error') {
     return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#18181b] flex items-center justify-center px-4">
         <p className="text-error text-sm text-center">{phase.message}</p>
       </div>
     )
@@ -161,38 +157,39 @@ export function LessonSessionPage(): JSX.Element {
   // ── Intro screen ──────────────────────────────────────────────────────────
   if (phase.kind === 'intro') {
     return (
-      <div className="min-h-screen bg-canvas text-ink px-4 py-10">
+      <div className="min-h-screen bg-[#18181b] text-zinc-100 px-4 py-10">
         <div className="max-w-md mx-auto space-y-6">
           <button
             type="button"
             onClick={() => navigate('/play')}
-            className="text-sm text-link hover:underline"
+            className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
           >
-            ← Back to lessons
+            <X className="w-4 h-4" />
+            Back to lessons
           </button>
 
-          <div className="space-y-1">
+          <div className="space-y-2">
             {lesson.difficulty && (
-              <p className="text-xs font-semibold uppercase tracking-widest text-gold">
+              <span className="inline-block text-xs font-semibold uppercase tracking-widest text-brand-500 bg-brand-500/10 px-2.5 py-1 rounded-full">
                 {DIFFICULTY_LABEL[lesson.difficulty] ?? lesson.difficulty}
-              </p>
+              </span>
             )}
-            <h1 className="text-2xl font-bold">{lesson.title}</h1>
+            <h1 className="text-2xl font-bold text-zinc-100">{lesson.title}</h1>
             {lesson.concept && (
-              <p className="text-base text-ink-2 leading-relaxed">{lesson.concept}</p>
+              <p className="text-base text-zinc-400 leading-relaxed">{lesson.concept}</p>
             )}
           </div>
 
-          <div className="bg-surface border border-line rounded-xl p-4 space-y-1">
-            <p className="text-sm text-ink-2">
-              <span className="font-semibold text-ink">
+          <div className="card space-y-2">
+            <p className="text-sm text-zinc-400">
+              <span className="font-semibold text-zinc-100">
                 {lesson.questions.length} question{lesson.questions.length !== 1 ? 's' : ''}
               </span>{' '}
               · tap each answer, read the feedback, then continue
             </p>
             {lesson.principle_tag && (
-              <p className="text-xs text-ink-3">
-                Principle: <span className="text-ink-2">{lesson.principle_tag}</span>
+              <p className="text-xs text-zinc-500">
+                Principle: <span className="text-zinc-400">{lesson.principle_tag}</span>
               </p>
             )}
           </div>
@@ -206,19 +203,19 @@ export function LessonSessionPage(): JSX.Element {
                 onChange={(e) => setRandomise(e.target.checked)}
               />
               <div
-                className={`w-10 h-6 rounded-full transition-colors ${randomise ? 'bg-gold' : 'bg-line'}`}
+                className={`w-10 h-6 rounded-full transition-colors ${randomise ? 'bg-brand-500' : 'bg-zinc-700'}`}
               />
               <div
-                className={`absolute top-1 w-4 h-4 rounded-full bg-surface transition-transform ${randomise ? 'translate-x-5' : 'translate-x-1'}`}
+                className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${randomise ? 'translate-x-5' : 'translate-x-1'}`}
               />
             </div>
-            <span className="text-sm text-ink-2">Randomise question order</span>
+            <span className="text-sm text-zinc-400">Randomise question order</span>
           </label>
 
           <button
             type="button"
             onClick={startQuiz}
-            className="min-h-11 w-full rounded-lg text-sm font-semibold bg-gold text-on-gold hover:bg-amber transition-colors"
+            className="btn-primary btn-lg w-full"
           >
             Start lesson
           </button>
@@ -232,43 +229,64 @@ export function LessonSessionPage(): JSX.Element {
     const { questionIndex, feedbackViewed } = phase
     const question = orderedQuestions[questionIndex]
     const total = orderedQuestions.length
-    const progress = (questionIndex / total) * 100
 
     return (
-      <div className="min-h-screen bg-canvas text-ink px-4 py-6 overflow-y-auto">
-        <div className="max-w-md mx-auto space-y-4 pb-6">
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm text-ink-2">
-              <span className="font-medium">{lesson.title}</span>
-              <span>
-                {questionIndex + 1} / {total}
-              </span>
+      <div className="min-h-screen bg-[#18181b] flex flex-col">
+        {/* Sticky header */}
+        <div className="sticky top-0 z-20 bg-[#18181b]/95 backdrop-blur-sm border-b border-zinc-800 px-4 py-3">
+          <div className="max-w-md mx-auto flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => navigate('/play')}
+              aria-label="Exit lesson"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 transition-colors shrink-0"
+            >
+              <X className="w-4 h-4" />
+            </button>
+            <div className="flex-1 flex gap-1.5">
+              {orderedQuestions.map((_, i) => (
+                <div
+                  key={i}
+                  className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                    i < questionIndex
+                      ? 'bg-brand-500'
+                      : i === questionIndex
+                      ? 'bg-brand-500/60'
+                      : 'bg-zinc-700'
+                  }`}
+                />
+              ))}
             </div>
-            <div className="h-1.5 rounded-full bg-line overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gold transition-all duration-300"
-                style={{ width: `${progress}%` }}
+            <span className="text-xs text-zinc-500 shrink-0">
+              {questionIndex + 1}/{total}
+            </span>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-md mx-auto px-4 py-5 space-y-5 pb-8">
+            <div className="card-elevated space-y-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Scenario</p>
+              <QuestionCard
+                key={question.question_id}
+                question={question}
+                lessonId={lessonId}
+                onContinue={(isCorrect, selectedIndex) =>
+                  handleFeedbackViewed(questionIndex, isCorrect, selectedIndex)
+                }
               />
             </div>
+
+            <button
+              type="button"
+              disabled={!feedbackViewed}
+              onClick={handleNext}
+              className="btn-primary w-full disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {questionIndex + 1 < total ? 'Next question' : 'See results'}
+            </button>
           </div>
-
-          <QuestionCard
-            key={question.question_id}
-            question={question}
-            lessonId={lessonId}
-            onContinue={(isCorrect, selectedIndex) =>
-              handleFeedbackViewed(questionIndex, isCorrect, selectedIndex)
-            }
-          />
-
-          <button
-            type="button"
-            disabled={!feedbackViewed}
-            onClick={handleNext}
-            className="min-h-11 w-full rounded-lg text-sm font-semibold bg-gold text-on-gold hover:bg-amber disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            {questionIndex + 1 < total ? 'Next question' : 'See results'}
-          </button>
         </div>
       </div>
     )
@@ -280,29 +298,32 @@ export function LessonSessionPage(): JSX.Element {
   const passed = pct >= 70
 
   return (
-    <div className="min-h-screen bg-canvas text-ink px-4 py-10">
+    <div className="min-h-screen bg-[#18181b] text-zinc-100 px-4 py-10">
       <div className="max-w-md mx-auto space-y-6">
         {/* Score card */}
-        <div className="bg-surface border border-line rounded-xl p-6 text-center space-y-4">
+        <div className="card text-center space-y-5">
           <div
-            className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center text-2xl font-bold ${passed ? 'bg-success/15 text-success' : 'bg-error/15 text-error'}`}
+            className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${passed ? 'bg-success/20' : 'bg-error/20'}`}
           >
-            {passed ? '✓' : '✕'}
+            {passed
+              ? <CheckCircle2 className="w-8 h-8 text-success" />
+              : <span className="text-2xl font-bold text-error">✕</span>
+            }
           </div>
           <div className="space-y-1">
-            <h2 className="text-xl font-bold">
+            <h2 className="text-xl font-bold text-zinc-100">
               {passed ? 'Lesson complete!' : 'Keep practising'}
             </h2>
-            <p className="text-ink-2 text-sm">{lesson.title}</p>
+            <p className="text-zinc-500 text-sm">{lesson.title}</p>
           </div>
-          <div className="bg-canvas rounded-xl p-4 space-y-3">
-            <div className="text-4xl font-bold text-gold">{pct}%</div>
-            <p className="text-sm text-ink-2">
+          <div className="bg-zinc-900 rounded-xl p-4 space-y-3">
+            <div className={`text-4xl font-bold ${passed ? 'text-brand-500' : 'text-error'}`}>{pct}%</div>
+            <p className="text-sm text-zinc-400">
               {correct} correct out of {total} question{total !== 1 ? 's' : ''}
             </p>
-            <div className="h-2 rounded-full bg-line overflow-hidden">
+            <div className="h-2 rounded-full bg-zinc-700 overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${passed ? 'bg-success' : 'bg-error'}`}
+                className={`h-full rounded-full transition-all ${passed ? 'bg-brand-500' : 'bg-error'}`}
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -312,8 +333,8 @@ export function LessonSessionPage(): JSX.Element {
         {/* Missed questions review */}
         {missed.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-ink-2">
-              Review - {missed.length} missed question{missed.length !== 1 ? 's' : ''}
+            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-widest">
+              Review · {missed.length} missed
             </h3>
             {missed.map(({ question, selectedIndex }, i) => {
               const correctAnswer = question.answers.find((a) => a.is_correct)
@@ -322,54 +343,39 @@ export function LessonSessionPage(): JSX.Element {
               return (
                 <div
                   key={`${question.question_id}-${i}`}
-                  className="bg-surface border border-line rounded-xl p-4 space-y-4"
+                  className="card space-y-4"
                 >
-                  <p className="text-sm font-medium text-ink leading-relaxed">
+                  <p className="text-sm font-medium text-zinc-100 leading-relaxed">
                     {linkifyGlossaryTerms(question.prompt, question.glossary_terms)}
                   </p>
 
-                  {/* Wrong answer */}
-                  <div className="flex gap-3 p-3 rounded-lg bg-error/8 border border-error/20">
-                    <span
-                      aria-hidden="true"
-                      className="w-6 h-6 mt-0.5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-error text-on-gold"
-                    >
+                  <div className="flex gap-3 p-3 rounded-xl bg-error/10 border border-error/20">
+                    <span className="w-6 h-6 mt-0.5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-error text-white">
                       ✕
                     </span>
                     <div className="space-y-1">
-                      <p className="text-sm font-medium text-ink">
-                        <span className="text-ink-2 font-semibold mr-1">
-                          {LETTERS[selectedIndex]}
-                        </span>
+                      <p className="text-sm font-medium text-zinc-100">
+                        <span className="text-zinc-400 font-semibold mr-1">{LETTERS[selectedIndex]}</span>
                         {wrongAnswer.text}
                       </p>
-                      <p className="text-sm text-ink-2 leading-relaxed">
+                      <p className="text-sm text-zinc-400 leading-relaxed">
                         {linkifyGlossaryTerms(wrongAnswer.explanation, question.glossary_terms)}
                       </p>
                     </div>
                   </div>
 
-                  {/* Correct answer */}
                   {correctAnswer && (
-                    <div className="flex gap-3 p-3 rounded-lg bg-success/8 border border-success/20">
-                      <span
-                        aria-hidden="true"
-                        className="w-6 h-6 mt-0.5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-success text-on-gold"
-                      >
+                    <div className="flex gap-3 p-3 rounded-xl bg-success/10 border border-success/20">
+                      <span className="w-6 h-6 mt-0.5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-success text-white">
                         ✓
                       </span>
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-ink">
-                          <span className="text-ink-2 font-semibold mr-1">
-                            {LETTERS[correctIndex]}
-                          </span>
+                        <p className="text-sm font-medium text-zinc-100">
+                          <span className="text-zinc-400 font-semibold mr-1">{LETTERS[correctIndex]}</span>
                           {correctAnswer.text}
                         </p>
-                        <p className="text-sm text-ink-2 leading-relaxed">
-                          {linkifyGlossaryTerms(
-                            correctAnswer.explanation,
-                            question.glossary_terms,
-                          )}
+                        <p className="text-sm text-zinc-400 leading-relaxed">
+                          {linkifyGlossaryTerms(correctAnswer.explanation, question.glossary_terms)}
                         </p>
                       </div>
                     </div>
@@ -384,14 +390,14 @@ export function LessonSessionPage(): JSX.Element {
           <button
             type="button"
             onClick={startQuiz}
-            className="min-h-11 w-full rounded-lg text-sm font-semibold border border-line bg-surface text-ink hover:bg-elevated transition-colors"
+            className="btn-secondary w-full"
           >
             Try again
           </button>
           <button
             type="button"
             onClick={() => navigate('/play')}
-            className="min-h-11 w-full rounded-lg text-sm font-semibold bg-gold text-on-gold hover:bg-amber transition-colors"
+            className="btn-primary w-full"
           >
             Back to lessons
           </button>

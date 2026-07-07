@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import type { JSX } from 'react'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import { ChevronDown, ChevronUp } from 'lucide-react'
 
 import type { Reference } from '../../shared/schemas/reference'
 import { fetchAllPublishedReferences } from '../lib/references'
@@ -25,18 +25,21 @@ function ReferenceCard({ entry }: { entry: Reference }): JSX.Element {
   const html = open ? renderMarkdown(entry.body_markdown) : ''
 
   return (
-    <div className="bg-surface border border-line rounded-xl overflow-hidden">
+    <div className="card p-0 overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left gap-3"
+        className="w-full flex items-center justify-between px-5 py-4 text-left gap-3 hover:bg-surface-overlay transition-colors"
       >
-        <span className="text-sm font-semibold text-ink">{entry.title}</span>
-        <span className="text-ink-3 text-xs shrink-0">{open ? '▲' : '▼'}</span>
+        <span className="text-sm font-semibold text-zinc-100">{entry.title}</span>
+        {open
+          ? <ChevronUp className="w-4 h-4 text-zinc-500 shrink-0" />
+          : <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0" />
+        }
       </button>
 
       {open && (
-        <div className="border-t border-line px-4 py-4">
+        <div className="border-t border-zinc-700 px-5 py-4">
           <div
             className="prose-reference"
             dangerouslySetInnerHTML={{ __html: html }}
@@ -44,10 +47,7 @@ function ReferenceCard({ entry }: { entry: Reference }): JSX.Element {
           {entry.tags && entry.tags.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
               {entry.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs px-2 py-0.5 rounded-full bg-elevated text-ink-3 border border-line"
-                >
+                <span key={tag} className="badge-muted text-xs">
                   {tag}
                 </span>
               ))}
@@ -60,7 +60,6 @@ function ReferenceCard({ entry }: { entry: Reference }): JSX.Element {
 }
 
 export function ReferencesLibraryPage(): JSX.Element {
-  const navigate = useNavigate()
   const [references, setReferences] = useState<Reference[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -84,41 +83,33 @@ export function ReferencesLibraryPage(): JSX.Element {
   ]
 
   return (
-    <div className="min-h-screen bg-canvas text-ink px-4 py-6">
-      <div className="max-w-md mx-auto space-y-6">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/play')}
-            className="text-sm text-link hover:underline"
-          >
-            ← Back
-          </button>
-          <h1 className="text-lg font-semibold">References</h1>
-        </div>
-
-        {loading && <p className="text-ink-2 text-sm">Loading…</p>}
-
-        {!loading && references.length === 0 && (
-          <div className="bg-surface border border-line rounded-xl p-6 text-center space-y-2">
-            <p className="text-ink font-medium">No references published yet</p>
-            <p className="text-sm text-ink-2">
-              The client can add cheat sheets and methodology guides via the CMS.
-            </p>
-          </div>
-        )}
-
-        {orderedKeys.map((key) => (
-          <div key={key} className="space-y-2">
-            <h2 className="text-xs font-semibold uppercase tracking-widest text-gold">
-              {CATEGORY_LABEL[key] ?? 'General'}
-            </h2>
-            {grouped.get(key)!.map((ref) => (
-              <ReferenceCard key={ref.reference_id ?? ref.title} entry={ref} />
-            ))}
-          </div>
-        ))}
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-xl font-bold text-zinc-100">References</h1>
+        <p className="text-sm text-zinc-500 mt-1">Cheat sheets and methodology guides.</p>
       </div>
+
+      {loading && <p className="text-zinc-500 text-sm">Loading…</p>}
+
+      {!loading && references.length === 0 && (
+        <div className="card text-center space-y-2">
+          <p className="text-zinc-100 font-medium">No references published yet</p>
+          <p className="text-sm text-zinc-500">
+            The client can add cheat sheets and methodology guides via the CMS.
+          </p>
+        </div>
+      )}
+
+      {orderedKeys.map((key) => (
+        <div key={key} className="space-y-2">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-brand-500">
+            {CATEGORY_LABEL[key] ?? 'General'}
+          </h2>
+          {grouped.get(key)!.map((ref) => (
+            <ReferenceCard key={ref.reference_id ?? ref.title} entry={ref} />
+          ))}
+        </div>
+      ))}
     </div>
   )
 }

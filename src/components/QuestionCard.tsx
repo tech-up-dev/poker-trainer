@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { JSX } from 'react'
+import { CheckCircle2, XCircle } from 'lucide-react'
 
 import type { Question } from '../../shared/schemas/lesson'
 import { linkifyGlossaryTerms } from '../lib/glossary-text'
@@ -11,18 +12,10 @@ const LETTERS = ['A', 'B', 'C', 'D']
 
 type QuestionCardProps = {
   question: Question
-  // When provided, the "Save for later" button in FeedbackDrawer is active and
-  // persists the starred state to user_saved_questions.
   lessonId?: string
-  // Fired once the member dismisses the feedback drawer via Continue. Receives
-  // whether the selected answer was correct and which index was selected so the
-  // session runner can track score and record missed questions for review.
   onContinue: (isCorrect: boolean, selectedIndex: number) => void
 }
 
-// Renders an MCQ prompt and exactly four answers; locks the choice on select
-// and opens the slide-up feedback drawer. hand_scenario questions render the
-// PokerTable above the prompt, driven by question.table_state.
 export function QuestionCard({ question, lessonId, onContinue }: QuestionCardProps): JSX.Element {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
@@ -33,7 +26,7 @@ export function QuestionCard({ question, lessonId, onContinue }: QuestionCardPro
   function handleSelect(index: number): void {
     if (locked) return
     setSelectedIndex(index)
-    setFeedbackOpen(true)
+    setTimeout(() => setFeedbackOpen(true), 80)
   }
 
   function handleContinue(): void {
@@ -50,8 +43,37 @@ export function QuestionCard({ question, lessonId, onContinue }: QuestionCardPro
     const op = next
       ? saveQuestion(lessonId, question.question_id)
       : unsaveQuestion(lessonId, question.question_id)
-    // Best-effort write; keep optimistic UI state on failure.
     op.catch(() => {})
+  }
+
+  function getButtonClass(index: number): string {
+    const answer = question.answers[index]
+    const isSelected = selectedIndex === index
+
+    if (!locked) {
+      return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-surface-raised border-zinc-700 hover:border-brand-500 hover:bg-surface-overlay active:scale-[0.98]'
+    }
+
+    if (isSelected && answer.is_correct) {
+      return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-success/20 border-success'
+    }
+    if (isSelected && !answer.is_correct) {
+      return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-error/20 border-error'
+    }
+    if (!isSelected && answer.is_correct) {
+      return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-success/10 border-success/50'
+    }
+    return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-surface-raised border-zinc-700 opacity-60'
+  }
+
+  function getLetterBadgeClass(index: number): string {
+    const answer = question.answers[index]
+    const isSelected = selectedIndex === index
+
+    if (!locked) return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-zinc-800 text-zinc-400'
+    if (answer.is_correct) return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-success text-white'
+    if (isSelected) return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-error text-white'
+    return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-zinc-800 text-zinc-600'
   }
 
   return (
@@ -60,33 +82,36 @@ export function QuestionCard({ question, lessonId, onContinue }: QuestionCardPro
         <PokerTable tableState={question.table_state} />
       ) : null}
 
-      <p className="text-lg leading-relaxed text-ink">
+      <p className="text-xl font-semibold text-zinc-100 leading-snug">
         {linkifyGlossaryTerms(question.prompt, question.glossary_terms)}
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {question.answers.map((answer, i) => {
-          const isSelected = selectedIndex === i
-          return (
-            <button
-              key={`${answer.text}-${i}`}
-              type="button"
-              disabled={locked}
-              onClick={() => handleSelect(i)}
-              aria-pressed={isSelected}
-              className={`min-h-11 px-4 py-3 rounded-lg text-left text-sm font-medium border transition-colors disabled:cursor-not-allowed ${
-                isSelected
-                  ? 'border-gold bg-elevated text-ink'
-                  : 'border-line bg-surface text-ink hover:bg-elevated disabled:hover:bg-surface'
-              }`}
-            >
-              <span className="text-ink-2 font-semibold mr-2">
-                {LETTERS[i]}
+      <p className="text-sm font-medium text-zinc-400">Choose your action:</p>
+
+      <div className="space-y-3">
+        {question.answers.map((answer, i) => (
+          <button
+            key={`${answer.text}-${i}`}
+            type="button"
+            disabled={locked}
+            onClick={() => handleSelect(i)}
+            aria-pressed={selectedIndex === i}
+            className={getButtonClass(i)}
+          >
+            <div className="flex items-center gap-4">
+              <span className={getLetterBadgeClass(i)}>
+                {locked && answer.is_correct ? (
+                  <CheckCircle2 className="w-5 h-5" />
+                ) : locked && selectedIndex === i && !answer.is_correct ? (
+                  <XCircle className="w-5 h-5" />
+                ) : (
+                  LETTERS[i]
+                )}
               </span>
-              {answer.text}
-            </button>
-          )
-        })}
+              <p className="text-base font-medium text-zinc-100">{answer.text}</p>
+            </div>
+          </button>
+        ))}
       </div>
 
       {feedbackOpen && selectedIndex !== null ? (

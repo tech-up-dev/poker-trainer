@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
-import { Link } from 'react-router-dom'
 
 import { useAuth } from '../lib/auth-context'
 import { supabaseProd } from '../lib/supabase-prod'
-import { MemberHeader } from '../components/MemberHeader'
 import { PRICING_PLANS, createCheckoutSession } from '../lib/checkout'
 import type { PricingPlan } from '../lib/checkout'
 
@@ -67,9 +65,7 @@ export function ProfilePage(): JSX.Element {
   function formatDate(iso: string | null): string {
     if (!iso) return 'N/A'
     return new Date(iso).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+      year: 'numeric', month: 'long', day: 'numeric',
     })
   }
 
@@ -80,127 +76,110 @@ export function ProfilePage(): JSX.Element {
     return status
   }
 
-  function statusColor(status: string): string {
-    if (status === 'active') return 'text-success'
-    if (status === 'past_due') return 'text-gold'
-    return 'text-error'
+  function statusBadgeClass(status: string): string {
+    if (status === 'active') return 'badge-success'
+    if (status === 'past_due') return 'badge-warning'
+    return 'badge-error'
   }
 
+  const email = session?.user?.email ?? ''
+  const initial = email.charAt(0).toUpperCase()
+
   return (
-    <div className="min-h-screen bg-canvas text-ink px-4 py-6">
-      <div className="max-w-md mx-auto space-y-6">
-        <MemberHeader />
-
-        <Link to="/play" className="inline-block text-sm text-link hover:text-ink transition-colors">
-          &larr; Back to lessons
-        </Link>
-
-        <h2 className="text-xl font-semibold">Profile</h2>
-
-        {loading && <p className="text-sm text-ink-2">Loading...</p>}
-
-        {error !== null && (
-          <p className="text-sm text-error" role="alert">
-            {error}
-          </p>
-        )}
-
-        {!loading && (
-          <div className="space-y-4">
-            {entitlement !== null ? (
-              <div className="bg-surface border border-line rounded-xl p-5 space-y-4">
-                <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">
-                  Subscription
-                </p>
-
-                <div className="space-y-3">
-                  <Row label="Plan" value="Beat Small Stakes" />
-                  <Row
-                    label="Status"
-                    value={statusLabel(entitlement.status)}
-                    valueClass={statusColor(entitlement.status)}
-                  />
-                  <Row
-                    label="Next billing date"
-                    value={formatDate(entitlement.expires_at)}
-                  />
-                </div>
-
-                <div className="pt-1 border-t border-line">
-                  <button
-                    type="button"
-                    onClick={handleManageBilling}
-                    disabled={portalLoading}
-                    className="w-full py-3 rounded-xl bg-gold text-on-gold font-semibold text-sm hover:bg-amber transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                  >
-                    {portalLoading ? 'Opening...' : 'Manage billing'}
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="bg-surface border border-line rounded-xl p-5 space-y-4">
-                <div>
-                  <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">
-                    Subscribe
-                  </p>
-                  <p className="text-sm text-ink-2 mt-1">
-                    Get full access to all lessons, tips, and references.
-                  </p>
-                </div>
-
-                <div className="space-y-3">
-                  {PRICING_PLANS.map((plan) => (
-                    <div
-                      key={plan.id}
-                      className="border border-line rounded-xl p-4 flex items-center justify-between gap-4"
-                    >
-                      <div>
-                        <p className="text-sm font-semibold">{plan.label}</p>
-                        <p className="text-xs text-ink-2">
-                          <span className="text-ink font-semibold text-base">{plan.price}</span>
-                          {' '}{plan.period}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleSubscribe(plan)}
-                        disabled={checkoutLoading !== null}
-                        className="shrink-0 px-4 py-2 rounded-lg bg-gold text-on-gold text-sm font-semibold hover:bg-amber transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                      >
-                        {checkoutLoading === plan.id ? 'Redirecting...' : 'Subscribe'}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="bg-surface border border-line rounded-xl p-5 space-y-1">
-              <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">
-                Account
-              </p>
-              <p className="text-sm text-ink">{session?.user?.email}</p>
-            </div>
-          </div>
-        )}
+    <div className="max-w-lg mx-auto space-y-6">
+      {/* Account card */}
+      <div className="card flex items-center gap-4">
+        <div className="w-14 h-14 rounded-full bg-brand-500/20 flex items-center justify-center shrink-0">
+          <span className="text-brand-500 font-bold text-xl">{initial}</span>
+        </div>
+        <div className="min-w-0">
+          <p className="font-semibold text-zinc-100 truncate">{email}</p>
+          <p className="text-sm text-zinc-500">Member</p>
+        </div>
       </div>
+
+      {error !== null && (
+        <p className="text-sm text-error" role="alert">{error}</p>
+      )}
+
+      {loading && <p className="text-sm text-zinc-500">Loading…</p>}
+
+      {!loading && (
+        <div className="space-y-4">
+          {/* Subscription */}
+          {entitlement !== null ? (
+            <div className="card space-y-4">
+              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
+                Subscription
+              </p>
+              <div className="space-y-3">
+                <Row label="Plan" value="Beat Small Stakes" />
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-zinc-400">Status</span>
+                  <span className={statusBadgeClass(entitlement.status)}>
+                    {statusLabel(entitlement.status)}
+                  </span>
+                </div>
+                <Row label="Next billing" value={formatDate(entitlement.expires_at)} />
+              </div>
+              <div className="pt-1 border-t border-zinc-700">
+                <button
+                  type="button"
+                  onClick={handleManageBilling}
+                  disabled={portalLoading}
+                  className="btn-primary w-full"
+                >
+                  {portalLoading ? 'Opening…' : 'Manage billing'}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="card space-y-4">
+              <div>
+                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
+                  Subscribe
+                </p>
+                <p className="text-sm text-zinc-400 mt-1">
+                  Get full access to all lessons, tips, and references.
+                </p>
+              </div>
+              <div className="space-y-3">
+                {PRICING_PLANS.map((plan) => (
+                  <div
+                    key={plan.id}
+                    className="border border-zinc-700 rounded-xl p-4 flex items-center justify-between gap-4 bg-surface-overlay"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-zinc-100">{plan.label}</p>
+                      <p className="text-xs text-zinc-400">
+                        <span className="text-zinc-100 font-semibold text-base">{plan.price}</span>
+                        {' '}{plan.period}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSubscribe(plan)}
+                      disabled={checkoutLoading !== null}
+                      className="btn-primary btn-sm shrink-0"
+                    >
+                      {checkoutLoading === plan.id ? 'Redirecting…' : 'Subscribe'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
 
-function Row({
-  label,
-  value,
-  valueClass = 'text-ink',
-}: {
-  label: string
-  value: string
-  valueClass?: string
-}): JSX.Element {
+function Row({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-sm text-ink-2">{label}</span>
-      <span className={`text-sm font-medium ${valueClass}`}>{value}</span>
+      <span className="text-sm text-zinc-400">{label}</span>
+      <span className="text-sm text-zinc-100 font-medium">{value}</span>
     </div>
   )
 }
