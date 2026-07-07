@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react'
+﻿import { useEffect, useId, useRef } from 'react'
 import type { JSX } from 'react'
 
 type ConfirmDialogProps = {
@@ -53,24 +53,24 @@ export function ConfirmDialog({
         aria-labelledby={titleId}
         aria-describedby={messageId}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-lg border border-slate-700 bg-slate-900 shadow-2xl"
+        className="w-full max-w-md rounded-lg border border-line bg-canvas shadow-2xl"
       >
-        <div className="px-5 py-4 border-b border-slate-800">
-          <h2 id={titleId} className="text-lg font-semibold text-slate-100">
+        <div className="px-5 py-4 border-b border-line">
+          <h2 id={titleId} className="text-lg font-semibold text-ink">
             {title}
           </h2>
         </div>
         <div className="px-5 py-4">
-          <p id={messageId} className="text-sm text-slate-300 leading-relaxed">
+          <p id={messageId} className="text-sm text-ink-2 leading-relaxed">
             {message}
           </p>
         </div>
-        <div className="px-5 py-3 border-t border-slate-800 flex justify-end gap-2">
+        <div className="px-5 py-3 border-t border-line flex justify-end gap-2">
           <button
             ref={cancelRef}
             type="button"
             onClick={onCancel}
-            className="px-3 py-1.5 text-sm rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
+            className="px-3 py-1.5 text-sm rounded bg-surface-raised hover:bg-surface-overlay text-ink"
           >
             {cancelLabel}
           </button>

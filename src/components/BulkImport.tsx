@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import type { ChangeEvent, JSX } from 'react'
 
 import { supabaseProd } from '../lib/supabase-prod'
@@ -198,18 +198,18 @@ export function BulkImport(): JSX.Element {
     <section className="space-y-6 max-w-3xl">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold">Bulk Import</h1>
-        <p className="text-slate-400">
+        <p className="text-ink-2">
           Paste JSON below, or import a <strong>.json</strong>, <strong>.csv</strong>, or{' '}
           <strong>.md</strong> file. Each item's type is detected automatically (
           {CANDIDATE_TYPES.join(', ')}). Validate the batch, then save every valid item to staging in
           one step. Missing ids are generated for you. See{' '}
-          <code className="text-slate-300">docs/schema-spec.md</code> for the CSV columns and
+          <code className="text-ink-2">docs/schema-spec.md</code> for the CSV columns and
           Markdown structure.
         </p>
       </header>
 
       <div>
-        <label className="inline-flex items-center gap-2 text-sm cursor-pointer px-3 py-1.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-100 w-fit">
+        <label className="inline-flex items-center gap-2 text-sm cursor-pointer px-3 py-1.5 rounded bg-surface-raised hover:bg-surface-overlay text-ink w-fit">
           Import file (.json, .csv, .md)
           <input
             type="file"
@@ -230,7 +230,7 @@ export function BulkImport(): JSX.Element {
           value={inputText}
           onChange={(e) => handleTextChange(e.target.value)}
           placeholder='[ { … }, { … } ]  or  { "glossary": [ … ] }'
-          className="w-full font-mono text-sm bg-slate-950 text-slate-100 placeholder-slate-500 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full font-mono text-sm bg-canvas text-ink placeholder-ink-3 border border-line rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           spellCheck={false}
         />
       </div>
@@ -248,7 +248,7 @@ export function BulkImport(): JSX.Element {
           type="button"
           onClick={() => void handleSaveValid()}
           disabled={!canSave}
-          className="px-4 py-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+          className="px-4 py-2 rounded bg-surface-raised hover:bg-surface-overlay text-ink font-medium disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isSaving ? 'Saving…' : `Save ${validItems.length} Valid to Staging`}
         </button>
@@ -262,23 +262,23 @@ export function BulkImport(): JSX.Element {
         ) : null}
 
         {parseState.kind === 'validated' ? (
-          <div className="rounded border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm space-y-1">
+          <div className="rounded border border-line bg-surface/50 px-4 py-3 text-sm space-y-1">
             <div>
               <span className="text-green-400 font-medium">{validItems.length} valid</span>
-              <span className="text-slate-500"> · </span>
+              <span className="text-ink-3"> · </span>
               <span
-                className={invalidItems.length > 0 ? 'text-red-400 font-medium' : 'text-slate-400'}
+                className={invalidItems.length > 0 ? 'text-red-400 font-medium' : 'text-ink-2'}
               >
                 {invalidItems.length} invalid
               </span>
-              <span className="text-slate-500">
+              <span className="text-ink-3">
                 {' '}
                 of {parseState.items.length} item
                 {parseState.items.length === 1 ? '' : 's'}
               </span>
             </div>
             {validItems.length > 0 ? (
-              <div className="text-slate-400">{summarizeByType(validItems)}</div>
+              <div className="text-ink-2">{summarizeByType(validItems)}</div>
             ) : null}
           </div>
         ) : null}
@@ -310,11 +310,11 @@ export function BulkImport(): JSX.Element {
               {saveState.saved.length === 1 ? '' : 's'} to staging.
             </p>
             {saveState.saved.length > 0 ? (
-              <ul className="text-xs text-slate-400 space-y-0.5">
+              <ul className="text-xs text-ink-2 space-y-0.5">
                 {saveState.saved.map((s, i) => (
                   <li key={i}>
-                    <span className="text-slate-500">{s.contentType}</span>{' '}
-                    <span className="font-mono text-slate-300">{s.contentId}</span>
+                    <span className="text-ink-3">{s.contentType}</span>{' '}
+                    <span className="font-mono text-ink-2">{s.contentId}</span>
                   </li>
                 ))}
               </ul>

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import type { JSX } from 'react'
 import { useLocation } from 'react-router-dom'
 
@@ -43,7 +43,7 @@ export function TipEditorPage(): JSX.Element {
             />
           </>
         ) : (
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-ink-3">
             Validate a tip to see its staging and production copies.
           </p>
         )}
