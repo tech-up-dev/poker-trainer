@@ -83,8 +83,11 @@ export function SignupPage(): JSX.Element {
       return
     }
 
-    // If Supabase returns a session the project has auto-confirm on.
-    // Otherwise the user must confirm via email before they can sign in.
+    // Spec: members get immediate access with no email-confirmation wait, so
+    // "Confirm email" must be OFF in the Supabase project. With it off, signUp
+    // returns a session and we go straight to /play. The setEmailSent branch is
+    // only a defensive fallback for the misconfigured (confirmations ON) case -
+    // it should never fire in a correctly configured project.
     if (data.session) {
       navigate('/play', { replace: true })
     } else {
