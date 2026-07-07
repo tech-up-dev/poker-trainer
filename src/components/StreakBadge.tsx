@@ -11,7 +11,7 @@ export function StreakBadge(): JSX.Element {
     fetchStreak()
       .then(setStreak)
       .catch(() => {
-        // Best-effort — streak display degrades gracefully.
+        // Best-effort - streak display degrades gracefully.
       })
   }, [])
 

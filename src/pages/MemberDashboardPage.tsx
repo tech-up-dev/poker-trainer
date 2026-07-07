@@ -38,7 +38,7 @@ export function MemberDashboardPage(): JSX.Element {
         setProgressMap(map)
       })
       .catch(() => {
-        // Best-effort — progress display degrades gracefully if unavailable.
+        // Best-effort - progress display degrades gracefully if unavailable.
       })
   }, [])
 
