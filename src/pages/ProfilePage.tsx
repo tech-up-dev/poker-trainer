@@ -43,7 +43,7 @@ export function ProfilePage(): JSX.Element {
     setError(null)
     try {
       const { url } = await createCheckoutSession(plan.priceId)
-      window.location.href = url
+      window.location.assign(url)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not start checkout. Please try again.')
       setCheckoutLoading(null)

@@ -50,7 +50,9 @@ export function LessonSessionPage(): JSX.Element {
   // correctness and selected answer tracked per question index in the ordered list
   const [correctMap, setCorrectMap] = useState<Record<number, boolean>>({})
   const [answeredMap, setAnsweredMap] = useState<Record<number, number>>({})
-  const questionStartedAt = useRef<number>(Date.now())
+  // Set on quiz start and on each advance; 0 is a placeholder that is never read
+  // because startQuiz stamps it before the first question renders.
+  const questionStartedAt = useRef<number>(0)
 
   useEffect(() => {
     if (!lessonId) return
@@ -99,7 +101,7 @@ export function LessonSessionPage(): JSX.Element {
         selectedAnswerIndex: selectedIndex,
         timeTakenMs,
       }).catch(() => {
-        // Best-effort — never block the quiz flow.
+        // Best-effort - never block the quiz flow.
       })
     }
     setCorrectMap((prev) => ({ ...prev, [questionIndex]: isCorrect }))
