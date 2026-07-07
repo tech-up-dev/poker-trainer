@@ -3,59 +3,57 @@
 /*
  * ─── THEME TOKENS ────────────────────────────────────────────────────────────
  *
- * Two token layers:
- *  1. Original navy/gold palette — used by all existing components (canvas,
- *     surface, ink, gold, line, etc.). Do NOT remove; existing code depends on them.
- *  2. New design-system tokens (brand-*, surface-raised/overlay/muted, felt-*,
- *     zinc-*, shadows, animations) — used by new components built in Phase 2+.
+ * Semantic layer: all component classes reference these tokens.
+ * Two themes share the same token names — dark (navy, default) and light.
+ * Toggle by adding/removing the `light` class on <html>.
  */
 
 @theme {
-  /* ── Original palette (existing components) ─────────────────────────────── */
-  --color-canvas:   #07182c;
-  --color-surface:  #0e2a47;
-  --color-elevated: #16395c;
-  --color-line:     #21466b;
-  --color-gold:     #f4a024;
-  --color-amber:    #e0901a;
-  --color-on-gold:  #0a1e33;
-  --color-ink:      #eaf1f8;
-  --color-ink-2:    #9db2c9;
-  --color-ink-3:    #6b83a0;
-  --color-link:     #5da2e0;
+  /* ── Dark theme — navy palette ───────────────────────────────────────────── */
+  --color-canvas:   #07182c;   /* deepest layer, app bg              */
+  --color-surface:  #0e2a47;   /* card / panel surface               */
+  --color-elevated: #16395c;   /* hover, active, progress track      */
+  --color-line:     #21466b;   /* card edges, dividers               */
+  --color-gold:     #f4a024;   /* CTA, progress, icons, links        */
+  --color-amber:    #e0901a;   /* deep amber — btn hover             */
+  --color-on-gold:  #0a1e33;   /* text on gold buttons               */
+  --color-ink:      #eaf1f8;   /* headings, body — off-white         */
+  --color-ink-2:    #9db2c9;   /* subtitles, lesson counts           */
+  --color-ink-3:    #6b83a0;   /* timestamps, muted hints            */
+  --color-link:     #5da2e0;   /* hyperlinks                         */
   --color-success:  #3dbe8a;
   --color-error:    #e2574b;
 
-  /* ── Brand amber scale (new design system) ──────────────────────────────── */
+  /* ── Brand scale (aliases for the gold accent) ───────────────────────────── */
   --color-brand-50:  #fffbeb;
   --color-brand-100: #fef3c7;
   --color-brand-200: #fde68a;
   --color-brand-300: #fcd34d;
-  --color-brand-400: #fbbf24;
-  --color-brand-500: #f59e0b;
-  --color-brand-600: #d97706;
+  --color-brand-400: #f7b547;
+  --color-brand-500: #f4a024;
+  --color-brand-600: #e0901a;
   --color-brand-700: #b45309;
   --color-brand-800: #92400e;
   --color-brand-900: #78350f;
   --color-brand-950: #451a03;
 
-  /* ── Dark surface scale (new design system) ─────────────────────────────── */
-  --color-surface-raised:   #1f1f23;
-  --color-surface-overlay:  #27272a;
-  --color-surface-muted:    #3f3f46;
+  /* ── Semantic surface aliases (used by component classes) ────────────────── */
+  --color-surface-raised:   #0e2a47;  /* = surface  */
+  --color-surface-overlay:  #16395c;  /* = elevated */
+  --color-surface-muted:    #21466b;  /* = line     */
 
-  /* ── Felt (poker table green) ────────────────────────────────────────────── */
+  /* ── Felt (poker table) ──────────────────────────────────────────────────── */
   --color-felt:       #1a472a;
   --color-felt-light: #2d5a3f;
   --color-felt-dark:  #0f3320;
 
-  /* ── Extended status colors ─────────────────────────────────────────────── */
+  /* ── Extended status ─────────────────────────────────────────────────────── */
   --color-success-dark:  #16a34a;
   --color-success-muted: #166534;
   --color-error-dark:    #dc2626;
   --color-error-muted:   #991b1b;
-  --color-warning:       #f59e0b;
-  --color-warning-dark:  #d97706;
+  --color-warning:       #f4a024;
+  --color-warning-dark:  #e0901a;
   --color-warning-muted: #92400e;
 
   /* ── Typography ──────────────────────────────────────────────────────────── */
@@ -76,28 +74,39 @@
   --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.5);
 
   /* ── Animations ──────────────────────────────────────────────────────────── */
-  --animate-fade-in:   fadeIn 0.2s ease-out;
-  --animate-slide-up:  slideUp 0.3s ease-out;
+  --animate-fade-in:    fadeIn 0.2s ease-out;
+  --animate-slide-up:   slideUp 0.3s ease-out;
   --animate-slide-down: slideDown 0.3s ease-out;
-  --animate-scale-in:  scaleIn 0.2s ease-out;
+  --animate-scale-in:   scaleIn 0.2s ease-out;
   --animate-pulse-slow: pulse 3s ease-in-out infinite;
 }
 
-/* Light-mode overrides for original palette */
+/* ─── LIGHT THEME OVERRIDES ──────────────────────────────────────────────────
+ * Applied when <html class="light"> is set by the theme toggle.
+ * Gold accent stays identical — only surfaces and body text flip.
+ */
 :root.light {
-  --color-canvas:   #f4f6fa;
-  --color-surface:  #ffffff;
-  --color-elevated: #f4f6fa;
-  --color-line:     #dbe2ec;
-  --color-gold:     #f4a024;
-  --color-amber:    #e0901a;
-  --color-on-gold:  #0a1e33;
-  --color-ink:      #0c2340;
-  --color-ink-2:    #4a5e78;
-  --color-ink-3:    #4a5e78;
-  --color-link:     #2e6fb8;
-  --color-success:  #1c7a55;
-  --color-error:    #a8332a;
+  --color-canvas:          #f4f6fa;
+  --color-surface:         #ffffff;
+  --color-elevated:        #f4f6fa;
+  --color-line:            #dbe2ec;
+  --color-gold:            #f4a024;
+  --color-amber:           #e0901a;
+  --color-on-gold:         #0a1e33;
+  --color-ink:             #0c2340;
+  --color-ink-2:           #4a5e78;
+  --color-ink-3:           #4a5e78;
+  --color-link:            #2e6fb8;
+  --color-success:         #1c7a55;
+  --color-error:           #a8332a;
+
+  --color-surface-raised:  #ffffff;
+  --color-surface-overlay: #f4f6fa;
+  --color-surface-muted:   #dbe2ec;
+
+  --shadow-card:    0 1px 4px rgba(12, 35, 64, 0.08);
+  --shadow-raised:  0 2px 12px rgba(12, 35, 64, 0.12);
+  --shadow-overlay: 0 4px 24px rgba(12, 35, 64, 0.16);
 }
 
 /* ─── KEYFRAMES ──────────────────────────────────────────────────────────────*/
@@ -133,15 +142,13 @@
 
   *:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px var(--color-brand-500);
+    box-shadow: 0 0 0 2px var(--color-gold);
   }
 }
 
 /* ─── COMPONENT CLASSES ──────────────────────────────────────────────────────
  *
- * Each variant is self-contained so it can be used with a single class name,
- * e.g. <button className="btn-primary"> without needing "btn btn-primary".
- * Base .btn can still be used alone for unstyled interactive elements.
+ * All classes use semantic tokens so they respond to theme switching.
  */
 
 @layer components {
@@ -152,15 +159,15 @@
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-brand-500 text-zinc-900 hover:bg-brand-400 active:bg-brand-600;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gold text-on-gold hover:bg-amber active:bg-amber;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-surface-raised text-zinc-100 hover:bg-surface-overlay border border-zinc-700;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-surface-raised text-ink hover:bg-surface-overlay border border-line;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-transparent text-zinc-300 hover:bg-surface-raised hover:text-zinc-100;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-transparent text-ink-2 hover:bg-surface-raised hover:text-ink;
   }
 
   .btn-success {
@@ -190,11 +197,11 @@
 
   /* Forms */
   .input {
-    @apply w-full px-4 py-3 bg-surface-raised border border-zinc-700 rounded-xl text-zinc-100 placeholder:text-zinc-500 focus:border-brand-500 focus:ring-1 focus:ring-brand-500 transition-colors;
+    @apply w-full px-4 py-3 bg-surface border border-line rounded-xl text-ink placeholder:text-ink-3 focus:border-gold focus:ring-1 focus:ring-gold transition-colors outline-none;
   }
 
   .label {
-    @apply block text-sm font-medium text-zinc-400 mb-2;
+    @apply block text-sm font-medium text-ink-2 mb-2;
   }
 
   /* Badges */
@@ -203,7 +210,7 @@
   }
 
   .badge-brand {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full bg-brand-500/20 text-brand-400;
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full bg-gold/20 text-gold;
   }
 
   .badge-success {
@@ -219,34 +226,34 @@
   }
 
   .badge-muted {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full bg-zinc-700/50 text-zinc-400;
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full bg-surface-muted/60 text-ink-2;
   }
 
   /* Navigation */
   .nav-item {
-    @apply flex items-center gap-2 px-4 py-3 rounded-xl text-zinc-400 hover:text-zinc-100 hover:bg-surface-raised transition-colors;
+    @apply flex items-center gap-2 px-4 py-3 rounded-xl text-ink-2 hover:text-ink hover:bg-surface-overlay transition-colors;
   }
 
   .nav-item-active {
-    @apply flex items-center gap-2 px-4 py-3 rounded-xl text-brand-500 bg-brand-500/10 hover:bg-brand-500/15 transition-colors;
+    @apply flex items-center gap-2 px-4 py-3 rounded-xl text-gold bg-gold/10 hover:bg-gold/15 transition-colors;
   }
 
   /* Filter chips */
   .chip-active {
-    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg cursor-pointer bg-brand-500 text-zinc-900 font-medium transition-colors;
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg cursor-pointer bg-gold text-on-gold font-medium transition-colors;
   }
 
   .chip-inactive {
-    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg cursor-pointer bg-surface-raised text-zinc-400 hover:text-zinc-200 hover:bg-surface-overlay transition-colors;
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg cursor-pointer bg-surface-raised text-ink-2 hover:text-ink hover:bg-surface-overlay transition-colors;
   }
 
   /* Progress */
   .progress-bar {
-    @apply h-2 bg-zinc-800 rounded-full overflow-hidden;
+    @apply h-2 bg-elevated rounded-full overflow-hidden;
   }
 
   .progress-fill {
-    @apply h-full bg-brand-500 rounded-full transition-all duration-500;
+    @apply h-full bg-gold rounded-full transition-all duration-500;
   }
 
   /* Overlays & drawers */
@@ -264,11 +271,11 @@
   }
 
   .stat-value {
-    @apply text-2xl font-bold text-zinc-100;
+    @apply text-2xl font-bold text-ink;
   }
 
   .stat-label {
-    @apply text-sm text-zinc-500;
+    @apply text-sm text-ink-3;
   }
 
   /* Poker table primitives */

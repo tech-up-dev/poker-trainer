@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 
 import { useAuth } from '../lib/auth-context'
@@ -89,12 +89,12 @@ export function ProfilePage(): JSX.Element {
     <div className="max-w-lg mx-auto space-y-6">
       {/* Account card */}
       <div className="card flex items-center gap-4">
-        <div className="w-14 h-14 rounded-full bg-brand-500/20 flex items-center justify-center shrink-0">
-          <span className="text-brand-500 font-bold text-xl">{initial}</span>
+        <div className="w-14 h-14 rounded-full bg-gold/20 flex items-center justify-center shrink-0">
+          <span className="text-gold font-bold text-xl">{initial}</span>
         </div>
         <div className="min-w-0">
-          <p className="font-semibold text-zinc-100 truncate">{email}</p>
-          <p className="text-sm text-zinc-500">Member</p>
+          <p className="font-semibold text-ink truncate">{email}</p>
+          <p className="text-sm text-ink-3">Member</p>
         </div>
       </div>
 
@@ -102,27 +102,27 @@ export function ProfilePage(): JSX.Element {
         <p className="text-sm text-error" role="alert">{error}</p>
       )}
 
-      {loading && <p className="text-sm text-zinc-500">Loading…</p>}
+      {loading && <p className="text-sm text-ink-3">Loading…</p>}
 
       {!loading && (
         <div className="space-y-4">
           {/* Subscription */}
           {entitlement !== null ? (
             <div className="card space-y-4">
-              <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
+              <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">
                 Subscription
               </p>
               <div className="space-y-3">
                 <Row label="Plan" value="Beat Small Stakes" />
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-zinc-400">Status</span>
+                  <span className="text-sm text-ink-2">Status</span>
                   <span className={statusBadgeClass(entitlement.status)}>
                     {statusLabel(entitlement.status)}
                   </span>
                 </div>
                 <Row label="Next billing" value={formatDate(entitlement.expires_at)} />
               </div>
-              <div className="pt-1 border-t border-zinc-700">
+              <div className="pt-1 border-t border-line">
                 <button
                   type="button"
                   onClick={handleManageBilling}
@@ -136,10 +136,10 @@ export function ProfilePage(): JSX.Element {
           ) : (
             <div className="card space-y-4">
               <div>
-                <p className="text-xs font-semibold text-zinc-500 uppercase tracking-widest">
+                <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">
                   Subscribe
                 </p>
-                <p className="text-sm text-zinc-400 mt-1">
+                <p className="text-sm text-ink-2 mt-1">
                   Get full access to all lessons, tips, and references.
                 </p>
               </div>
@@ -147,12 +147,12 @@ export function ProfilePage(): JSX.Element {
                 {PRICING_PLANS.map((plan) => (
                   <div
                     key={plan.id}
-                    className="border border-zinc-700 rounded-xl p-4 flex items-center justify-between gap-4 bg-surface-overlay"
+                    className="border border-line rounded-xl p-4 flex items-center justify-between gap-4 bg-surface-overlay"
                   >
                     <div>
-                      <p className="text-sm font-semibold text-zinc-100">{plan.label}</p>
-                      <p className="text-xs text-zinc-400">
-                        <span className="text-zinc-100 font-semibold text-base">{plan.price}</span>
+                      <p className="text-sm font-semibold text-ink">{plan.label}</p>
+                      <p className="text-xs text-ink-2">
+                        <span className="text-ink font-semibold text-base">{plan.price}</span>
                         {' '}{plan.period}
                       </p>
                     </div>
@@ -178,8 +178,8 @@ export function ProfilePage(): JSX.Element {
 function Row({ label, value }: { label: string; value: string }): JSX.Element {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-sm text-zinc-400">{label}</span>
-      <span className="text-sm text-zinc-100 font-medium">{value}</span>
+      <span className="text-sm text-ink-2">{label}</span>
+      <span className="text-sm text-ink font-medium">{value}</span>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { FormEvent, JSX } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Lock, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react'
@@ -44,11 +44,11 @@ export function ResetPasswordPage(): JSX.Element {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-[#18181b] flex items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm text-center space-y-4">
           <CheckCircle2 className="w-14 h-14 text-success mx-auto" />
-          <h1 className="text-xl font-bold text-zinc-100">Password updated</h1>
-          <p className="text-sm text-zinc-400">Redirecting you to sign in…</p>
+          <h1 className="text-xl font-bold text-ink">Password updated</h1>
+          <p className="text-sm text-ink-2">Redirecting you to sign in…</p>
         </div>
       </div>
     )
@@ -56,12 +56,12 @@ export function ResetPasswordPage(): JSX.Element {
 
   if (!ready) {
     return (
-      <div className="min-h-screen bg-[#18181b] flex items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm text-center space-y-4">
-          <p className="text-sm text-zinc-400">Verifying reset link…</p>
-          <p className="text-xs text-zinc-600">
+          <p className="text-sm text-ink-2">Verifying reset link…</p>
+          <p className="text-xs text-ink-3">
             If nothing happens,{' '}
-            <Link to="/forgot-password" className="text-brand-400 hover:text-brand-300 transition-colors">
+            <Link to="/forgot-password" className="text-gold hover:text-gold transition-colors">
               request a new link
             </Link>
             .
@@ -72,17 +72,17 @@ export function ResetPasswordPage(): JSX.Element {
   }
 
   return (
-    <div className="min-h-screen bg-[#18181b] flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-6">
 
         {/* Logo */}
         <div className="flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-brand-500 flex items-center justify-center shadow-lg">
-            <span className="text-2xl font-bold text-zinc-900">B</span>
+          <div className="w-14 h-14 rounded-2xl bg-gold flex items-center justify-center shadow-lg">
+            <span className="text-2xl font-bold text-on-gold">B</span>
           </div>
           <div className="text-center">
-            <h1 className="text-xl font-bold text-zinc-100">Set new password</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Choose a new password for your account.</p>
+            <h1 className="text-xl font-bold text-ink">Set new password</h1>
+            <p className="text-sm text-ink-3 mt-0.5">Choose a new password for your account.</p>
           </div>
         </div>
 
@@ -90,7 +90,7 @@ export function ResetPasswordPage(): JSX.Element {
           <div className="space-y-1.5">
             <label htmlFor="password" className="label">New password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -106,7 +106,7 @@ export function ResetPasswordPage(): JSX.Element {
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-zinc-300 transition-colors"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>

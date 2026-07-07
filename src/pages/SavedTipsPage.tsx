@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 
 import type { Tip } from '../../shared/schemas/tip'
@@ -29,16 +29,16 @@ export function SavedTipsPage(): JSX.Element {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-zinc-100">Saved Tips</h1>
-        <p className="text-sm text-zinc-500 mt-1">Tips you saved for later reference.</p>
+        <h1 className="text-xl font-bold text-ink">Saved Tips</h1>
+        <p className="text-sm text-ink-3 mt-1">Tips you saved for later reference.</p>
       </div>
 
-      {loading && <p className="text-zinc-500 text-sm">Loading…</p>}
+      {loading && <p className="text-ink-3 text-sm">Loading…</p>}
 
       {!loading && tips.length === 0 && (
         <div className="card text-center space-y-2">
-          <p className="text-zinc-100 font-medium">No saved tips yet</p>
-          <p className="text-sm text-zinc-500">
+          <p className="text-ink font-medium">No saved tips yet</p>
+          <p className="text-sm text-ink-3">
             Tap "Save" on Today's Tip to keep it here for later reference.
           </p>
         </div>
@@ -49,20 +49,20 @@ export function SavedTipsPage(): JSX.Element {
           <div key={tip.tip_id} className="card space-y-2">
             <div className="flex items-start justify-between gap-3">
               {tip.concept
-                ? <p className="text-xs text-zinc-500 font-medium">{tip.concept}</p>
+                ? <p className="text-xs text-ink-3 font-medium">{tip.concept}</p>
                 : <span />
               }
               <button
                 type="button"
                 onClick={() => handleRemove(tip.tip_id)}
-                className="text-xs text-zinc-500 hover:text-error shrink-0 transition-colors"
+                className="text-xs text-ink-3 hover:text-error shrink-0 transition-colors"
               >
                 Remove
               </button>
             </div>
-            <p className="text-sm text-zinc-100 leading-relaxed">{tip.body}</p>
+            <p className="text-sm text-ink leading-relaxed">{tip.body}</p>
             {tip.principle_tag && (
-              <p className="text-xs text-zinc-500">#{tip.principle_tag}</p>
+              <p className="text-xs text-ink-3">#{tip.principle_tag}</p>
             )}
           </div>
         ))}

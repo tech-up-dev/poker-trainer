@@ -13,7 +13,7 @@ const NAV_ITEMS = [
 export function MobileNav(): JSX.Element {
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 bg-surface-raised border-t border-zinc-800 lg:hidden z-30"
+      className="fixed bottom-0 left-0 right-0 bg-surface border-t border-line lg:hidden z-30"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       <div className="flex items-center justify-around px-2 py-2">
@@ -24,7 +24,7 @@ export function MobileNav(): JSX.Element {
             end={item.to === '/play'}
             className={({ isActive }) =>
               `flex flex-col items-center gap-1 px-3 py-2 rounded-lg min-w-[56px] transition-colors ${
-                isActive ? 'text-brand-500' : 'text-zinc-500 hover:text-zinc-300'
+                isActive ? 'text-gold' : 'text-ink-3 hover:text-ink'
               }`
             }
           >

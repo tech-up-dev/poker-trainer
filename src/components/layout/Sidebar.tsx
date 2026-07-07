@@ -41,27 +41,26 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
 
   return (
     <>
-      {/* Sidebar panel */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-surface-raised border-r border-zinc-800 flex flex-col transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-surface border-r border-line flex flex-col transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between p-4 border-b border-zinc-800">
+        <div className="flex items-center justify-between p-4 border-b border-line">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-brand-500 flex items-center justify-center shrink-0">
-              <span className="text-lg font-bold text-zinc-900">B</span>
+            <div className="w-10 h-10 rounded-xl bg-gold flex items-center justify-center shrink-0">
+              <span className="text-lg font-bold text-on-gold">B</span>
             </div>
             <div>
-              <h1 className="font-bold text-base text-zinc-100 leading-tight">Beat Small Stakes</h1>
-              <p className="text-xs text-zinc-500">Poker Training</p>
+              <h1 className="font-bold text-base text-ink leading-tight">Beat Small Stakes</h1>
+              <p className="text-xs text-ink-3">Poker Training</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="lg:hidden p-2 rounded-lg hover:bg-surface-overlay text-zinc-400 transition-colors"
+            className="lg:hidden p-2 rounded-lg hover:bg-surface-overlay text-ink-2 transition-colors"
             aria-label="Close menu"
           >
             <X className="w-5 h-5" />
@@ -85,22 +84,22 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
         </nav>
 
         {/* User + sign out */}
-        <div className="p-3 border-t border-zinc-800 space-y-2">
+        <div className="p-3 border-t border-line space-y-2">
           <NavLink
             to="/play/profile"
             onClick={onClose}
             className={({ isActive }) => isActive ? 'nav-item-active' : 'nav-item'}
           >
-            <div className="w-8 h-8 rounded-full bg-brand-500/20 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center shrink-0">
               {initial ? (
-                <span className="text-brand-500 font-semibold text-sm">{initial}</span>
+                <span className="text-gold font-semibold text-sm">{initial}</span>
               ) : (
-                <User className="w-4 h-4 text-brand-500" />
+                <User className="w-4 h-4 text-gold" />
               )}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-zinc-100 truncate">{email}</p>
-              <p className="text-xs text-zinc-500">Profile</p>
+              <p className="text-sm font-medium text-ink truncate">{email}</p>
+              <p className="text-xs text-ink-3">Profile</p>
             </div>
           </NavLink>
 

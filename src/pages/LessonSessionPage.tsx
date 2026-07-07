@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+﻿import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { JSX } from 'react'
 import { X, CheckCircle2 } from 'lucide-react'
@@ -138,15 +138,15 @@ export function LessonSessionPage(): JSX.Element {
 
   if (phase.kind === 'loading') {
     return (
-      <div className="min-h-screen bg-[#18181b] flex items-center justify-center">
-        <p className="text-zinc-500 text-sm">Loading lesson…</p>
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <p className="text-ink-3 text-sm">Loading lesson…</p>
       </div>
     )
   }
 
   if (phase.kind === 'error') {
     return (
-      <div className="min-h-screen bg-[#18181b] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-canvas flex items-center justify-center px-4">
         <p className="text-error text-sm text-center">{phase.message}</p>
       </div>
     )
@@ -157,12 +157,12 @@ export function LessonSessionPage(): JSX.Element {
   // ── Intro screen ──────────────────────────────────────────────────────────
   if (phase.kind === 'intro') {
     return (
-      <div className="min-h-screen bg-[#18181b] text-zinc-100 px-4 py-10">
+      <div className="min-h-screen bg-canvas text-ink px-4 py-10">
         <div className="max-w-md mx-auto space-y-6">
           <button
             type="button"
             onClick={() => navigate('/play')}
-            className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="flex items-center gap-2 text-sm text-ink-2 hover:text-zinc-200 transition-colors"
           >
             <X className="w-4 h-4" />
             Back to lessons
@@ -170,26 +170,26 @@ export function LessonSessionPage(): JSX.Element {
 
           <div className="space-y-2">
             {lesson.difficulty && (
-              <span className="inline-block text-xs font-semibold uppercase tracking-widest text-brand-500 bg-brand-500/10 px-2.5 py-1 rounded-full">
+              <span className="inline-block text-xs font-semibold uppercase tracking-widest text-gold bg-gold/10 px-2.5 py-1 rounded-full">
                 {DIFFICULTY_LABEL[lesson.difficulty] ?? lesson.difficulty}
               </span>
             )}
-            <h1 className="text-2xl font-bold text-zinc-100">{lesson.title}</h1>
+            <h1 className="text-2xl font-bold text-ink">{lesson.title}</h1>
             {lesson.concept && (
-              <p className="text-base text-zinc-400 leading-relaxed">{lesson.concept}</p>
+              <p className="text-base text-ink-2 leading-relaxed">{lesson.concept}</p>
             )}
           </div>
 
           <div className="card space-y-2">
-            <p className="text-sm text-zinc-400">
-              <span className="font-semibold text-zinc-100">
+            <p className="text-sm text-ink-2">
+              <span className="font-semibold text-ink">
                 {lesson.questions.length} question{lesson.questions.length !== 1 ? 's' : ''}
               </span>{' '}
               · tap each answer, read the feedback, then continue
             </p>
             {lesson.principle_tag && (
-              <p className="text-xs text-zinc-500">
-                Principle: <span className="text-zinc-400">{lesson.principle_tag}</span>
+              <p className="text-xs text-ink-3">
+                Principle: <span className="text-ink-2">{lesson.principle_tag}</span>
               </p>
             )}
           </div>
@@ -203,13 +203,13 @@ export function LessonSessionPage(): JSX.Element {
                 onChange={(e) => setRandomise(e.target.checked)}
               />
               <div
-                className={`w-10 h-6 rounded-full transition-colors ${randomise ? 'bg-brand-500' : 'bg-zinc-700'}`}
+                className={`w-10 h-6 rounded-full transition-colors ${randomise ? 'bg-gold' : 'bg-elevated'}`}
               />
               <div
                 className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${randomise ? 'translate-x-5' : 'translate-x-1'}`}
               />
             </div>
-            <span className="text-sm text-zinc-400">Randomise question order</span>
+            <span className="text-sm text-ink-2">Randomise question order</span>
           </label>
 
           <button
@@ -231,15 +231,15 @@ export function LessonSessionPage(): JSX.Element {
     const total = orderedQuestions.length
 
     return (
-      <div className="min-h-screen bg-[#18181b] flex flex-col">
+      <div className="min-h-screen bg-canvas flex flex-col">
         {/* Sticky header */}
-        <div className="sticky top-0 z-20 bg-[#18181b]/95 backdrop-blur-sm border-b border-zinc-800 px-4 py-3">
+        <div className="sticky top-0 z-20 bg-canvas/95 backdrop-blur-sm border-b border-line px-4 py-3">
           <div className="max-w-md mx-auto flex items-center gap-3">
             <button
               type="button"
               onClick={() => navigate('/play')}
               aria-label="Exit lesson"
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-zinc-800 hover:bg-zinc-700 text-zinc-400 transition-colors shrink-0"
+              className="w-8 h-8 flex items-center justify-center rounded-full bg-surface hover:bg-elevated text-ink-2 transition-colors shrink-0"
             >
               <X className="w-4 h-4" />
             </button>
@@ -249,15 +249,15 @@ export function LessonSessionPage(): JSX.Element {
                   key={i}
                   className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
                     i < questionIndex
-                      ? 'bg-brand-500'
+                      ? 'bg-gold'
                       : i === questionIndex
-                      ? 'bg-brand-500/60'
-                      : 'bg-zinc-700'
+                      ? 'bg-gold/60'
+                      : 'bg-elevated'
                   }`}
                 />
               ))}
             </div>
-            <span className="text-xs text-zinc-500 shrink-0">
+            <span className="text-xs text-ink-3 shrink-0">
               {questionIndex + 1}/{total}
             </span>
           </div>
@@ -267,7 +267,7 @@ export function LessonSessionPage(): JSX.Element {
         <div className="flex-1 overflow-y-auto">
           <div className="max-w-md mx-auto px-4 py-5 space-y-5 pb-8">
             <div className="card-elevated space-y-4">
-              <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">Scenario</p>
+              <p className="text-xs font-semibold uppercase tracking-widest text-ink-3">Scenario</p>
               <QuestionCard
                 key={question.question_id}
                 question={question}
@@ -298,7 +298,7 @@ export function LessonSessionPage(): JSX.Element {
   const passed = pct >= 70
 
   return (
-    <div className="min-h-screen bg-[#18181b] text-zinc-100 px-4 py-10">
+    <div className="min-h-screen bg-canvas text-ink px-4 py-10">
       <div className="max-w-md mx-auto space-y-6">
         {/* Score card */}
         <div className="card text-center space-y-5">
@@ -311,19 +311,19 @@ export function LessonSessionPage(): JSX.Element {
             }
           </div>
           <div className="space-y-1">
-            <h2 className="text-xl font-bold text-zinc-100">
+            <h2 className="text-xl font-bold text-ink">
               {passed ? 'Lesson complete!' : 'Keep practising'}
             </h2>
-            <p className="text-zinc-500 text-sm">{lesson.title}</p>
+            <p className="text-ink-3 text-sm">{lesson.title}</p>
           </div>
-          <div className="bg-zinc-900 rounded-xl p-4 space-y-3">
-            <div className={`text-4xl font-bold ${passed ? 'text-brand-500' : 'text-error'}`}>{pct}%</div>
-            <p className="text-sm text-zinc-400">
+          <div className="bg-canvas rounded-xl p-4 space-y-3">
+            <div className={`text-4xl font-bold ${passed ? 'text-gold' : 'text-error'}`}>{pct}%</div>
+            <p className="text-sm text-ink-2">
               {correct} correct out of {total} question{total !== 1 ? 's' : ''}
             </p>
-            <div className="h-2 rounded-full bg-zinc-700 overflow-hidden">
+            <div className="h-2 rounded-full bg-elevated overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${passed ? 'bg-brand-500' : 'bg-error'}`}
+                className={`h-full rounded-full transition-all ${passed ? 'bg-gold' : 'bg-error'}`}
                 style={{ width: `${pct}%` }}
               />
             </div>
@@ -333,7 +333,7 @@ export function LessonSessionPage(): JSX.Element {
         {/* Missed questions review */}
         {missed.length > 0 && (
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-zinc-400 uppercase tracking-widest">
+            <h3 className="text-sm font-semibold text-ink-2 uppercase tracking-widest">
               Review · {missed.length} missed
             </h3>
             {missed.map(({ question, selectedIndex }, i) => {
@@ -345,7 +345,7 @@ export function LessonSessionPage(): JSX.Element {
                   key={`${question.question_id}-${i}`}
                   className="card space-y-4"
                 >
-                  <p className="text-sm font-medium text-zinc-100 leading-relaxed">
+                  <p className="text-sm font-medium text-ink leading-relaxed">
                     {linkifyGlossaryTerms(question.prompt, question.glossary_terms)}
                   </p>
 
@@ -354,11 +354,11 @@ export function LessonSessionPage(): JSX.Element {
                       ✕
                     </span>
                     <div className="space-y-1">
-                      <p className="text-sm font-medium text-zinc-100">
-                        <span className="text-zinc-400 font-semibold mr-1">{LETTERS[selectedIndex]}</span>
+                      <p className="text-sm font-medium text-ink">
+                        <span className="text-ink-2 font-semibold mr-1">{LETTERS[selectedIndex]}</span>
                         {wrongAnswer.text}
                       </p>
-                      <p className="text-sm text-zinc-400 leading-relaxed">
+                      <p className="text-sm text-ink-2 leading-relaxed">
                         {linkifyGlossaryTerms(wrongAnswer.explanation, question.glossary_terms)}
                       </p>
                     </div>
@@ -370,11 +370,11 @@ export function LessonSessionPage(): JSX.Element {
                         ✓
                       </span>
                       <div className="space-y-1">
-                        <p className="text-sm font-medium text-zinc-100">
-                          <span className="text-zinc-400 font-semibold mr-1">{LETTERS[correctIndex]}</span>
+                        <p className="text-sm font-medium text-ink">
+                          <span className="text-ink-2 font-semibold mr-1">{LETTERS[correctIndex]}</span>
                           {correctAnswer.text}
                         </p>
-                        <p className="text-sm text-zinc-400 leading-relaxed">
+                        <p className="text-sm text-ink-2 leading-relaxed">
                           {linkifyGlossaryTerms(correctAnswer.explanation, question.glossary_terms)}
                         </p>
                       </div>

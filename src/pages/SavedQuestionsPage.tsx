@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { JSX } from 'react'
 
@@ -53,16 +53,16 @@ export function SavedQuestionsPage(): JSX.Element {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-zinc-100">Saved Questions</h1>
-        <p className="text-sm text-zinc-500 mt-1">Questions you bookmarked for later review.</p>
+        <h1 className="text-xl font-bold text-ink">Saved Questions</h1>
+        <p className="text-sm text-ink-3 mt-1">Questions you bookmarked for later review.</p>
       </div>
 
-      {loading && <p className="text-zinc-500 text-sm">Loading…</p>}
+      {loading && <p className="text-ink-3 text-sm">Loading…</p>}
 
       {!loading && entries.length === 0 && (
         <div className="card text-center space-y-2">
-          <p className="text-zinc-100 font-medium">No saved questions yet</p>
-          <p className="text-sm text-zinc-500">
+          <p className="text-ink font-medium">No saved questions yet</p>
+          <p className="text-sm text-ink-3">
             Tap "Save for later" inside any lesson's feedback to bookmark a question here.
           </p>
         </div>
@@ -77,19 +77,19 @@ export function SavedQuestionsPage(): JSX.Element {
               className="card space-y-3"
             >
               <div className="flex items-start justify-between gap-3">
-                <p className="text-xs font-semibold text-brand-400 uppercase tracking-widest">
+                <p className="text-xs font-semibold text-gold uppercase tracking-widest">
                   {lesson.title}
                 </p>
                 <button
                   type="button"
                   onClick={() => handleRemove(lesson.lesson_id, question.question_id)}
-                  className="text-xs text-zinc-500 hover:text-error shrink-0 transition-colors"
+                  className="text-xs text-ink-3 hover:text-error shrink-0 transition-colors"
                 >
                   Remove
                 </button>
               </div>
 
-              <p className="text-sm font-medium text-zinc-100 leading-relaxed">
+              <p className="text-sm font-medium text-ink leading-relaxed">
                 {linkifyGlossaryTerms(question.prompt, question.glossary_terms)}
               </p>
 
@@ -97,13 +97,13 @@ export function SavedQuestionsPage(): JSX.Element {
                 <div className="flex gap-3 p-3 rounded-xl bg-success/10 border border-success/20">
                   <span
                     aria-hidden="true"
-                    className="w-6 h-6 mt-0.5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-success text-zinc-900"
+                    className="w-6 h-6 mt-0.5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 bg-success text-on-gold"
                   >
                     ✓
                   </span>
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-zinc-100">{correctAnswer.text}</p>
-                    <p className="text-sm text-zinc-400 leading-relaxed">
+                    <p className="text-sm font-medium text-ink">{correctAnswer.text}</p>
+                    <p className="text-sm text-ink-2 leading-relaxed">
                       {linkifyGlossaryTerms(correctAnswer.explanation, question.glossary_terms)}
                     </p>
                   </div>
@@ -113,7 +113,7 @@ export function SavedQuestionsPage(): JSX.Element {
               <button
                 type="button"
                 onClick={() => navigate(`/play/lessons/${lesson.lesson_id}`)}
-                className="text-xs text-brand-400 hover:text-brand-300 transition-colors"
+                className="text-xs text-gold hover:text-gold transition-colors"
               >
                 Practice this lesson →
               </button>

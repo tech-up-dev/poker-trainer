@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import type { FormEvent, JSX } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react'
@@ -56,19 +56,19 @@ export function SignupPage(): JSX.Element {
 
   if (emailSent) {
     return (
-      <div className="min-h-screen bg-[#18181b] flex items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm space-y-6 text-center">
           <CheckCircle2 className="w-14 h-14 text-success mx-auto" />
           <div className="space-y-2">
-            <h1 className="text-xl font-bold text-zinc-100">Check your email</h1>
-            <p className="text-sm text-zinc-400">
+            <h1 className="text-xl font-bold text-ink">Check your email</h1>
+            <p className="text-sm text-ink-2">
               We sent a confirmation link to{' '}
-              <span className="text-zinc-100 font-medium">{email}</span>. Click it to activate your account.
+              <span className="text-ink font-medium">{email}</span>. Click it to activate your account.
             </p>
           </div>
           <Link
             to="/login"
-            className="inline-block text-sm text-brand-400 hover:text-brand-300 transition-colors"
+            className="inline-block text-sm text-gold hover:text-gold transition-colors"
           >
             Back to sign in
           </Link>
@@ -78,17 +78,17 @@ export function SignupPage(): JSX.Element {
   }
 
   return (
-    <div className="min-h-screen bg-[#18181b] flex items-center justify-center px-4 py-12">
+    <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-sm space-y-6">
 
         {/* Logo */}
         <div className="flex flex-col items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-brand-500 flex items-center justify-center shadow-lg">
-            <span className="text-2xl font-bold text-zinc-900">B</span>
+          <div className="w-14 h-14 rounded-2xl bg-gold flex items-center justify-center shadow-lg">
+            <span className="text-2xl font-bold text-on-gold">B</span>
           </div>
           <div className="text-center">
-            <h1 className="text-xl font-bold text-zinc-100">Beat Small Stakes</h1>
-            <p className="text-sm text-zinc-500 mt-0.5">Create your account</p>
+            <h1 className="text-xl font-bold text-ink">Beat Small Stakes</h1>
+            <p className="text-sm text-ink-3 mt-0.5">Create your account</p>
           </div>
         </div>
 
@@ -99,7 +99,7 @@ export function SignupPage(): JSX.Element {
           <div className="space-y-1.5">
             <label htmlFor="email" className="label">Email</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
               <input
                 id="email"
                 type="email"
@@ -117,7 +117,7 @@ export function SignupPage(): JSX.Element {
           <div className="space-y-1.5">
             <label htmlFor="password" className="label">Password</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 pointer-events-none" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
@@ -133,7 +133,7 @@ export function SignupPage(): JSX.Element {
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-3 hover:text-zinc-300 transition-colors"
               >
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
@@ -149,11 +149,11 @@ export function SignupPage(): JSX.Element {
                 setAgeVerified(e.target.checked)
                 if (error) setError(null)
               }}
-              className="mt-0.5 h-4 w-4 rounded border-zinc-600 accent-brand-500 flex-shrink-0"
+              className="mt-0.5 h-4 w-4 rounded border-zinc-600 accent-gold flex-shrink-0"
             />
-            <span className="text-sm text-zinc-400 leading-snug">
+            <span className="text-sm text-ink-2 leading-snug">
               I confirm I am{' '}
-              <span className="text-zinc-100 font-medium">18 years of age or older</span>
+              <span className="text-ink font-medium">18 years of age or older</span>
             </span>
           </label>
 
@@ -171,9 +171,9 @@ export function SignupPage(): JSX.Element {
             )}
           </button>
 
-          <p className="text-center text-sm text-zinc-500">
+          <p className="text-center text-sm text-ink-3">
             Already have an account?{' '}
-            <Link to="/login" className="text-brand-400 hover:text-brand-300 transition-colors font-medium">
+            <Link to="/login" className="text-gold hover:text-gold transition-colors font-medium">
               Sign in
             </Link>
           </p>

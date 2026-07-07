@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
@@ -31,15 +31,15 @@ function ReferenceCard({ entry }: { entry: Reference }): JSX.Element {
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between px-5 py-4 text-left gap-3 hover:bg-surface-overlay transition-colors"
       >
-        <span className="text-sm font-semibold text-zinc-100">{entry.title}</span>
+        <span className="text-sm font-semibold text-ink">{entry.title}</span>
         {open
-          ? <ChevronUp className="w-4 h-4 text-zinc-500 shrink-0" />
-          : <ChevronDown className="w-4 h-4 text-zinc-500 shrink-0" />
+          ? <ChevronUp className="w-4 h-4 text-ink-3 shrink-0" />
+          : <ChevronDown className="w-4 h-4 text-ink-3 shrink-0" />
         }
       </button>
 
       {open && (
-        <div className="border-t border-zinc-700 px-5 py-4">
+        <div className="border-t border-line px-5 py-4">
           <div
             className="prose-reference"
             dangerouslySetInnerHTML={{ __html: html }}
@@ -85,16 +85,16 @@ export function ReferencesLibraryPage(): JSX.Element {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-xl font-bold text-zinc-100">References</h1>
-        <p className="text-sm text-zinc-500 mt-1">Cheat sheets and methodology guides.</p>
+        <h1 className="text-xl font-bold text-ink">References</h1>
+        <p className="text-sm text-ink-3 mt-1">Cheat sheets and methodology guides.</p>
       </div>
 
-      {loading && <p className="text-zinc-500 text-sm">Loading…</p>}
+      {loading && <p className="text-ink-3 text-sm">Loading…</p>}
 
       {!loading && references.length === 0 && (
         <div className="card text-center space-y-2">
-          <p className="text-zinc-100 font-medium">No references published yet</p>
-          <p className="text-sm text-zinc-500">
+          <p className="text-ink font-medium">No references published yet</p>
+          <p className="text-sm text-ink-3">
             The client can add cheat sheets and methodology guides via the CMS.
           </p>
         </div>
@@ -102,7 +102,7 @@ export function ReferencesLibraryPage(): JSX.Element {
 
       {orderedKeys.map((key) => (
         <div key={key} className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-brand-500">
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-gold">
             {CATEGORY_LABEL[key] ?? 'General'}
           </h2>
           {grouped.get(key)!.map((ref) => (

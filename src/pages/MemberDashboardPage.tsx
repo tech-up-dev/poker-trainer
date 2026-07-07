@@ -10,7 +10,7 @@ import type { LessonProgress } from '../lib/progress'
 
 const DIFFICULTY_COLOR: Record<string, string> = {
   beginner: 'text-success',
-  intermediate: 'text-brand-400',
+  intermediate: 'text-gold',
   advanced: 'text-error',
 }
 
@@ -43,14 +43,14 @@ export function MemberDashboardPage(): JSX.Element {
       <TodaysTip />
 
       <div>
-        <h2 className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-3">
+        <h2 className="text-xs font-semibold text-ink-2 uppercase tracking-widest mb-3">
           Lessons
         </h2>
 
-        {loading && <p className="text-zinc-400 text-sm">Loading lessons…</p>}
+        {loading && <p className="text-ink-2 text-sm">Loading lessons…</p>}
         {error && <p className="text-error text-sm">{error}</p>}
         {!loading && !error && lessons.length === 0 && (
-          <p className="text-zinc-500 text-sm">No lessons published yet.</p>
+          <p className="text-ink-3 text-sm">No lessons published yet.</p>
         )}
 
         <div className="space-y-3">
@@ -78,8 +78,8 @@ function LessonCard({
   onStart: () => void
 }): JSX.Element {
   const diffColor = lesson.difficulty
-    ? (DIFFICULTY_COLOR[lesson.difficulty] ?? 'text-zinc-400')
-    : 'text-zinc-400'
+    ? (DIFFICULTY_COLOR[lesson.difficulty] ?? 'text-ink-2')
+    : 'text-ink-2'
 
   const pct = progress && progress.questionsAnswered > 0
     ? Math.round((progress.questionsCorrect / progress.questionsAnswered) * 100)
@@ -98,15 +98,15 @@ function LessonCard({
             <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
               progress.completed
                 ? 'bg-success/20 text-success'
-                : 'bg-brand-500/20 text-brand-400'
+                : 'bg-gold/20 text-gold'
             }`}>
               {progress.completed ? `Completed ${pct}%` : `In progress ${pct}%`}
             </span>
           )}
         </div>
-        <h3 className="text-base font-semibold text-zinc-100">{lesson.title}</h3>
+        <h3 className="text-base font-semibold text-ink">{lesson.title}</h3>
         {lesson.concept && (
-          <p className="text-sm text-zinc-400 leading-relaxed line-clamp-2">{lesson.concept}</p>
+          <p className="text-sm text-ink-2 leading-relaxed line-clamp-2">{lesson.concept}</p>
         )}
       </div>
 
@@ -114,7 +114,7 @@ function LessonCard({
         <div className="progress-bar">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
-              progress.completed ? 'bg-success' : 'bg-brand-500'
+              progress.completed ? 'bg-success' : 'bg-gold'
             }`}
             style={{ width: `${pct ?? 0}%` }}
           />
@@ -122,7 +122,7 @@ function LessonCard({
       )}
 
       <div className="flex items-center justify-between">
-        <span className="text-xs text-zinc-500">
+        <span className="text-xs text-ink-3">
           {lesson.questions.length} question{lesson.questions.length !== 1 ? 's' : ''}
         </span>
         <button

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import type { JSX } from 'react'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
@@ -51,7 +51,7 @@ export function QuestionCard({ question, lessonId, onContinue }: QuestionCardPro
     const isSelected = selectedIndex === index
 
     if (!locked) {
-      return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-surface-raised border-zinc-700 hover:border-brand-500 hover:bg-surface-overlay active:scale-[0.98]'
+      return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-surface-raised border-line hover:border-gold hover:bg-surface-overlay active:scale-[0.98]'
     }
 
     if (isSelected && answer.is_correct) {
@@ -63,17 +63,17 @@ export function QuestionCard({ question, lessonId, onContinue }: QuestionCardPro
     if (!isSelected && answer.is_correct) {
       return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-success/10 border-success/50'
     }
-    return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-surface-raised border-zinc-700 opacity-60'
+    return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-surface-raised border-line opacity-60'
   }
 
   function getLetterBadgeClass(index: number): string {
     const answer = question.answers[index]
     const isSelected = selectedIndex === index
 
-    if (!locked) return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-zinc-800 text-zinc-400'
+    if (!locked) return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-surface text-ink-2'
     if (answer.is_correct) return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-success text-white'
     if (isSelected) return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-error text-white'
-    return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-zinc-800 text-zinc-600'
+    return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-surface text-ink-3'
   }
 
   return (
@@ -82,11 +82,11 @@ export function QuestionCard({ question, lessonId, onContinue }: QuestionCardPro
         <PokerTable tableState={question.table_state} />
       ) : null}
 
-      <p className="text-xl font-semibold text-zinc-100 leading-snug">
+      <p className="text-xl font-semibold text-ink leading-snug">
         {linkifyGlossaryTerms(question.prompt, question.glossary_terms)}
       </p>
 
-      <p className="text-sm font-medium text-zinc-400">Choose your action:</p>
+      <p className="text-sm font-medium text-ink-2">Choose your action:</p>
 
       <div className="space-y-3">
         {question.answers.map((answer, i) => (
@@ -108,7 +108,7 @@ export function QuestionCard({ question, lessonId, onContinue }: QuestionCardPro
                   LETTERS[i]
                 )}
               </span>
-              <p className="text-base font-medium text-zinc-100">{answer.text}</p>
+              <p className="text-base font-medium text-ink">{answer.text}</p>
             </div>
           </button>
         ))}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 
 import type { Tip } from '../../shared/schemas/tip'
@@ -28,10 +28,10 @@ export function TodaysTip(): JSX.Element {
   if (loading) {
     return (
       <div className="card">
-        <p className="text-xs font-semibold uppercase tracking-widest text-brand-500 mb-2">
+        <p className="text-xs font-semibold uppercase tracking-widest text-gold mb-2">
           Today's Tip
         </p>
-        <p className="text-sm text-zinc-500">Loading…</p>
+        <p className="text-sm text-ink-3">Loading…</p>
       </div>
     )
   }
@@ -41,25 +41,25 @@ export function TodaysTip(): JSX.Element {
   return (
     <div className="card space-y-3">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-widest text-brand-500">
+        <p className="text-xs font-semibold uppercase tracking-widest text-gold">
           Today's Tip
         </p>
         {tip.tip_id && (
           <button
             type="button"
             onClick={handleSave}
-            className="text-xs font-medium shrink-0 transition-colors text-zinc-500 hover:text-brand-400"
+            className="text-xs font-medium shrink-0 transition-colors text-ink-3 hover:text-gold"
           >
             {isSaved ? 'Saved ✓' : 'Save'}
           </button>
         )}
       </div>
       {tip.concept && (
-        <p className="text-xs text-zinc-500 font-medium">{tip.concept}</p>
+        <p className="text-xs text-ink-3 font-medium">{tip.concept}</p>
       )}
-      <p className="text-sm text-zinc-100 leading-relaxed">{tip.body}</p>
+      <p className="text-sm text-ink leading-relaxed">{tip.body}</p>
       {tip.principle_tag && (
-        <p className="text-xs text-zinc-500">#{tip.principle_tag}</p>
+        <p className="text-xs text-ink-3">#{tip.principle_tag}</p>
       )}
     </div>
   )

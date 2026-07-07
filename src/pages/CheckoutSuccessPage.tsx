@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { JSX } from 'react'
 import { CheckCircle2, Loader2 } from 'lucide-react'
@@ -29,14 +29,14 @@ export function CheckoutSuccessPage(): JSX.Element {
   }, [phase, navigate])
 
   return (
-    <div className="min-h-screen bg-[#18181b] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-canvas flex items-center justify-center px-4">
       <div className="card w-full max-w-sm text-center space-y-5">
         {phase === 'polling' && (
           <>
-            <Loader2 className="w-12 h-12 text-brand-500 animate-spin mx-auto" />
+            <Loader2 className="w-12 h-12 text-gold animate-spin mx-auto" />
             <div>
-              <h1 className="text-xl font-bold text-zinc-100">Confirming your subscription</h1>
-              <p className="text-sm text-zinc-500 mt-1">This usually takes a few seconds…</p>
+              <h1 className="text-xl font-bold text-ink">Confirming your subscription</h1>
+              <p className="text-sm text-ink-3 mt-1">This usually takes a few seconds…</p>
             </div>
           </>
         )}
@@ -45,20 +45,20 @@ export function CheckoutSuccessPage(): JSX.Element {
           <>
             <CheckCircle2 className="w-12 h-12 text-success mx-auto" />
             <div>
-              <h1 className="text-xl font-bold text-zinc-100">You're all set!</h1>
-              <p className="text-sm text-zinc-500 mt-1">Redirecting to your lessons…</p>
+              <h1 className="text-xl font-bold text-ink">You're all set!</h1>
+              <p className="text-sm text-ink-3 mt-1">Redirecting to your lessons…</p>
             </div>
           </>
         )}
 
         {phase === 'timeout' && (
           <>
-            <div className="w-12 h-12 rounded-full bg-brand-500/20 flex items-center justify-center mx-auto">
-              <span className="text-brand-500 font-bold text-xl">!</span>
+            <div className="w-12 h-12 rounded-full bg-gold/20 flex items-center justify-center mx-auto">
+              <span className="text-gold font-bold text-xl">!</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-zinc-100">Almost there</h1>
-              <p className="text-sm text-zinc-500 mt-1">
+              <h1 className="text-xl font-bold text-ink">Almost there</h1>
+              <p className="text-sm text-ink-3 mt-1">
                 Payment received — your access may take a moment to activate.
               </p>
             </div>
