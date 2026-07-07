@@ -20,8 +20,8 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { to: '/play',            icon: Home,     label: 'Dashboard' },
-  { to: '/play/lessons',    icon: BookOpen, label: 'Lessons' },
+  { to: '/play',            icon: Home,     label: 'Trainer' },
+  { to: '/play/lessons',    icon: BookOpen, label: 'Path' },
   { to: '/play/glossary',   icon: BookText, label: 'Glossary' },
   { to: '/play/library',    icon: Library,  label: 'Library' },
   { to: '/play/stats',      icon: BarChart3,label: 'Stats' },
@@ -47,7 +47,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
         }`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between p-4 border-b border-line">
+        <div className="flex items-center justify-between px-4 border-b border-line h-[72px]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gold flex items-center justify-center shrink-0">
               <span className="text-lg font-bold text-on-gold">B</span>

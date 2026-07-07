@@ -19,8 +19,11 @@ import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { TableBuilderPage } from './pages/TableBuilderPage'
 import { AuthoringWizardPage } from './pages/AuthoringWizardPage'
 import { MemberDashboardPage } from './pages/MemberDashboardPage'
+import { LessonsPage } from './pages/LessonsPage'
 import { LessonSessionPage } from './pages/LessonSessionPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { GlossaryPage } from './pages/GlossaryPage'
+import { StatsPage } from './pages/StatsPage'
 import { SavedQuestionsPage } from './pages/SavedQuestionsPage'
 import { SavedTipsPage } from './pages/SavedTipsPage'
 import { ReferencesLibraryPage } from './pages/ReferencesLibraryPage'
@@ -63,10 +66,10 @@ export const router = createBrowserRouter([
         element: <MemberLayout />,
         children: [
           { path: '/play',                  element: <MemberDashboardPage /> },
-          { path: '/play/lessons',          element: <MemberDashboardPage /> },
-          { path: '/play/glossary',         element: <GlossaryDrawerProvider><SavedQuestionsPage /></GlossaryDrawerProvider> },
+          { path: '/play/lessons',          element: <LessonsPage /> },
+          { path: '/play/glossary',         element: <GlossaryPage /> },
           { path: '/play/library',          element: <ReferencesLibraryPage /> },
-          { path: '/play/stats',            element: <ProfilePage /> },
+          { path: '/play/stats',            element: <StatsPage /> },
           { path: '/play/profile',          element: <ProfilePage /> },
           { path: '/play/saved-questions',  element: <GlossaryDrawerProvider><SavedQuestionsPage /></GlossaryDrawerProvider> },
           { path: '/play/saved-tips',       element: <SavedTipsPage /> },
