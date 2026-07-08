@@ -656,7 +656,15 @@ function StepReview({
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-export function AuthoringWizardPage(): JSX.Element {
+// `embedded` renders the wizard inside a modal (no full-screen height, and the
+// header action closes the modal instead of navigating away).
+export function AuthoringWizardPage({
+  embedded = false,
+  onExit,
+}: {
+  embedded?: boolean
+  onExit?: () => void
+} = {}): JSX.Element {
   const navigate = useNavigate()
 
   // Step 1 state
@@ -836,7 +844,10 @@ export function AuthoringWizardPage(): JSX.Element {
   const showContinue = step !== 'review'
 
   return (
-    <div className="min-h-screen space-y-8 max-w-2xl" style={{ color: '#EAF1F8' }}>
+    <div
+      className={`${embedded ? '' : 'min-h-screen'} space-y-8 max-w-2xl`}
+      style={{ color: '#EAF1F8' }}
+    >
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -847,10 +858,10 @@ export function AuthoringWizardPage(): JSX.Element {
         </div>
         <button
           type="button"
-          onClick={() => navigate('/admin')}
+          onClick={() => (embedded && onExit ? onExit() : navigate('/admin'))}
           className="text-sm text-[#9DB2C9] hover:text-[#EAF1F8] shrink-0 mt-1"
         >
-          ← Back to admin
+          {embedded ? '✕ Close' : '← Back to admin'}
         </button>
       </div>
 

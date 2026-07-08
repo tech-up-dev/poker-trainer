@@ -6,6 +6,7 @@ import { supabaseProd } from '../lib/supabase-prod'
 import { validateLesson } from '../lib/validate'
 import { fetchStagingGlossaryTerms, fetchProdGlossaryTerms } from '../lib/glossary-terms'
 import { AddQuestionModal } from './AddQuestionModal'
+import { WizardModal } from './WizardModal'
 
 // Binds a table built in the Table Builder directly onto an existing staging
 // lesson's question, so authors no longer copy the JSON by hand. Two selects
@@ -35,6 +36,7 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
   const [savedSignature, setSavedSignature] = useState<string | null>(null)
 
   const [modalOpen, setModalOpen] = useState(false)
+  const [wizardOpen, setWizardOpen] = useState(false)
 
   // Pure fetch (no setState) plus a separate applier, so the mount effect only
   // ever setStates inside a .then callback (react-hooks/set-state-in-effect).
@@ -176,15 +178,14 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
           >
             ↻ Refresh
           </button>
-          <a
-            href="/admin/wizard"
-            target="_blank"
-            rel="noreferrer"
+          <button
+            type="button"
+            onClick={() => setWizardOpen(true)}
             className="text-[12px] px-2 py-1 rounded"
             style={{ background: '#07182C', border, color: muted }}
           >
             + New lesson (wizard)
-          </a>
+          </button>
         </div>
       </div>
 
@@ -194,56 +195,58 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
         </p>
       )}
 
-      <div className="flex gap-2 flex-wrap items-end">
-        <label className="space-y-1">
-          <span className="block text-[11px]" style={{ color: muted }}>
-            Lesson
-          </span>
-          <select
-            value={lessonId}
-            onChange={(e) => {
-              setLessonId(e.target.value)
-              setQuestionIndex(-1)
-              setSaveStatus('idle')
-              setPromoteStatus('idle')
-            }}
-            disabled={loading}
-            className="rounded px-2 py-1.5 text-[13px] min-w-[220px]"
-            style={{ background: '#07182C', border, color: ink }}
-          >
-            <option value="">{loading ? 'Loading…' : 'Select a lesson'}</option>
-            {lessons.map((l) => (
-              <option key={l.content_id} value={l.content_id}>
-                {l.content.title} ({l.content_id})
-              </option>
-            ))}
-          </select>
-        </label>
+      <div className="space-y-3">
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className="block space-y-1 min-w-0">
+            <span className="block text-[11px]" style={{ color: muted }}>
+              Lesson
+            </span>
+            <select
+              value={lessonId}
+              onChange={(e) => {
+                setLessonId(e.target.value)
+                setQuestionIndex(-1)
+                setSaveStatus('idle')
+                setPromoteStatus('idle')
+              }}
+              disabled={loading}
+              className="w-full rounded px-2 py-1.5 text-[13px]"
+              style={{ background: '#07182C', border, color: ink }}
+            >
+              <option value="">{loading ? 'Loading…' : 'Select a lesson'}</option>
+              {lessons.map((l) => (
+                <option key={l.content_id} value={l.content_id}>
+                  {l.content.title} ({l.content_id})
+                </option>
+              ))}
+            </select>
+          </label>
 
-        <label className="space-y-1">
-          <span className="block text-[11px]" style={{ color: muted }}>
-            Question
-          </span>
-          <select
-            value={questionIndex}
-            onChange={(e) => {
-              setQuestionIndex(Number(e.target.value))
-              setSaveStatus('idle')
-              setPromoteStatus('idle')
-            }}
-            disabled={!selectedLesson}
-            className="rounded px-2 py-1.5 text-[13px] min-w-[260px]"
-            style={{ background: '#07182C', border, color: ink }}
-          >
-            <option value={-1}>Select a question</option>
-            {questions.map((q, i) => (
-              <option key={q.question_id} value={i}>
-                {i + 1}. {q.prompt.slice(0, 50)}
-                {q.table_state ? ' [has table]' : ''}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="block space-y-1 min-w-0">
+            <span className="block text-[11px]" style={{ color: muted }}>
+              Question
+            </span>
+            <select
+              value={questionIndex}
+              onChange={(e) => {
+                setQuestionIndex(Number(e.target.value))
+                setSaveStatus('idle')
+                setPromoteStatus('idle')
+              }}
+              disabled={!selectedLesson}
+              className="w-full rounded px-2 py-1.5 text-[13px]"
+              style={{ background: '#07182C', border, color: ink }}
+            >
+              <option value={-1}>Select a question</option>
+              {questions.map((q, i) => (
+                <option key={q.question_id} value={i}>
+                  {i + 1}. {q.prompt.slice(0, 50)}
+                  {q.table_state ? ' [has table]' : ''}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         <button
           type="button"
@@ -295,6 +298,16 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
           busy={saveStatus === 'busy'}
           onClose={() => setModalOpen(false)}
           onCreate={(q) => void handleAddQuestion(q)}
+        />
+      )}
+
+      {wizardOpen && (
+        <WizardModal
+          onClose={() => {
+            setWizardOpen(false)
+            setLoading(true)
+            fetchStagedLessons().then(applyLoad)
+          }}
         />
       )}
     </div>
