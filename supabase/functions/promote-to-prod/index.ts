@@ -8,6 +8,60 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { jsonResponse, preflight } from "../_shared/responses.ts";
 import { assertAdmin, AdminError } from "../_shared/admin.ts";
 import { revalidateContent } from "../_shared/validate-content.ts";
+import { applyGlossaryLinks } from "../../../shared/utils/glossary-linking.ts";
+import { relinkChangedLessons } from "../_shared/glossary-backfill.ts";
+import type { Lesson } from "../../../shared/schemas/lesson.ts";
+
+type ProdClient = ReturnType<typeof createClient>;
+
+// After a glossary is promoted, re-link every PUBLISHED lesson against the prod
+// glossary (Feature 2). Updates content_published in place - glossary_terms is
+// derived data, so this deliberately does not cut a new version per lesson (that
+// would bloat content_versions); the next real promote re-snapshots them anyway.
+// Best-effort so a backfill hiccup never fails the glossary promote itself.
+async function backfillPublishedLessons(prod: ProdClient): Promise<number> {
+  try {
+    const terms = await resolveProdGlossaryTerms(prod, undefined);
+    const { data } = await prod
+      .from("content_published")
+      .select("content_id, content")
+      .eq("content_type", "lesson");
+    const rows = ((data ?? []) as { content_id: string; content: Lesson }[]).map((r) => ({
+      content_id: r.content_id,
+      content: r.content,
+    }));
+    const changed = relinkChangedLessons(rows, terms);
+    for (const row of changed) {
+      await prod
+        .from("content_published")
+        .update({ content: row.content, updated_at: new Date().toISOString() })
+        .eq("content_id", row.content_id)
+        .eq("content_type", "lesson");
+    }
+    return changed.length;
+  } catch {
+    return 0;
+  }
+}
+
+// Production glossary terms to re-link a promoted lesson against, so the
+// published copy reflects the prod glossary (which can differ from staging). The
+// caller may pass the list; otherwise read every published glossary term.
+async function resolveProdGlossaryTerms(
+  prod: ProdClient,
+  provided: unknown,
+): Promise<string[]> {
+  if (Array.isArray(provided)) {
+    return provided.filter((t): t is string => typeof t === "string");
+  }
+  const { data } = await prod
+    .from("content_published")
+    .select("content")
+    .eq("content_type", "glossary");
+  return ((data ?? []) as { content: { term?: unknown } }[])
+    .map((r) => r.content?.term)
+    .filter((t): t is string => typeof t === "string");
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return preflight(req);
@@ -35,14 +89,14 @@ Deno.serve(async (req) => {
     throw err;
   }
 
-  let body: { content_id?: unknown; content_type?: unknown };
+  let body: { content_id?: unknown; content_type?: unknown; glossary_terms?: unknown };
   try {
     body = await req.json();
   } catch {
     return jsonResponse(req, { ok: false, message: "Invalid JSON body" }, 400);
   }
 
-  const { content_id, content_type } = body;
+  const { content_id, content_type, glossary_terms } = body;
   if (typeof content_id !== "string" || content_id.length === 0) {
     return jsonResponse(req, { ok: false, message: "content_id is required" }, 400);
   }
@@ -65,8 +119,16 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { ok: false, message: "Content not found in staging" }, 404);
   }
 
-  // 2. Re-validate before anything touches production.
-  const revalidation = revalidateContent(content_type, stagingRow.content);
+  // 2. Re-link a lesson's glossary terms against the PRODUCTION glossary before
+  // publishing, so the live copy matches prod (Feature 1, "apply it upstream too").
+  let contentToPublish = stagingRow.content;
+  if (content_type === "lesson") {
+    const terms = await resolveProdGlossaryTerms(prod, glossary_terms);
+    contentToPublish = applyGlossaryLinks(stagingRow.content as Lesson, terms);
+  }
+
+  // 3. Re-validate exactly what we are about to publish.
+  const revalidation = revalidateContent(content_type, contentToPublish);
   if (!revalidation.ok) {
     return jsonResponse(req, {
       ok: false,
@@ -96,7 +158,7 @@ Deno.serve(async (req) => {
     content_id,
     content_type,
     version_number: nextVersion,
-    content: stagingRow.content,
+    content: contentToPublish,
     created_by: "promote",
     source_version: null,
   });
@@ -109,7 +171,7 @@ Deno.serve(async (req) => {
   const { error: upsertErr } = await prod.from("content_published").upsert({
     content_id,
     content_type,
-    content: stagingRow.content,
+    content: contentToPublish,
     current_version: nextVersion,
     updated_at: new Date().toISOString(),
   });
@@ -118,5 +180,8 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { ok: false, message: upsertErr.message }, 500);
   }
 
-  return jsonResponse(req, { ok: true, content_id, content_type, version_number: nextVersion });
+  // Promoting a glossary term re-links every published lesson (Feature 2).
+  const relinked = content_type === "glossary" ? await backfillPublishedLessons(prod) : 0;
+
+  return jsonResponse(req, { ok: true, content_id, content_type, version_number: nextVersion, relinked });
 });

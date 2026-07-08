@@ -4,6 +4,7 @@ import type { JSX } from 'react'
 import type { Lesson } from '../../shared/schemas/lesson'
 
 import { supabaseProd } from '../lib/supabase-prod'
+import { fetchStagingGlossaryTerms, fetchProdGlossaryTerms } from '../lib/glossary-terms'
 import { validateLesson, type FieldError } from '../lib/validate'
 import validSample from '../../samples/valid-lesson.json'
 import invalidSample from '../../samples/invalid-lesson.json'
@@ -100,8 +101,11 @@ export function LessonValidator({
     if (saveStatus === 'saving') return
     const lesson = validationResult.data
     setSaveStatus('saving')
+    // Fetch the staging glossary once and hand it over so the function links the
+    // lesson's terms without re-reading the glossary itself (Feature 1).
+    const glossary_terms = await fetchStagingGlossaryTerms().catch(() => undefined)
     const { data, error } = await supabaseProd.functions.invoke('save-to-staging', {
-      body: { content_id: lesson.lesson_id, content_type: 'lesson', content: lesson },
+      body: { content_id: lesson.lesson_id, content_type: 'lesson', content: lesson, glossary_terms },
     })
     if (error) {
       setSaveStatus({ error: error.message })
@@ -124,8 +128,10 @@ export function LessonValidator({
     // saved to staging first, otherwise we'd promote a stale version.
     if (saveStatus !== 'saved' || effectiveId === null) return
     setPromoteStatus('promoting')
+    // Re-link against the production glossary on promote (Feature 1, upstream).
+    const glossary_terms = await fetchProdGlossaryTerms().catch(() => undefined)
     const { data, error } = await supabaseProd.functions.invoke('promote-to-prod', {
-      body: { content_id: effectiveId, content_type: 'lesson' },
+      body: { content_id: effectiveId, content_type: 'lesson', glossary_terms },
     })
     if (error) {
       setPromoteStatus({ error: error.message })
