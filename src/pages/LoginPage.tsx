@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { FormEvent, JSX } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react'
@@ -16,6 +16,14 @@ export function LoginPage(): JSX.Element {
   const [submitting, setSubmitting] = useState(false)
 
   const existingEmail = session?.user.email ?? null
+  const [pendingRedirect, setPendingRedirect] = useState(false)
+
+  // Navigate once AuthContext has fully resolved entitlements after sign-in.
+  useEffect(() => {
+    if (pendingRedirect && !loading) {
+      navigate(isAdmin ? '/admin' : '/play', { replace: true })
+    }
+  }, [pendingRedirect, loading, isAdmin, navigate])
 
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault()
@@ -34,14 +42,9 @@ export function LoginPage(): JSX.Element {
       return
     }
 
-    const { data } = await supabaseProd
-      .from('entitlements')
-      .select('entitlement_key')
-      .eq('entitlement_key', 'admin_access')
-      .eq('status', 'active')
-      .maybeSingle()
-
-    navigate(data ? '/admin' : '/play', { replace: true })
+    // Don't navigate immediately — wait for AuthContext to resolve isAdmin
+    // so RequireAuth doesn't bounce admins back to /play.
+    setPendingRedirect(true)
   }
 
   return (

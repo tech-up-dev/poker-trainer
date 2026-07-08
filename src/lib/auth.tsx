@@ -16,7 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     async function resolveEntitlements(current: Session | null): Promise<void> {
       if (!current) {
-        if (active) { setIsAdmin(false); setHasAccess(false) }
+        if (active) { setIsAdmin(false); setHasAccess(false); setLoading(false) }
         return
       }
       const { data } = await supabaseProd
@@ -28,6 +28,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const keys = (data ?? []).map((r) => r.entitlement_key as string)
       setIsAdmin(keys.includes('admin_access'))
       setHasAccess(keys.includes('quiz_app_access'))
+      setLoading(false)
     }
 
     supabaseProd.auth.getSession().then(async ({ data }) => {
@@ -39,7 +40,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabaseProd.auth.onAuthStateChange((_event, next) => {
+    } = supabaseProd.auth.onAuthStateChange((event, next) => {
+      // INITIAL_SESSION is handled by the getSession() path above.
+      // For actual auth changes (sign-in, sign-out, token refresh) set loading
+      // so RequireAuth waits until entitlements are resolved before checking isAdmin.
+      if (event !== 'INITIAL_SESSION' && active) setLoading(true)
       setSession(next)
       void resolveEntitlements(next)
     })
