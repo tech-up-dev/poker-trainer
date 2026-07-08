@@ -181,7 +181,7 @@ function StepIndicator({
 }): JSX.Element {
   const currentIdx = ALL_STEPS.indexOf(current)
   return (
-    <div className="flex items-center gap-0">
+    <div className="flex items-center gap-0 w-max">
       {ALL_STEPS.map((step, i) => {
         const isActive = step === current
         const isDone = i < currentIdx
@@ -865,8 +865,10 @@ export function AuthoringWizardPage({
         </button>
       </div>
 
-      {/* Step indicator */}
-      <StepIndicator current={step} questionType={questionType} />
+      {/* Step indicator (scrolls horizontally on narrow screens instead of overflowing) */}
+      <div className="overflow-x-auto -mx-1 px-1">
+        <StepIndicator current={step} questionType={questionType} />
+      </div>
 
       {/* Step content */}
       <div className="bg-[#0E2A47] border border-[#2a5079] rounded-2xl p-6">
