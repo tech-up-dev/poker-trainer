@@ -8,7 +8,7 @@ export type AnswerEventPayload = {
   timeTakenMs: number
 }
 
-// Append-only log of every quiz answer. Best-effort — never throws so the
+// Append-only log of every quiz answer. Best-effort - never throws so the
 // quiz flow is never blocked by a logging failure.
 export async function logAnswerEvent(payload: AnswerEventPayload): Promise<void> {
   const {

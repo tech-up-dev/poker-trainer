@@ -32,7 +32,6 @@ export async function fetchStreak(): Promise<StreakResult> {
   ].sort((a, b) => (a > b ? -1 : 1)) // newest first
 
   let current = 0
-  let best = 0
   let streak = 0
 
   const today = new Date().toLocaleDateString('en-CA')
@@ -58,7 +57,7 @@ export async function fetchStreak(): Promise<StreakResult> {
   // Best streak: scan all days sorted oldest-first.
   const asc = [...days].sort()
   let run = 1
-  best = 1
+  let best = 1
   for (let i = 1; i < asc.length; i++) {
     const prev = new Date(asc[i - 1])
     const curr = new Date(asc[i])

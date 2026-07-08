@@ -8,7 +8,7 @@ export type PricingPlan = {
   priceId: string
 }
 
-// Placeholder price IDs — swap for real Stripe price IDs once credentials are available.
+// Placeholder price IDs - swap for real Stripe price IDs once credentials are available.
 export const PRICING_PLANS: PricingPlan[] = [
   {
     id: 'monthly',
