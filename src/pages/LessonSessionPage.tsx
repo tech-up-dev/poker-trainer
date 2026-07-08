@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { JSX } from 'react'
 import { X, CheckCircle2 } from 'lucide-react'
@@ -50,7 +50,7 @@ export function LessonSessionPage(): JSX.Element {
   const [randomise, setRandomise] = useState(false)
   const [correctMap, setCorrectMap] = useState<Record<number, boolean>>({})
   const [answeredMap, setAnsweredMap] = useState<Record<number, number>>({})
-  const questionStartedAt = useRef<number>(Date.now())
+  const questionStartedAt = useRef<number>(0)
 
   useEffect(() => {
     if (!lessonId) return
@@ -265,8 +265,8 @@ export function LessonSessionPage(): JSX.Element {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-md mx-auto px-4 py-5 space-y-5 pb-8">
-            <div className="card-elevated space-y-4">
+          <div className="max-w-md mx-auto px-4 py-3 space-y-3 pb-6">
+            <div className="card-elevated !p-4 md:!p-6 space-y-2">
               <p className="text-xs font-semibold uppercase tracking-widest text-ink-3">Scenario</p>
               <QuestionCard
                 key={question.question_id}

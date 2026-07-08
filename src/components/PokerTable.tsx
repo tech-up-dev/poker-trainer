@@ -32,23 +32,23 @@ interface Slot {
 
 const SLOTS: Slot[] = [
   // 0 – bottom-center (hero)
-  { style: { left: '50%', top: '91%', transform: 'translate(-50%, -50%)' }, align: 'center' },
+  { style: { left: '50%', top: '90%', transform: 'translate(-50%, -50%)' }, align: 'center' },
   // 1 – bottom-right
-  { style: { right: '3%', top: '80%', transform: 'translateY(-50%)' }, align: 'flex-end' },
+  { style: { right: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'flex-end' },
   // 2 – right
-  { style: { right: '1%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-end' },
+  { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-end' },
   // 3 – top-right
-  { style: { right: '3%', top: '19%', transform: 'translateY(-50%)' }, align: 'flex-end' },
+  { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-end' },
   // 4 – top-center-right
-  { style: { left: '64%', top: '3%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '61%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
   // 5 – top-center-left
-  { style: { left: '36%', top: '3%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '39%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
   // 6 – top-left
-  { style: { left: '3%', top: '19%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-start' },
   // 7 – left
-  { style: { left: '1%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { left: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-start' },
   // 8 – bottom-left
-  { style: { left: '3%', top: '80%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { left: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'flex-start' },
 ];
 
 // ─── Player type encyclopedia ────────────────────────────────────────────────
@@ -297,9 +297,10 @@ function ScoutDrawer({
 
 interface PokerTableProps {
   tableState: HandScenarioState;
+  size?: 'sm' | 'md';
 }
 
-export function PokerTable({ tableState }: PokerTableProps): JSX.Element {
+export function PokerTable({ tableState, size = 'md' }: PokerTableProps): JSX.Element {
   const [scoutPosition, setScoutPosition] = useState<string | null>(null);
 
   const {
@@ -326,13 +327,18 @@ export function PokerTable({ tableState }: PokerTableProps): JSX.Element {
     scoutPosition ? (villain_player_types?.[scoutPosition] ?? null) : null;
   const scoutInfo = scoutTypeCode ? PLAYER_TYPES[scoutTypeCode] : null;
 
+  const isSm = size === 'sm';
+
   return (
-    <div className="w-full max-w-sm mx-auto pb-10" style={{ userSelect: 'none' }}>
+    <div
+      className="w-full mx-auto pb-6"
+      style={{ userSelect: 'none', maxWidth: isSm ? 240 : 300 }}
+    >
       {/* Oval table */}
-      <div className="relative w-full" style={{ height: 290 }}>
+      <div className="relative w-full" style={{ height: isSm ? 360 : 450 }}>
         {/* Leather rail */}
         <div
-          className="absolute inset-0 rounded-[50%]"
+          className="absolute inset-0 rounded-full"
           style={{
             background: 'linear-gradient(180deg,#7A4E2A 0%,#5E3A1F 65%)',
             boxShadow: 'inset 0 0 0 1px rgba(201,154,106,0.35)',
@@ -340,11 +346,10 @@ export function PokerTable({ tableState }: PokerTableProps): JSX.Element {
         />
         {/* Green felt */}
         <div
-          className="absolute"
+          className="absolute rounded-full"
           style={{
-            inset: '10px 13px',
+            inset: '12px 10px',
             background: '#1C6B43',
-            borderRadius: '50%',
             boxShadow:
               'inset 0 0 36px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.18)',
           }}

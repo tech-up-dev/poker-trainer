@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import type { JSX } from 'react'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
@@ -51,44 +51,44 @@ export function QuestionCard({ question, lessonId, onContinue }: QuestionCardPro
     const isSelected = selectedIndex === index
 
     if (!locked) {
-      return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-surface-raised border-line hover:border-gold hover:bg-surface-overlay active:scale-[0.98]'
+      return 'w-full p-3 rounded-xl text-left transition-all border-2 bg-surface-raised border-line hover:border-gold hover:bg-surface-overlay active:scale-[0.98]'
     }
 
     if (isSelected && answer.is_correct) {
-      return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-success/20 border-success'
+      return 'w-full p-3 rounded-xl text-left transition-all border-2 bg-success/20 border-success'
     }
     if (isSelected && !answer.is_correct) {
-      return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-error/20 border-error'
+      return 'w-full p-3 rounded-xl text-left transition-all border-2 bg-error/20 border-error'
     }
     if (!isSelected && answer.is_correct) {
-      return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-success/10 border-success/50'
+      return 'w-full p-3 rounded-xl text-left transition-all border-2 bg-success/10 border-success/50'
     }
-    return 'w-full p-4 rounded-xl text-left transition-all border-2 bg-surface-raised border-line opacity-60'
+    return 'w-full p-3 rounded-xl text-left transition-all border-2 bg-surface-raised border-line opacity-60'
   }
 
   function getLetterBadgeClass(index: number): string {
     const answer = question.answers[index]
     const isSelected = selectedIndex === index
 
-    if (!locked) return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-surface text-ink-2'
-    if (answer.is_correct) return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-success text-white'
-    if (isSelected) return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-error text-white'
-    return 'w-10 h-10 rounded-xl flex items-center justify-center text-base font-semibold shrink-0 bg-surface text-ink-3'
+    if (!locked) return 'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold shrink-0 bg-surface text-ink-2'
+    if (answer.is_correct) return 'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold shrink-0 bg-success text-white'
+    if (isSelected) return 'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold shrink-0 bg-error text-white'
+    return 'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-semibold shrink-0 bg-surface text-ink-3'
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {question.type === 'hand_scenario' && question.table_state ? (
-        <PokerTable tableState={question.table_state} />
+        <PokerTable tableState={question.table_state} size="sm" />
       ) : null}
 
-      <p className="text-xl font-semibold text-ink leading-snug">
+      <p className="text-base md:text-lg font-semibold text-ink leading-snug">
         {linkifyGlossaryTerms(question.prompt, question.glossary_terms)}
       </p>
 
-      <p className="text-sm font-medium text-ink-2">Choose your action:</p>
+      <p className="text-xs font-semibold uppercase tracking-wider text-ink-3">Choose your action:</p>
 
-      <div className="space-y-3">
+      <div className="grid grid-cols-2 gap-2">
         {question.answers.map((answer, i) => (
           <button
             key={`${answer.text}-${i}`}
@@ -98,17 +98,17 @@ export function QuestionCard({ question, lessonId, onContinue }: QuestionCardPro
             aria-pressed={selectedIndex === i}
             className={getButtonClass(i)}
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
               <span className={getLetterBadgeClass(i)}>
                 {locked && answer.is_correct ? (
-                  <CheckCircle2 className="w-5 h-5" />
+                  <CheckCircle2 className="w-4 h-4" />
                 ) : locked && selectedIndex === i && !answer.is_correct ? (
-                  <XCircle className="w-5 h-5" />
+                  <XCircle className="w-4 h-4" />
                 ) : (
                   LETTERS[i]
                 )}
               </span>
-              <p className="text-base font-medium text-ink">{answer.text}</p>
+              <p className="text-xs md:text-sm font-medium text-ink leading-tight">{answer.text}</p>
             </div>
           </button>
         ))}

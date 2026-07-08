@@ -1,4 +1,4 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import type { JSX } from 'react'
 import type { HandScenarioState } from '../../shared/schemas/lesson'
 import { Card } from './Card'
@@ -24,15 +24,15 @@ type Align = 'center' | 'flex-start' | 'flex-end'
 
 // Identical to PokerTable SLOTS
 const SLOTS: { style: React.CSSProperties; align: Align }[] = [
-  { style: { left: '50%', top: '91%', transform: 'translate(-50%, -50%)' }, align: 'center' },
-  { style: { right: '3%', top: '80%', transform: 'translateY(-50%)' }, align: 'flex-end' },
-  { style: { right: '1%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-end' },
-  { style: { right: '3%', top: '19%', transform: 'translateY(-50%)' }, align: 'flex-end' },
-  { style: { left: '64%', top: '3%', transform: 'translateX(-50%)' }, align: 'center' },
-  { style: { left: '36%', top: '3%', transform: 'translateX(-50%)' }, align: 'center' },
-  { style: { left: '3%', top: '19%', transform: 'translateY(-50%)' }, align: 'flex-start' },
-  { style: { left: '1%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-start' },
-  { style: { left: '3%', top: '80%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { left: '50%', top: '90%', transform: 'translate(-50%, -50%)' }, align: 'center' },
+  { style: { right: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'flex-end' },
+  { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-end' },
+  { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-end' },
+  { style: { left: '61%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '39%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { left: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { left: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'flex-start' },
 ]
 
 function normalisePos(pos: string): string {
@@ -332,12 +332,12 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
       <div className="flex flex-wrap gap-6 items-start">
 
         {/* ── Interactive oval table ─────────────────────────────────────── */}
-        <div className="w-full max-w-sm flex-shrink-0">
-          <div className="relative w-full" style={{ height: 290 }}>
+        <div className="w-full max-w-[300px] flex-shrink-0">
+          <div className="relative w-full" style={{ height: 450 }}>
 
             {/* Leather rail */}
             <div
-              className="absolute inset-0 rounded-[50%]"
+              className="absolute inset-0 rounded-full"
               style={{
                 background: 'linear-gradient(180deg,#7A4E2A 0%,#5E3A1F 65%)',
                 boxShadow: 'inset 0 0 0 1px rgba(201,154,106,0.35)',
@@ -345,11 +345,10 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
             />
             {/* Green felt */}
             <div
-              className="absolute"
+              className="absolute rounded-full"
               style={{
-                inset: '10px 13px',
+                inset: '12px 10px',
                 background: '#1C6B43',
-                borderRadius: '50%',
                 boxShadow: 'inset 0 0 36px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.18)',
               }}
             />

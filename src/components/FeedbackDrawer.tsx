@@ -1,4 +1,4 @@
-﻿import type { JSX } from 'react'
+import type { JSX } from 'react'
 import { CheckCircle2, XCircle } from 'lucide-react'
 
 import type { Question } from '../../shared/schemas/lesson'
@@ -29,7 +29,7 @@ export function FeedbackDrawer({
         role="dialog"
         aria-modal="true"
         aria-label="Answer feedback"
-        className="drawer w-full max-w-lg max-h-[85vh] overflow-y-auto p-5 pb-8 space-y-5"
+        className="fixed inset-x-0 bottom-0 bg-surface-overlay rounded-t-3xl shadow-overlay z-50 animate-slide-up w-full max-w-lg mx-auto max-h-[95vh] overflow-y-auto p-5 pb-8 space-y-5"
       >
         {/* Result banner */}
         <div
