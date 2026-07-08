@@ -3,6 +3,7 @@ import type { JSX } from 'react'
 import type { HandScenarioState } from '../../shared/schemas/lesson'
 import { TableBuilder } from '../components/TableBuilder'
 import { PokerTable } from '../components/PokerTable'
+import { TableBindPanel } from '../components/TableBindPanel'
 
 const INITIAL: HandScenarioState = {
   street: 'preflop',
@@ -44,6 +45,8 @@ export function TableBuilderPage(): JSX.Element {
           <PokerTable tableState={state} />
         </div>
       </div>
+
+      <TableBindPanel tableState={state} />
 
       <div className="space-y-2">
         <p className="text-[11px] font-mono uppercase tracking-widest" style={{ color: '#F4A024' }}>
