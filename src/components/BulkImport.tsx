@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { JSX } from 'react'
 
 import { supabaseProd } from '../lib/supabase-prod'
+import { fetchStagingGlossaryTerms, fetchProdGlossaryTerms } from '../lib/glossary-terms'
 import { detectAndValidate, type FieldError } from '../lib/validate'
 import type { ContentType } from '../../shared/schemas/content'
 
@@ -105,11 +106,21 @@ export function BulkImport(): JSX.Element {
     if (validItems.length === 0 || isSaving) return
     setSaveState({ kind: 'saving' })
 
+    // Fetch the staging glossary once for the whole batch, then merge in any
+    // glossary terms present in this batch so lessons link to glossaries imported
+    // alongside them regardless of save order (Feature 1, bulk).
+    const stagingTerms = await fetchStagingGlossaryTerms().catch(() => [])
+    const batchTerms = validItems
+      .filter((i) => i.contentType === 'glossary')
+      .map((i) => (i.data as { term?: unknown }).term)
+      .filter((t): t is string => typeof t === 'string')
+    const glossary_terms = [...new Set([...stagingTerms, ...batchTerms])]
+
     const saved: { contentType: ContentType; contentId: string }[] = []
     const failures: { index: number; message: string }[] = []
     for (const item of validItems) {
       const { data, error } = await supabaseProd.functions.invoke('save-to-staging', {
-        body: { content_type: item.contentType, content: item.data },
+        body: { content_type: item.contentType, content: item.data, glossary_terms },
       })
       const result = data as { ok: boolean; content_id?: string; message?: string } | null
       if (error || !result?.ok) {
@@ -129,12 +140,17 @@ export function BulkImport(): JSX.Element {
     if (saved.length === 0 || promoteState.kind === 'promoting') return
     setPromoteState({ kind: 'promoting', done: 0, total: saved.length })
 
+    // One prod glossary read for the whole batch; the function re-links each
+    // promoted lesson against it. Glossaries promoted in the same batch are
+    // reconciled by the glossary back-fill (Feature 2).
+    const glossary_terms = await fetchProdGlossaryTerms().catch(() => undefined)
+
     let promoted = 0
     const failures: { contentId: string; message: string }[] = []
     for (let i = 0; i < saved.length; i++) {
       const item = saved[i]
       const { data, error } = await supabaseProd.functions.invoke('promote-to-prod', {
-        body: { content_id: item.contentId, content_type: item.contentType },
+        body: { content_id: item.contentId, content_type: item.contentType, glossary_terms },
       })
       const result = data as { ok: boolean; message?: string } | null
       if (error || !result?.ok) {

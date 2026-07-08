@@ -21,8 +21,30 @@ import {
   type ContentType,
 } from "../../../shared/schemas/content.ts";
 import { slugify, stableStringify } from "../../../shared/utils/slug.ts";
+import { applyGlossaryLinks } from "../../../shared/utils/glossary-linking.ts";
+import type { Lesson } from "../../../shared/schemas/lesson.ts";
 
 type StagingRow = { content_id: string; content: unknown };
+type StagingClient = ReturnType<typeof createClient>;
+
+// The glossary term list to link a lesson against. The caller normally passes it
+// (fetched once, so a bulk import does a single read); if it's absent we fall
+// back to reading every staging glossary term here.
+async function resolveStagingGlossaryTerms(
+  staging: StagingClient,
+  provided: unknown,
+): Promise<string[]> {
+  if (Array.isArray(provided)) {
+    return provided.filter((t): t is string => typeof t === "string");
+  }
+  const { data } = await staging
+    .from("content_staging")
+    .select("content")
+    .eq("content_type", "glossary");
+  return ((data ?? []) as { content: { term?: unknown } }[])
+    .map((r) => r.content?.term)
+    .filter((t): t is string => typeof t === "string");
+}
 
 // deno-lint-ignore no-explicit-any
 async function resolveContentId(
@@ -88,14 +110,19 @@ Deno.serve(async (req) => {
     throw err;
   }
 
-  let body: { content_id?: unknown; content_type?: unknown; content?: unknown };
+  let body: {
+    content_id?: unknown;
+    content_type?: unknown;
+    content?: unknown;
+    glossary_terms?: unknown;
+  };
   try {
     body = await req.json();
   } catch {
     return jsonResponse(req, { ok: false, message: "Invalid JSON body" }, 400);
   }
 
-  const { content_id, content_type, content } = body;
+  const { content_id, content_type, content, glossary_terms } = body;
   if (!isContentType(content_type)) {
     return jsonResponse(req, { ok: false, message: `Unknown content type: ${content_type}` }, 400);
   }
@@ -120,10 +147,22 @@ Deno.serve(async (req) => {
   // Keep the stored content self-consistent: its id field always matches the row.
   contentObj[def.idField] = finalId;
 
+  // Auto-link glossary terms into a lesson's questions before storing, against
+  // the staging glossary (Feature 1). Recompute is a no-op when nothing matches.
+  let toStore: Record<string, unknown> = contentObj;
+  if (content_type === "lesson") {
+    const terms = await resolveStagingGlossaryTerms(staging, glossary_terms);
+    toStore = applyGlossaryLinks(contentObj as unknown as Lesson, terms) as unknown as Record<
+      string,
+      unknown
+    >;
+    toStore[def.idField] = finalId;
+  }
+
   const { error } = await staging.from("content_staging").upsert({
     content_id: finalId,
     content_type,
-    content: contentObj,
+    content: toStore,
     updated_at: new Date().toISOString(),
   });
 
