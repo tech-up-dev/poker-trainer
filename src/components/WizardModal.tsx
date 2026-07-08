@@ -1,6 +1,7 @@
 import type { JSX } from 'react'
 
 import { AuthoringWizardPage } from '../pages/AuthoringWizardPage'
+import { GlossaryDrawerProvider } from './GlossaryDrawer'
 
 // Opens the existing Authoring Wizard inside a pop-up over the Table Builder, so
 // authors can create a new lesson without navigating away and losing the built
@@ -20,7 +21,9 @@ export function WizardModal({ onClose }: { onClose: () => void }): JSX.Element {
         style={{ background: '#07182C', border: '1px solid #2a5079' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <AuthoringWizardPage embedded onExit={onClose} />
+        <GlossaryDrawerProvider>
+          <AuthoringWizardPage embedded onExit={onClose} />
+        </GlossaryDrawerProvider>
       </div>
     </div>
   )
