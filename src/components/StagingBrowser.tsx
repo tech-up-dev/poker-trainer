@@ -23,10 +23,10 @@ type PromoteStatus = 'idle' | 'promoting' | { version: number } | { error: strin
 // list only shows these types (others stay hidden, e.g. unreleased types on M1),
 // and each gets an Edit button to its route.
 const EDITOR_ROUTE: Partial<Record<ContentType, string>> = {
-  lesson: '/admin',
-  glossary: '/admin/glossary',
-  tip: '/admin/tips',
-  reference: '/admin/references',
+  lesson:    '/admin?tab=lesson',
+  glossary:  '/admin?tab=glossary',
+  tip:       '/admin?tab=tip',
+  reference: '/admin?tab=reference',
 }
 
 function key(item: StagedItem): string {

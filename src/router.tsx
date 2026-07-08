@@ -10,9 +10,6 @@ import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { BulkImport } from './components/BulkImport'
-import { TipEditorPage } from './pages/TipEditorPage'
-import { ReferenceEditorPage } from './pages/ReferenceEditorPage'
-import { GlossaryEditorPage } from './pages/GlossaryEditorPage'
 import { StagingBrowser } from './components/StagingBrowser'
 import { TablePreviewPage } from './pages/TablePreviewPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
@@ -48,9 +45,9 @@ export const router = createBrowserRouter([
           { index: true, element: <Navigate to="/admin" replace /> },
           { path: 'admin', element: <ValidatorPage /> },
           { path: 'admin/import', element: <BulkImport /> },
-          { path: 'admin/tips', element: <TipEditorPage /> },
-          { path: 'admin/references', element: <ReferenceEditorPage /> },
-          { path: 'admin/glossary', element: <GlossaryEditorPage /> },
+          { path: 'admin/tips', element: <Navigate to="/admin?tab=tip" replace /> },
+          { path: 'admin/references', element: <Navigate to="/admin?tab=reference" replace /> },
+          { path: 'admin/glossary', element: <Navigate to="/admin?tab=glossary" replace /> },
           { path: 'admin/staging', element: <StagingBrowser /> },
           { path: 'admin/table-builder', element: <TableBuilderPage /> },
           { path: 'admin/wizard', element: <GlossaryDrawerProvider><AuthoringWizardPage /></GlossaryDrawerProvider> },

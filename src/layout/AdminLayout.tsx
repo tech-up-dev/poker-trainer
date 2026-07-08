@@ -19,14 +19,11 @@ export function AdminLayout(): JSX.Element {
         <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-6 flex-wrap">
           <span className="font-bold text-ink">Poker Trainer · Content Ops</span>
           <nav className="flex flex-wrap gap-1">
-            <NavLink to="/admin/import"       className={navClass}>Bulk Import</NavLink>
-            <NavLink to="/admin"        end   className={navClass}>Lesson</NavLink>
-            <NavLink to="/admin/glossary"     className={navClass}>Glossary</NavLink>
-            <NavLink to="/admin/tips"         className={navClass}>Tip</NavLink>
-            <NavLink to="/admin/references"   className={navClass}>Reference</NavLink>
-            <NavLink to="/admin/staging"      className={navClass}>Staging</NavLink>
-            <NavLink to="/admin/table-builder"className={navClass}>Table Builder</NavLink>
-            <NavLink to="/admin/wizard"       className={navClass}>Wizard</NavLink>
+            <NavLink to="/admin/import"        className={navClass}>Bulk Import</NavLink>
+            <NavLink to="/admin"         end   className={navClass}>Editor</NavLink>
+            <NavLink to="/admin/staging"       className={navClass}>Staging</NavLink>
+            <NavLink to="/admin/table-builder" className={navClass}>Table Builder</NavLink>
+            <NavLink to="/admin/wizard"        className={navClass}>Wizard</NavLink>
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm text-ink-3">
             {session?.user.email ? <span>{session.user.email}</span> : null}
