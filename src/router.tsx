@@ -25,6 +25,7 @@ import { SavedQuestionsPage } from './pages/SavedQuestionsPage'
 import { SavedTipsPage } from './pages/SavedTipsPage'
 import { ReferencesLibraryPage } from './pages/ReferencesLibraryPage'
 import { CheckoutSuccessPage } from './pages/CheckoutSuccessPage'
+import { OnboardingPage } from './pages/OnboardingPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -74,6 +75,8 @@ export const router = createBrowserRouter([
           { path: '/play/checkout/success', element: <CheckoutSuccessPage /> },
         ],
       },
+      // Onboarding is full-screen — outside MemberLayout
+      { path: '/onboarding', element: <OnboardingPage /> },
       // Lesson session is full-screen — outside MemberLayout so the nav doesn't show
       {
         path: '/play/lessons/:lessonId',

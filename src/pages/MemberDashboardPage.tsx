@@ -27,6 +27,12 @@ export function MemberDashboardPage(): JSX.Element {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    if (!localStorage.getItem('bss_onboarding_done')) {
+      void navigate('/onboarding', { replace: true })
+    }
+  }, [navigate])
+
+  useEffect(() => {
     Promise.all([
       fetchAllPublishedLessons(),
       fetchLessonProgress(),

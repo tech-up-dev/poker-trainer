@@ -4,6 +4,7 @@ import type { JSX } from 'react'
 import { X, CheckCircle2 } from 'lucide-react'
 
 import type { Lesson, Question } from '../../shared/schemas/lesson'
+import { ConfettiCanvas } from '../components/ConfettiCanvas'
 import { QuestionCard } from '../components/QuestionCard'
 import { linkifyGlossaryTerms } from '../lib/glossary-text'
 import { fetchPublishedLesson } from '../lib/lessons'
@@ -50,6 +51,7 @@ export function LessonSessionPage(): JSX.Element {
   const [randomise, setRandomise] = useState(false)
   const [correctMap, setCorrectMap] = useState<Record<number, boolean>>({})
   const [answeredMap, setAnsweredMap] = useState<Record<number, number>>({})
+  const [displayPct, setDisplayPct] = useState(0)
   const questionStartedAt = useRef<number>(0)
 
   useEffect(() => {
@@ -71,6 +73,22 @@ export function LessonSessionPage(): JSX.Element {
       },
     )
   }, [lessonId])
+
+  useEffect(() => {
+    if (phase.kind !== 'complete') return
+    const target = phase.total > 0 ? Math.round((phase.correct / phase.total) * 100) : 0
+    if (target === 0) { setDisplayPct(0); return }
+    const duration = 800
+    const start = performance.now()
+    let frame: number
+    function tick(now: number): void {
+      const t = Math.min(1, (now - start) / duration)
+      setDisplayPct(Math.round(t * target))
+      if (t < 1) frame = requestAnimationFrame(tick)
+    }
+    frame = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(frame)
+  }, [phase])
 
   const orderedQuestions = useMemo<Question[]>(() => {
     if (!lesson) return []
@@ -147,7 +165,22 @@ export function LessonSessionPage(): JSX.Element {
   if (phase.kind === 'error') {
     return (
       <div className="min-h-screen bg-canvas flex items-center justify-center px-4">
-        <p className="text-error text-sm text-center">{phase.message}</p>
+        <div className="max-w-sm w-full text-center space-y-5">
+          <div className="text-5xl">📭</div>
+          <div className="space-y-2">
+            <h2 className="text-lg font-bold text-ink">This lesson isn't available yet</h2>
+            <p className="text-sm text-ink-2 leading-relaxed">
+              The content for this lesson hasn't been published. Check back soon — it's on its way.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/play')}
+            className="btn-primary btn-sm"
+          >
+            Browse all lessons
+          </button>
+        </div>
       </div>
     )
   }
@@ -299,11 +332,16 @@ export function LessonSessionPage(): JSX.Element {
 
   return (
     <div className="min-h-screen bg-canvas text-ink px-4 py-10">
+      {passed && (
+        <div className="fixed inset-0 pointer-events-none z-10">
+          <ConfettiCanvas />
+        </div>
+      )}
       <div className="max-w-md mx-auto space-y-6">
         {/* Score card */}
         <div className="card text-center space-y-5">
           <div
-            className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${passed ? 'bg-success/20' : 'bg-error/20'}`}
+            className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${passed ? 'bg-success/20 animate-pop-bounce' : 'bg-error/20'}`}
           >
             {passed
               ? <CheckCircle2 className="w-8 h-8 text-success" />
@@ -316,15 +354,15 @@ export function LessonSessionPage(): JSX.Element {
             </h2>
             <p className="text-ink-3 text-sm">{lesson.title}</p>
           </div>
-          <div className="bg-canvas rounded-xl p-4 space-y-3">
-            <div className={`text-4xl font-bold ${passed ? 'text-gold' : 'text-error'}`}>{pct}%</div>
+          <div className="bg-canvas rounded-xl p-4 space-y-3 animate-score-reveal">
+            <div className={`text-4xl font-bold ${passed ? 'text-gold' : 'text-error'}`}>{displayPct}%</div>
             <p className="text-sm text-ink-2">
               {correct} correct out of {total} question{total !== 1 ? 's' : ''}
             </p>
             <div className="h-2 rounded-full bg-elevated overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all ${passed ? 'bg-gold' : 'bg-error'}`}
-                style={{ width: `${pct}%` }}
+                className={`h-full rounded-full transition-all duration-700 ${passed ? 'bg-gold' : 'bg-error'}`}
+                style={{ width: `${displayPct}%` }}
               />
             </div>
           </div>
