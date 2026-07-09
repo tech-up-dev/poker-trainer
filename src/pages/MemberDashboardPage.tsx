@@ -19,7 +19,7 @@ import { TodaysTip } from '../components/TodaysTip'
 import { useAuth } from '../lib/auth-context'
 
 export function MemberDashboardPage(): JSX.Element {
-  const { session } = useAuth()
+  const { session, isAdmin } = useAuth()
   const navigate = useNavigate()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
@@ -27,10 +27,10 @@ export function MemberDashboardPage(): JSX.Element {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (!localStorage.getItem('bss_onboarding_done')) {
+    if (!isAdmin && !localStorage.getItem('bss_onboarding_done')) {
       void navigate('/onboarding', { replace: true })
     }
-  }, [navigate])
+  }, [isAdmin, navigate])
 
   useEffect(() => {
     Promise.all([
