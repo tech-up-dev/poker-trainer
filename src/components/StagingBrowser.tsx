@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { supabaseProd } from '../lib/supabase-prod'
 import { downloadJson, exportFilename } from '../lib/download'
+import { ConfirmDialog } from './ConfirmDialog'
 import type { ContentType } from '../../shared/schemas/content'
 
 type StagedItem = {
@@ -18,6 +19,8 @@ type LoadState =
 
 // Per-item promote status, keyed by `${type}:${id}`.
 type PromoteStatus = 'idle' | 'promoting' | { version: number } | { error: string }
+// Per-item delete status, keyed the same way.
+type DeleteStatus = 'deleting' | { error: string }
 
 // Content types this build exposes, mapped to their editor route. The Staging
 // list only shows these types (others stay hidden, e.g. unreleased types on M1),
@@ -62,6 +65,8 @@ export function StagingBrowser(): JSX.Element {
   const navigate = useNavigate()
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
   const [promote, setPromote] = useState<Record<string, PromoteStatus>>({})
+  const [deleteState, setDeleteState] = useState<Record<string, DeleteStatus>>({})
+  const [confirmItem, setConfirmItem] = useState<StagedItem | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [promotingAll, setPromotingAll] = useState(false)
   // Bumped to trigger a reload of the staging list (mount + Refresh button).
@@ -127,6 +132,37 @@ export function StagingBrowser(): JSX.Element {
     navigate(route, { state: { preloadContent: item.content } })
   }
 
+  // Full delete (staging + production) after the user confirms in the dialog.
+  async function deleteItem(item: StagedItem): Promise<void> {
+    setConfirmItem(null)
+    setDeleteState((s) => ({ ...s, [key(item)]: 'deleting' }))
+    const { data, error } = await supabaseProd.functions.invoke('delete-content', {
+      body: { content_id: item.content_id, content_type: item.content_type },
+    })
+    if (error) {
+      setDeleteState((s) => ({ ...s, [key(item)]: { error: error.message } }))
+      return
+    }
+    const result = data as { ok: boolean; message?: string }
+    if (!result.ok) {
+      setDeleteState((s) => ({ ...s, [key(item)]: { error: result.message ?? 'Delete failed' } }))
+      return
+    }
+    // Drop it from the list; the version history stays in the DB.
+    setState((prev) =>
+      prev.kind === 'loaded'
+        ? { kind: 'loaded', items: prev.items.filter((i) => key(i) !== key(item)) }
+        : prev,
+    )
+  }
+
+  function deleteMessage(item: StagedItem): string {
+    const base = `This permanently deletes "${labelFor(item)}" from BOTH staging and production. The version history is kept, but this cannot be undone.`
+    return item.content_type === 'glossary'
+      ? `${base} Lessons that reference this term will be updated to stop linking it.`
+      : base
+  }
+
   return (
     <section className="space-y-6">
       <header className="flex items-end justify-between gap-4">
@@ -147,6 +183,19 @@ export function StagingBrowser(): JSX.Element {
       </header>
 
       {renderBody()}
+
+      <ConfirmDialog
+        open={confirmItem !== null}
+        title="Delete content?"
+        message={confirmItem ? deleteMessage(confirmItem) : ''}
+        confirmLabel="Delete everywhere"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={() => {
+          if (confirmItem) void deleteItem(confirmItem)
+        }}
+        onCancel={() => setConfirmItem(null)}
+      />
     </section>
   )
 
@@ -195,6 +244,7 @@ export function StagingBrowser(): JSX.Element {
             <ul className="rounded border border-slate-700 bg-slate-950 divide-y divide-slate-800">
               {items.map((item) => {
                 const status = promote[key(item)] ?? 'idle'
+                const del = deleteState[key(item)]
                 const isOpen = expanded[key(item)] === true
                 return (
                   <li key={key(item)} className="px-4 py-3 space-y-2">
@@ -243,6 +293,14 @@ export function StagingBrowser(): JSX.Element {
                         >
                           {status === 'promoting' ? 'Promoting…' : 'Promote'}
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmItem(item)}
+                          disabled={deleteState[key(item)] === 'deleting'}
+                          className="text-xs px-2 py-1 rounded bg-red-800 hover:bg-red-700 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {deleteState[key(item)] === 'deleting' ? 'Deleting…' : 'Delete'}
+                        </button>
                       </div>
                     </div>
 
@@ -251,6 +309,9 @@ export function StagingBrowser(): JSX.Element {
                     ) : null}
                     {typeof status === 'object' && 'error' in status ? (
                       <p className="text-xs text-red-400">Promote failed: {status.error}</p>
+                    ) : null}
+                    {typeof del === 'object' && 'error' in del ? (
+                      <p className="text-xs text-red-400">Delete failed: {del.error}</p>
                     ) : null}
 
                     {isOpen ? (
