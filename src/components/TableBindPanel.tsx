@@ -196,7 +196,7 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
       )}
 
       <div className="space-y-3">
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <label className="block space-y-1 min-w-0">
             <span className="block text-[11px]" style={{ color: muted }}>
               Lesson
@@ -246,17 +246,17 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
               ))}
             </select>
           </label>
-        </div>
 
-        <button
-          type="button"
-          onClick={() => setModalOpen(true)}
-          disabled={!selectedLesson}
-          className="text-[12px] px-3 py-1.5 rounded disabled:opacity-40"
-          style={{ background: '#07182C', border, color: muted }}
-        >
-          + Add question
-        </button>
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            disabled={!selectedLesson}
+            className="text-[12px] px-3 py-1.5 rounded disabled:opacity-40 whitespace-nowrap"
+            style={{ background: '#07182C', border, color: muted }}
+          >
+            + Add question
+          </button>
+        </div>
       </div>
 
       <div className="flex items-center gap-2">
