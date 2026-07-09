@@ -18,14 +18,10 @@ import { AuthoringWizardPage } from './pages/AuthoringWizardPage'
 import { MemberDashboardPage } from './pages/MemberDashboardPage'
 import { LessonsPage } from './pages/LessonsPage'
 import { LessonSessionPage } from './pages/LessonSessionPage'
-import { ProfilePage } from './pages/ProfilePage'
 import { GlossaryPage } from './pages/GlossaryPage'
-import { StatsPage } from './pages/StatsPage'
 import { SavedQuestionsPage } from './pages/SavedQuestionsPage'
 import { SavedTipsPage } from './pages/SavedTipsPage'
 import { ReferencesLibraryPage } from './pages/ReferencesLibraryPage'
-import { CheckoutSuccessPage } from './pages/CheckoutSuccessPage'
-import { OnboardingPage } from './pages/OnboardingPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -67,17 +63,17 @@ export const router = createBrowserRouter([
           { path: '/play/lessons',          element: <LessonsPage /> },
           { path: '/play/glossary',         element: <GlossaryPage /> },
           { path: '/play/library',          element: <ReferencesLibraryPage /> },
-          { path: '/play/stats',            element: <StatsPage /> },
-          { path: '/play/profile',          element: <ProfilePage /> },
+          { path: '/play/stats',            element: <Navigate to="/play" replace /> },
+          { path: '/play/profile',          element: <Navigate to="/play" replace /> },
           { path: '/play/saved-questions',  element: <GlossaryDrawerProvider><SavedQuestionsPage /></GlossaryDrawerProvider> },
           { path: '/play/saved-tips',       element: <SavedTipsPage /> },
           { path: '/play/references',       element: <ReferencesLibraryPage /> },
-          { path: '/play/checkout/success', element: <CheckoutSuccessPage /> },
+          { path: '/play/checkout/success', element: <Navigate to="/play" replace /> },
         ],
       },
-      // Onboarding is full-screen — outside MemberLayout
-      { path: '/onboarding', element: <OnboardingPage /> },
-      // Lesson session is full-screen — outside MemberLayout so the nav doesn't show
+      // Onboarding is full-screen - outside MemberLayout
+      { path: '/onboarding', element: <Navigate to="/play" replace /> },
+      // Lesson session is full-screen - outside MemberLayout so the nav doesn't show
       {
         path: '/play/lessons/:lessonId',
         element: (

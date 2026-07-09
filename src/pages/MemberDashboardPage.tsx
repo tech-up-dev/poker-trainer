@@ -2,10 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { JSX } from 'react'
 import {
-  Flame,
-  CheckCircle2,
-  BookOpen,
-  Clock,
   ChevronRight,
   PlayCircle,
 } from 'lucide-react'
@@ -14,52 +10,44 @@ import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
 import type { LessonProgress } from '../lib/progress'
-import { fetchStreak } from '../lib/streak'
 import { TodaysTip } from '../components/TodaysTip'
 import { useAuth } from '../lib/auth-context'
 
 export function MemberDashboardPage(): JSX.Element {
-  const { session, isAdmin } = useAuth()
+  const { session } = useAuth()
   const navigate = useNavigate()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
-  const [streak, setStreak] = useState(0)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (!isAdmin && !localStorage.getItem('bss_onboarding_done')) {
-      void navigate('/onboarding', { replace: true })
-    }
-  }, [isAdmin, navigate])
+  // Onboarding redirect disabled for staging-dev (M4 feature)
+  // useEffect(() => {
+  //   if (!isAdmin && !localStorage.getItem('bss_onboarding_done')) {
+  //     void navigate('/onboarding', { replace: true })
+  //   }
+  // }, [isAdmin, navigate])
 
   useEffect(() => {
     Promise.all([
       fetchAllPublishedLessons(),
       fetchLessonProgress(),
-      fetchStreak(),
-    ]).then(([allLessons, progressRows, streakData]) => {
+    ]).then(([allLessons, progressRows]) => {
       setLessons(allLessons)
       const map: Record<string, LessonProgress> = {}
       for (const row of progressRows) map[row.lessonId] = row
       setProgressMap(map)
-      setStreak(streakData.current)
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
   const email = session?.user?.email ?? ''
   const displayName = email.split('@')[0] ?? 'there'
-  const completed = lessons.filter((l) => l.lesson_id && progressMap[l.lesson_id]?.completed).length
+
   const inProgress = lessons.filter(
     (l) => l.lesson_id && progressMap[l.lesson_id] && !progressMap[l.lesson_id].completed,
   ).length
   const nextLesson = lessons.find((l) => l.lesson_id && !progressMap[l.lesson_id]?.completed)
 
-  const stats = [
-    { label: 'Streak',      value: `${streak}d`,          icon: Flame,        color: 'text-orange-500' },
-    { label: 'Completed',   value: String(completed),      icon: CheckCircle2, color: 'text-success'    },
-    { label: 'Lessons',     value: String(lessons.length), icon: BookOpen,     color: 'text-gold'       },
-    { label: 'In Progress', value: String(inProgress),     icon: Clock,        color: 'text-ink-2'      },
-  ]
+
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -70,26 +58,10 @@ export function MemberDashboardPage(): JSX.Element {
           <p className="text-lg text-ink-2">Welcome back,</p>
           <h1 className="text-3xl font-bold text-ink">{displayName}</h1>
         </div>
-        {streak > 0 && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-gold/10 rounded-full">
-            <Flame className="w-6 h-6 text-gold" />
-            <span className="text-xl font-bold text-gold">{streak}</span>
-          </div>
-        )}
+      {/* Streak badge hidden for staging-dev (M4 feature) */}
       </div>
 
-      {/* Stats grid */}
-      {!loading && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {stats.map((stat) => (
-            <div key={stat.label} className="stat-card">
-              <stat.icon className={`w-6 h-6 ${stat.color} mb-1`} />
-              <p className="stat-value">{stat.value}</p>
-              <p className="stat-label">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      )}
+      {/* Stats grid hidden for staging-dev (M4 feature) */}
 
       {/* Daily tip */}
       <TodaysTip />

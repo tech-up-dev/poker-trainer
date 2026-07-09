@@ -1,13 +1,12 @@
 import { NavLink } from 'react-router-dom'
 import type { JSX } from 'react'
-import { Home, BookOpen, BookText, Library, User } from 'lucide-react'
+import { Home, BookOpen, BookText, Library } from 'lucide-react'
 
 const NAV_ITEMS = [
   { to: '/play',          icon: Home,     label: 'Home'     },
   { to: '/play/lessons',  icon: BookOpen, label: 'Lessons'  },
   { to: '/play/glossary', icon: BookText, label: 'Glossary' },
   { to: '/play/library',  icon: Library,  label: 'Library'  },
-  { to: '/play/profile',  icon: User,     label: 'Profile'  },
 ]
 
 export function MobileNav(): JSX.Element {

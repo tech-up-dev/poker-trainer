@@ -3,7 +3,6 @@ import type { JSX } from 'react'
 import {
   Home,
   BookOpen,
-  BarChart3,
   BookText,
   Library,
   LogOut,
@@ -24,7 +23,6 @@ const NAV_ITEMS = [
   { to: '/play/lessons',    icon: BookOpen, label: 'Path' },
   { to: '/play/glossary',   icon: BookText, label: 'Glossary' },
   { to: '/play/library',    icon: Library,  label: 'Library' },
-  { to: '/play/stats',      icon: BarChart3,label: 'Stats' },
 ]
 
 export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
@@ -85,11 +83,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
 
         {/* User + sign out */}
         <div className="p-3 border-t border-line space-y-2">
-          <NavLink
-            to="/play/profile"
-            onClick={onClose}
-            className={({ isActive }) => isActive ? 'nav-item-active' : 'nav-item'}
-          >
+          <div className="flex items-center gap-3 px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center shrink-0">
               {initial ? (
                 <span className="text-gold font-semibold text-sm">{initial}</span>
@@ -99,9 +93,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-ink truncate">{email}</p>
-              <p className="text-xs text-ink-3">Profile</p>
+              <p className="text-xs text-ink-3">User</p>
             </div>
-          </NavLink>
+          </div>
 
           <button
             type="button"
