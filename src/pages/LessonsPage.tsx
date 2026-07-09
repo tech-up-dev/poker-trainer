@@ -140,7 +140,7 @@ export function LessonsPage(): JSX.Element {
                       className="card flex items-center justify-between hover:bg-surface-overlay transition-colors group text-left w-full"
                     >
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 min-w-0">
                           {p?.completed ? (
                             <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
                           ) : p ? (
