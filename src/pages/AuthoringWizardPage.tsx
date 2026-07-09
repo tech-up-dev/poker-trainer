@@ -181,14 +181,14 @@ function StepIndicator({
 }): JSX.Element {
   const currentIdx = ALL_STEPS.indexOf(current)
   return (
-    <div className="flex items-center gap-0 w-max">
+    <div className="flex items-center w-full">
       {ALL_STEPS.map((step, i) => {
         const isActive = step === current
         const isDone = i < currentIdx
         const isSkipped = step === 'table' && questionType === 'multiple_choice'
         return (
-          <div key={step} className="flex items-center">
-            <div className="flex flex-col items-center gap-1">
+          <div key={step} className="flex items-center flex-1 min-w-0">
+            <div className="flex flex-col items-center gap-1 shrink-0">
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
                   isSkipped
@@ -211,7 +211,7 @@ function StepIndicator({
               </span>
             </div>
             {i < ALL_STEPS.length - 1 && (
-              <div className={`w-8 h-px mb-5 mx-1 ${i < currentIdx ? 'bg-[#3dbe8a]' : 'bg-[#2a5079]'}`} />
+              <div className={`flex-1 h-px mb-5 mx-1 ${i < currentIdx ? 'bg-[#3dbe8a]' : 'bg-[#2a5079]'}`} />
             )}
           </div>
         )
