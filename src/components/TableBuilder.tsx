@@ -279,9 +279,9 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
           ))}
         </div>
 
-        {/* Pot + Hero — side by side, 50/50 */}
-        <div className="flex gap-2">
-          <label className="flex flex-1 items-center gap-1.5 text-[12px] text-[#9DB2C9]">
+        {/* Pot + Hero — full width, Pot 40% / Hero 60% */}
+        <div className="flex w-full gap-2">
+          <label className="flex flex-[4] items-center gap-1.5 text-[12px] text-[#9DB2C9] min-w-0">
             Pot&nbsp;$
             <input
               type="number"
@@ -296,7 +296,7 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
             />
           </label>
 
-          <label className="flex flex-1 items-center gap-1.5 text-[12px] text-[#9DB2C9]">
+          <label className="flex flex-[5] items-center gap-1.5 text-[12px] text-[#9DB2C9] min-w-0">
             Hero
             <select
               value={heroPos}
