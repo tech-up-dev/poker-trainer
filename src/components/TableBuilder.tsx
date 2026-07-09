@@ -259,16 +259,16 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
     <div className="space-y-4" style={{ userSelect: 'none' }}>
 
       {/* ── Top controls ──────────────────────────────────────────────────── */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
 
-        {/* Street tabs — full width */}
+        {/* Street tabs */}
         <div className="flex rounded-lg overflow-hidden border border-[#2a5079]">
           {STREETS.map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => setStreet(s)}
-              className={`flex-1 py-1.5 text-[12px] font-medium capitalize transition-colors ${
+              className={`flex-1 sm:flex-none sm:px-3 py-1.5 text-[12px] font-medium capitalize transition-colors ${
                 street === s
                   ? 'bg-[#F4A024] text-[#07182C]'
                   : 'bg-[#0E2A47] text-[#9DB2C9] hover:bg-[#16395C]'
@@ -279,9 +279,9 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
           ))}
         </div>
 
-        {/* Pot + Hero — full width, Pot 40% / Hero 60% */}
-        <div className="flex w-full gap-2">
-          <label className="flex flex-[4] items-center gap-1.5 text-[12px] text-[#9DB2C9] min-w-0">
+        {/* Pot + Hero: side-by-side on mobile, inline on desktop */}
+        <div className="flex gap-2 sm:contents">
+          <label className="flex flex-[4] items-center gap-1.5 text-[12px] text-[#9DB2C9] min-w-0 sm:flex-none">
             Pot&nbsp;$
             <input
               type="number"
@@ -291,17 +291,17 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
                 patch({ pot_size: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)) })
               }
               placeholder="0"
-              className="flex-1 min-w-0 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+              className="flex-1 min-w-0 sm:w-20 sm:flex-none rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
               style={{ userSelect: 'text' }}
             />
           </label>
 
-          <label className="flex flex-[5] items-center gap-1.5 text-[12px] text-[#9DB2C9] min-w-0">
+          <label className="flex flex-[5] items-center gap-1.5 text-[12px] text-[#9DB2C9] min-w-0 sm:flex-none">
             Hero
             <select
               value={heroPos}
               onChange={(e) => setHeroPos(e.target.value as Position)}
-              className="flex-1 min-w-0 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+              className="flex-1 min-w-0 sm:flex-none rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
             >
               {POSITIONS.map((p) => (
                 <option key={p} value={p}>
@@ -312,7 +312,7 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
           </label>
         </div>
 
-        {/* Hero stack — full width */}
+        {/* Hero stack */}
         <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
           Hero stack&nbsp;$
           <input
@@ -323,7 +323,7 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
               setSeatStack(heroPos, Math.max(0, Number(e.target.value)))
             }
             placeholder="500"
-            className="flex-1 min-w-0 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+            className="flex-1 min-w-0 sm:w-20 sm:flex-none rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
             style={{ userSelect: 'text' }}
           />
         </label>

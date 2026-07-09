@@ -150,14 +150,14 @@ export function LessonsPage(): JSX.Element {
                           )}
                           <h3 className="text-base font-medium text-ink truncate">{lesson.title}</h3>
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-ink-3 ml-7">
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-3 ml-7">
                           <span>{lesson.questions.length} questions</span>
                           {lesson.principle_tag && (
                             <span className="badge-muted">{lesson.principle_tag}</span>
                           )}
                         </div>
                         {p && p.questionsAnswered > 0 && (
-                          <div className="progress-bar mt-3 w-20 ml-7">
+                          <div className="progress-bar mt-2 ml-7">
                             <div className="progress-fill" style={{ width: `${pct}%` }} />
                           </div>
                         )}

@@ -158,14 +158,14 @@ export function ReferencesLibraryPage(): JSX.Element {
             key={tab.id}
             type="button"
             onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center gap-2 px-4 py-3 text-base font-medium border-b-2 transition-colors -mb-px ${
+            className={`flex flex-col sm:flex-row items-center gap-1 sm:gap-2 px-3 sm:px-4 py-2 sm:py-3 text-sm font-medium border-b-2 transition-colors -mb-px ${
               activeTab === tab.id
                 ? 'text-gold border-gold'
                 : 'text-ink-3 border-transparent hover:text-ink'
             }`}
           >
             <tab.icon className="w-5 h-5" />
-            <span className="hidden sm:inline">{tab.label}</span>
+            <span className="text-[10px] sm:text-sm leading-tight text-center">{tab.label}</span>
           </button>
         ))}
       </div>
