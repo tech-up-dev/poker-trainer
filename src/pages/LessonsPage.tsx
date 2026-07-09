@@ -137,7 +137,7 @@ export function LessonsPage(): JSX.Element {
                       key={lesson.lesson_id ?? lesson.title}
                       type="button"
                       onClick={() => navigate(`/play/lessons/${lesson.lesson_id}`)}
-                      className="card flex items-center justify-between hover:bg-surface-overlay transition-colors group text-left w-full"
+                      className="card flex items-center justify-between hover:bg-surface-overlay transition-colors group text-left w-full overflow-hidden"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1 min-w-0">
@@ -189,7 +189,7 @@ export function LessonsPage(): JSX.Element {
                     key={lesson.lesson_id ?? lesson.title}
                     type="button"
                     onClick={() => navigate(`/play/lessons/${lesson.lesson_id}`)}
-                    className="card flex items-center justify-between hover:bg-surface-overlay transition-colors group text-left w-full"
+                    className="card flex items-center justify-between hover:bg-surface-overlay transition-colors group text-left w-full overflow-hidden"
                   >
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">

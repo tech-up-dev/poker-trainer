@@ -10,7 +10,7 @@ export function MemberLayout(): JSX.Element {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="min-h-screen bg-canvas flex flex-col lg:flex-row">
+    <div className="min-h-screen bg-canvas flex flex-col lg:flex-row overflow-x-hidden w-screen">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex-1 flex flex-col min-h-screen lg:ml-64">
