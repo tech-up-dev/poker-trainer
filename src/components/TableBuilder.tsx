@@ -259,16 +259,16 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
     <div className="space-y-4" style={{ userSelect: 'none' }}>
 
       {/* ── Top controls ──────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-col gap-2">
 
-        {/* Street tabs */}
+        {/* Street tabs — full width */}
         <div className="flex rounded-lg overflow-hidden border border-[#2a5079]">
           {STREETS.map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => setStreet(s)}
-              className={`px-3 py-1.5 text-[12px] font-medium capitalize transition-colors ${
+              className={`flex-1 py-1.5 text-[12px] font-medium capitalize transition-colors ${
                 street === s
                   ? 'bg-[#F4A024] text-[#07182C]'
                   : 'bg-[#0E2A47] text-[#9DB2C9] hover:bg-[#16395C]'
@@ -279,39 +279,40 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
           ))}
         </div>
 
-        {/* Pot */}
-        <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
-          Pot&nbsp;$
-          <input
-            type="number"
-            min={0}
-            value={value.pot_size ?? ''}
-            onChange={(e) =>
-              patch({ pot_size: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)) })
-            }
-            placeholder="0"
-            className="w-20 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
-            style={{ userSelect: 'text' }}
-          />
-        </label>
+        {/* Pot + Hero — side by side, 50/50 */}
+        <div className="flex gap-2">
+          <label className="flex flex-1 items-center gap-1.5 text-[12px] text-[#9DB2C9]">
+            Pot&nbsp;$
+            <input
+              type="number"
+              min={0}
+              value={value.pot_size ?? ''}
+              onChange={(e) =>
+                patch({ pot_size: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)) })
+              }
+              placeholder="0"
+              className="flex-1 min-w-0 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+              style={{ userSelect: 'text' }}
+            />
+          </label>
 
-        {/* Hero position */}
-        <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
-          Hero
-          <select
-            value={heroPos}
-            onChange={(e) => setHeroPos(e.target.value as Position)}
-            className="rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
-          >
-            {POSITIONS.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="flex flex-1 items-center gap-1.5 text-[12px] text-[#9DB2C9]">
+            Hero
+            <select
+              value={heroPos}
+              onChange={(e) => setHeroPos(e.target.value as Position)}
+              className="flex-1 min-w-0 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+            >
+              {POSITIONS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
-        {/* Hero stack */}
+        {/* Hero stack — full width */}
         <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
           Hero stack&nbsp;$
           <input
@@ -322,7 +323,7 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
               setSeatStack(heroPos, Math.max(0, Number(e.target.value)))
             }
             placeholder="500"
-            className="w-20 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+            className="flex-1 min-w-0 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
             style={{ userSelect: 'text' }}
           />
         </label>
