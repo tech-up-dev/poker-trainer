@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -26,10 +26,10 @@ type DeleteStatus = 'deleting' | { error: string }
 // list only shows these types (others stay hidden, e.g. unreleased types on M1),
 // and each gets an Edit button to its route.
 const EDITOR_ROUTE: Partial<Record<ContentType, string>> = {
-  lesson: '/admin',
-  glossary: '/admin/glossary',
-  tip: '/admin/tips',
-  reference: '/admin/references',
+  lesson:    '/admin?tab=lesson',
+  glossary:  '/admin?tab=glossary',
+  tip:       '/admin?tab=tip',
+  reference: '/admin?tab=reference',
 }
 
 function key(item: StagedItem): string {
@@ -168,7 +168,7 @@ export function StagingBrowser(): JSX.Element {
       <header className="flex items-end justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold">Staging</h1>
-          <p className="text-slate-400">
+          <p className="text-ink-2">
             Everything saved to staging but not necessarily promoted. Promote items to production,
             or open one in its editor to make changes.
           </p>
@@ -176,7 +176,7 @@ export function StagingBrowser(): JSX.Element {
         <button
           type="button"
           onClick={() => setReloadKey((k) => k + 1)}
-          className="px-3 py-1.5 text-sm rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
+          className="px-3 py-1.5 text-sm rounded bg-surface-raised hover:bg-surface-overlay text-ink"
         >
           Refresh
         </button>
@@ -201,7 +201,7 @@ export function StagingBrowser(): JSX.Element {
 
   function renderBody(): JSX.Element {
     if (state.kind === 'loading') {
-      return <p className="text-sm text-slate-400">Loading staged content…</p>
+      return <p className="text-sm text-ink-2">Loading staged content…</p>
     }
     if (state.kind === 'error') {
       return <p className="text-sm text-red-400">Failed to load staging: {state.message}</p>
@@ -212,7 +212,7 @@ export function StagingBrowser(): JSX.Element {
     const visibleItems = state.items.filter((item) => EDITOR_ROUTE[item.content_type])
 
     if (visibleItems.length === 0) {
-      return <p className="text-sm text-slate-400">Nothing in staging.</p>
+      return <p className="text-sm text-ink-2">Nothing in staging.</p>
     }
 
     const groups = new Map<ContentType, StagedItem[]>()
@@ -233,7 +233,7 @@ export function StagingBrowser(): JSX.Element {
           >
             {promotingAll ? 'Promoting all…' : `Promote all ${visibleItems.length} to Production`}
           </button>
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-ink-3">
             {[...groups.entries()].map(([t, l]) => `${l.length} ${t}`).join(' · ')}
           </span>
         </div>
@@ -241,7 +241,7 @@ export function StagingBrowser(): JSX.Element {
         {[...groups.entries()].map(([type, items]) => (
           <div key={type} className="space-y-2">
             <h2 className="text-lg font-semibold capitalize">{type}</h2>
-            <ul className="rounded border border-slate-700 bg-slate-950 divide-y divide-slate-800">
+            <ul className="rounded border border-line bg-canvas divide-y divide-line">
               {items.map((item) => {
                 const status = promote[key(item)] ?? 'idle'
                 const del = deleteState[key(item)]
@@ -250,8 +250,8 @@ export function StagingBrowser(): JSX.Element {
                   <li key={key(item)} className="px-4 py-3 space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="text-sm text-slate-100 truncate">{labelFor(item)}</div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-sm text-ink truncate">{labelFor(item)}</div>
+                        <div className="text-xs text-ink-3">
                           <span className="font-mono">{item.content_id}</span>
                           <span> · {formatRelative(item.updated_at)}</span>
                         </div>
@@ -260,7 +260,7 @@ export function StagingBrowser(): JSX.Element {
                         <button
                           type="button"
                           onClick={() => setExpanded((e) => ({ ...e, [key(item)]: !isOpen }))}
-                          className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                          className="text-xs px-2 py-1 rounded bg-surface hover:bg-surface-raised text-ink-2"
                         >
                           {isOpen ? 'Hide' : 'View'}
                         </button>
@@ -268,7 +268,7 @@ export function StagingBrowser(): JSX.Element {
                           <button
                             type="button"
                             onClick={() => editItem(item)}
-                            className="text-xs px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
+                            className="text-xs px-2 py-1 rounded bg-surface-raised hover:bg-surface-overlay text-ink"
                           >
                             Edit
                           </button>
@@ -281,7 +281,7 @@ export function StagingBrowser(): JSX.Element {
                               item.content,
                             )
                           }
-                          className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                          className="text-xs px-2 py-1 rounded bg-surface hover:bg-surface-raised text-ink-2"
                         >
                           Export
                         </button>
@@ -315,7 +315,7 @@ export function StagingBrowser(): JSX.Element {
                     ) : null}
 
                     {isOpen ? (
-                      <pre className="text-xs text-slate-300 bg-slate-900 border border-slate-800 rounded p-3 overflow-x-auto whitespace-pre-wrap break-words">
+                      <pre className="text-xs text-ink-2 bg-canvas border border-line rounded p-3 overflow-x-auto whitespace-pre-wrap break-words">
                         {JSON.stringify(item.content, null, 2)}
                       </pre>
                     ) : null}

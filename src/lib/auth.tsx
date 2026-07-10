@@ -8,39 +8,45 @@ import { AuthContext } from './auth-context'
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [hasAccess, setHasAccess] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     let active = true
 
-    // RLS scopes this to the current user's rows, so a returned row means the
-    // signed-in user is the admin.
-    async function resolveAdmin(current: Session | null): Promise<void> {
+    async function resolveEntitlements(current: Session | null): Promise<void> {
       if (!current) {
-        if (active) setIsAdmin(false)
+        if (active) { setIsAdmin(false); setHasAccess(false); setLoading(false) }
         return
       }
       const { data } = await supabaseProd
         .from('entitlements')
         .select('entitlement_key')
-        .eq('entitlement_key', 'admin_access')
+        .in('entitlement_key', ['admin_access', 'quiz_app_access'])
         .eq('status', 'active')
-        .maybeSingle()
-      if (active) setIsAdmin(data !== null)
+      if (!active) return
+      const keys = (data ?? []).map((r) => r.entitlement_key as string)
+      setIsAdmin(keys.includes('admin_access'))
+      setHasAccess(keys.includes('quiz_app_access'))
+      setLoading(false)
     }
 
     supabaseProd.auth.getSession().then(async ({ data }) => {
       if (!active) return
       setSession(data.session)
-      await resolveAdmin(data.session)
+      await resolveEntitlements(data.session)
       if (active) setLoading(false)
     })
 
     const {
       data: { subscription },
-    } = supabaseProd.auth.onAuthStateChange((_event, next) => {
+    } = supabaseProd.auth.onAuthStateChange((event, next) => {
+      // INITIAL_SESSION is handled by the getSession() path above.
+      // For actual auth changes (sign-in, sign-out, token refresh) set loading
+      // so RequireAuth waits until entitlements are resolved before checking isAdmin.
+      if (event !== 'INITIAL_SESSION' && active) setLoading(true)
       setSession(next)
-      void resolveAdmin(next)
+      void resolveEntitlements(next)
     })
 
     return () => {
@@ -50,6 +56,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ session, isAdmin, loading }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ session, isAdmin, hasAccess, loading }}>
+      {children}
+    </AuthContext.Provider>
   )
 }

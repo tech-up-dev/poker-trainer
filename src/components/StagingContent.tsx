@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 
 import { supabaseProd } from '../lib/supabase-prod'
@@ -70,18 +70,18 @@ export function StagingContent({
             onClick={() =>
               downloadJson(exportFilename(contentType, contentId), state.content)
             }
-            className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+            className="text-xs px-2 py-1 rounded bg-surface hover:bg-surface-raised text-ink-2"
           >
             Export JSON
           </button>
         ) : null}
       </div>
       {state.kind === 'loading' ? (
-        <p className="text-sm text-slate-400">Loading…</p>
+        <p className="text-sm text-ink-2">Loading…</p>
       ) : state.kind === 'error' ? (
         <p className="text-sm text-red-400">Failed to load staging content: {state.message}</p>
       ) : state.kind === 'empty' ? (
-        <p className="text-sm text-slate-400">Not in staging.</p>
+        <p className="text-sm text-ink-2">Not in staging.</p>
       ) : (
         <div className="max-h-[28rem] overflow-y-auto pr-1">
           <ContentBody content={state.content} contentType={contentType} />
