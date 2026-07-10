@@ -1,8 +1,10 @@
 import type { JSX } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
+import { Sun, Moon } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
 import { useAuth } from '../lib/auth-context'
+import { useTheme } from '../lib/theme'
 
 function navClass({ isActive }: { isActive: boolean }): string {
   return isActive
@@ -12,6 +14,7 @@ function navClass({ isActive }: { isActive: boolean }): string {
 
 export function AdminLayout(): JSX.Element {
   const { session } = useAuth()
+  const { theme, toggleTheme } = useTheme()
 
   return (
     <div className="min-h-screen bg-canvas text-ink">
@@ -26,6 +29,14 @@ export function AdminLayout(): JSX.Element {
               {session?.user.email ? (
                 <span className="truncate hidden sm:block max-w-[180px]">{session.user.email}</span>
               ) : null}
+              <button
+                type="button"
+                onClick={toggleTheme}
+                aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+                className="p-2 rounded-lg hover:bg-surface-raised text-ink-2 hover:text-ink transition-colors"
+              >
+                {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
               <button
                 type="button"
                 onClick={() => void supabaseProd.auth.signOut()}
