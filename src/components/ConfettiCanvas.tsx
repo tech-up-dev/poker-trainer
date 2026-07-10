@@ -16,7 +16,7 @@ type Particle = {
 
 const COLORS = ['#f4a024', '#3dbe8a', '#5da2e0', '#eaf1f8', '#f4a024', '#fde68a']
 
-// Lightweight canvas confetti burst — no dependencies. Fires once on mount,
+// Lightweight canvas confetti burst, no dependencies. Fires once on mount,
 // runs for ~2.5 s, then stops. Uses requestAnimationFrame for smooth 60fps.
 export function ConfettiCanvas(): JSX.Element {
   const canvasRef = useRef<HTMLCanvasElement>(null)

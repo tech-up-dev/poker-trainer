@@ -5,7 +5,7 @@ import { ArrowRight, BookOpen, Target, TrendingUp } from 'lucide-react'
 
 const ONBOARDING_KEY = 'bss_onboarding_done'
 
-// Placeholder focus areas — client swaps these for real topic names.
+// Placeholder focus areas, client swaps these for real topic names.
 const FOCUS_AREAS = [
   'Pre-flop fundamentals',
   'Post-flop play',

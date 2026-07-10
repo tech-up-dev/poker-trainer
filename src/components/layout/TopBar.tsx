@@ -1,7 +1,7 @@
 import { Menu, Sun, Moon } from 'lucide-react'
 import type { JSX } from 'react'
 
-import { useTheme } from '../../lib/theme'
+import { useTheme } from '../../lib/theme-context'
 
 interface TopBarProps {
   onMenuClick: () => void

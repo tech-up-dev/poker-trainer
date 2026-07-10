@@ -265,7 +265,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
       {/* Left: street tabs + fields */}
       <div className={livePreviewSlot ? 'flex-1 space-y-2' : 'space-y-2'}>
 
-        {/* Street tabs — full width on mobile, natural width on large screens */}
+        {/* Street tabs, full width on mobile, natural width on large screens */}
         <div className="flex lg:inline-flex rounded-lg overflow-hidden border border-[#2a5079]">
           {STREETS.map((s) => (
             <button
@@ -283,7 +283,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
           ))}
         </div>
 
-        {/* Pot + Hero + Hero stack — own row below tabs */}
+        {/* Pot + Hero + Hero stack, own row below tabs */}
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
             Pot&nbsp;$
@@ -332,7 +332,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
         </div>
       </div>
 
-      {/* Right: "Live preview" label — aligned with tabs on large screens */}
+      {/* Right: "Live preview" label, aligned with tabs on large screens */}
       {livePreviewSlot && (
         <div className="hidden lg:flex flex-1 items-center justify-center">
           <p className="text-[11px] font-mono uppercase tracking-widest" style={{ color: '#F4A024' }}>

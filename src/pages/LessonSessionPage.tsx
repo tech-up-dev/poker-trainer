@@ -77,7 +77,6 @@ export function LessonSessionPage(): JSX.Element {
   useEffect(() => {
     if (phase.kind !== 'complete') return
     const target = phase.total > 0 ? Math.round((phase.correct / phase.total) * 100) : 0
-    if (target === 0) { setDisplayPct(0); return }
     const duration = 800
     const start = performance.now()
     let frame: number
@@ -96,6 +95,7 @@ export function LessonSessionPage(): JSX.Element {
   }, [lesson, randomise])
 
   function startQuiz(): void {
+    setDisplayPct(0)
     setCorrectMap({})
     setAnsweredMap({})
     questionStartedAt.current = Date.now()
@@ -170,7 +170,7 @@ export function LessonSessionPage(): JSX.Element {
           <div className="space-y-2">
             <h2 className="text-lg font-bold text-ink">This lesson isn't available yet</h2>
             <p className="text-sm text-ink-2 leading-relaxed">
-              The content for this lesson hasn't been published. Check back soon — it's on its way.
+              The content for this lesson hasn't been published. Check back soon, it's on its way.
             </p>
           </div>
           <button

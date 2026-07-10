@@ -59,7 +59,7 @@ export function CheckoutSuccessPage(): JSX.Element {
             <div>
               <h1 className="text-xl font-bold text-ink">Almost there</h1>
               <p className="text-sm text-ink-3 mt-1">
-                Payment received — your access may take a moment to activate.
+                Payment received, your access may take a moment to activate.
               </p>
             </div>
             <button

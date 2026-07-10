@@ -42,7 +42,7 @@ export function LoginPage(): JSX.Element {
       return
     }
 
-    // Don't navigate immediately — wait for AuthContext to resolve isAdmin
+    // Don't navigate immediately, wait for AuthContext to resolve isAdmin
     // so RequireAuth doesn't bounce admins back to /play.
     setPendingRedirect(true)
   }

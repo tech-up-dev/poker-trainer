@@ -1,17 +1,7 @@
-import { createContext, useCallback, useContext, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import type { JSX, ReactNode } from 'react'
 
-type Theme = 'dark' | 'light'
-
-interface ThemeContextValue {
-  theme: Theme
-  toggleTheme: () => void
-}
-
-const ThemeContext = createContext<ThemeContextValue>({
-  theme: 'dark',
-  toggleTheme: () => {},
-})
+import { ThemeContext, type Theme } from './theme-context'
 
 function applyTheme(theme: Theme): void {
   if (theme === 'light') {
@@ -44,8 +34,4 @@ export function ThemeProvider({ children }: { children: ReactNode }): JSX.Elemen
       {children}
     </ThemeContext.Provider>
   )
-}
-
-export function useTheme(): ThemeContextValue {
-  return useContext(ThemeContext)
 }
