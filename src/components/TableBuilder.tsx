@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import type { JSX } from 'react'
+import type { JSX, ReactNode } from 'react'
 import type { HandScenarioState } from '../../shared/schemas/lesson'
 import { Card } from './Card'
 import { CardPicker } from './CardPicker'
 
-// ─── Constants (mirrors PokerTable) ──────────────────────────────────────────
+// --- Constants (mirrors PokerTable) -----------------------------------------
 
 const POSITIONS = ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'MP', 'MP+1', 'HJ', 'CO'] as const
 type Position = (typeof POSITIONS)[number]
@@ -24,15 +24,15 @@ type Align = 'center' | 'flex-start' | 'flex-end'
 
 // Identical to PokerTable SLOTS
 const SLOTS: { style: React.CSSProperties; align: Align }[] = [
-  { style: { left: '50%', top: '91%', transform: 'translate(-50%, -50%)' }, align: 'center' },
-  { style: { right: '3%', top: '80%', transform: 'translateY(-50%)' }, align: 'flex-end' },
-  { style: { right: '1%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-end' },
-  { style: { right: '3%', top: '19%', transform: 'translateY(-50%)' }, align: 'flex-end' },
-  { style: { left: '64%', top: '3%', transform: 'translateX(-50%)' }, align: 'center' },
-  { style: { left: '36%', top: '3%', transform: 'translateX(-50%)' }, align: 'center' },
-  { style: { left: '3%', top: '19%', transform: 'translateY(-50%)' }, align: 'flex-start' },
-  { style: { left: '1%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-start' },
-  { style: { left: '3%', top: '80%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { left: '50%', top: '90%', transform: 'translate(-50%, -50%)' }, align: 'center' },
+  { style: { right: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'flex-end' },
+  { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-end' },
+  { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-end' },
+  { style: { left: '61%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '39%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { left: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { left: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'flex-start' },
 ]
 
 function normalisePos(pos: string): string {
@@ -46,7 +46,7 @@ function getSeatedPositions(heroPosition: string): string[] {
   return [...POSITIONS.slice(idx), ...POSITIONS.slice(0, idx)]
 }
 
-// ─── Shared sub-components (same visual tokens as PokerTable) ─────────────────
+// --- Shared sub-components (same visual tokens as PokerTable) ----------------
 
 function PosPill({
   position,
@@ -70,7 +70,7 @@ function PosPill({
         )}
       </div>
       {isBtn && (
-        <div className="w-[18px] h-[18px] rounded-full bg-[#F4A024] text-[#0A1E33] text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+        <div className="w-[18px] h-[18px] rounded-full bg-[#F4A024] text-[#07182C] text-[10px] font-bold flex items-center justify-center flex-shrink-0">
           D
         </div>
       )}
@@ -86,9 +86,9 @@ function TypeBadge({ code, active }: { code: string; active: boolean }): JSX.Ele
       }`}
     >
       <span
-        className={`w-[6px] h-[6px] rounded-full flex-shrink-0 ${active ? 'bg-[#0A1E33]' : 'bg-[#5DA2E0]'}`}
+        className={`w-[6px] h-[6px] rounded-full flex-shrink-0 ${active ? 'bg-[#07182C]' : 'bg-[#5DA2E0]'}`}
       />
-      <span className={`text-[11px] font-medium leading-none ${active ? 'text-[#0A1E33]' : 'text-[#EAF1F8]'}`}>
+      <span className={`text-[11px] font-medium leading-none ${active ? 'text-[#07182C]' : 'text-[#EAF1F8]'}`}>
         {code}
       </span>
     </div>
@@ -98,23 +98,24 @@ function TypeBadge({ code, active }: { code: string; active: boolean }): JSX.Ele
 function EmptyCardSlot(): JSX.Element {
   return (
     <div className="w-[30px] h-[42px] rounded border-2 border-dashed border-[#2a5079] flex items-center justify-center">
-      <span className="text-[#3a5068] text-[18px] leading-none font-light">+</span>
+      <span className="text-[#2a5079] text-[18px] leading-none font-light">+</span>
     </div>
   )
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// --- Main component ----------------------------------------------------------
 
 export interface TableBuilderProps {
   value: HandScenarioState
   onChange: (state: HandScenarioState) => void
+  livePreviewSlot?: ReactNode
 }
 
 type EditingSlot =
   | { kind: 'hole'; index: 0 | 1 }
   | { kind: 'board'; index: number }
 
-export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Element {
+export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderProps): JSX.Element {
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null)
   const [editingSlot, setEditingSlot] = useState<EditingSlot | null>(null)
 
@@ -154,7 +155,7 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
         ? boardCards[editingSlot.index]
         : null
 
-  // ─── Update helpers ────────────────────────────────────────────────────────
+  // -- Update helpers --------------------------------------------------------
 
   function patch(updates: Partial<HandScenarioState>): void {
     onChange({ ...value, ...updates })
@@ -250,7 +251,7 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
     )
   }
 
-  // ─── Render ───────────────────────────────────────────────────────────────
+  // -- Render ----------------------------------------------------------------
 
   const selectedSeatType = selectedSeat ? (value.villain_player_types?.[selectedSeat] ?? null) : null
   const selectedSeatStack = selectedSeat ? (value.stack_sizes?.[selectedSeat] ?? 500) : 500
@@ -258,17 +259,20 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
   return (
     <div className="space-y-4" style={{ userSelect: 'none' }}>
 
-      {/* ── Top controls ──────────────────────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-3">
+      {/* -- Top controls ---------------------------------------------------- */}
+      <div className={livePreviewSlot ? 'flex gap-6 items-start' : ''}>
 
-        {/* Street tabs */}
-        <div className="flex rounded-lg overflow-hidden border border-[#2a5079]">
+      {/* Left: street tabs + fields */}
+      <div className={livePreviewSlot ? 'flex-1 space-y-2' : 'space-y-2'}>
+
+        {/* Street tabs, full width on mobile, natural width on large screens */}
+        <div className="flex lg:inline-flex rounded-lg overflow-hidden border border-[#2a5079]">
           {STREETS.map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => setStreet(s)}
-              className={`px-3 py-1.5 text-[12px] font-medium capitalize transition-colors ${
+              className={`flex-1 sm:flex-none sm:px-3 py-1.5 text-[12px] font-medium capitalize transition-colors ${
                 street === s
                   ? 'bg-[#F4A024] text-[#07182C]'
                   : 'bg-[#0E2A47] text-[#9DB2C9] hover:bg-[#16395C]'
@@ -279,65 +283,80 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
           ))}
         </div>
 
-        {/* Pot */}
-        <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
-          Pot&nbsp;$
-          <input
-            type="number"
-            min={0}
-            value={value.pot_size ?? ''}
-            onChange={(e) =>
-              patch({ pot_size: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)) })
-            }
-            placeholder="0"
-            className="w-20 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
-            style={{ userSelect: 'text' }}
-          />
-        </label>
+        {/* Pot + Hero + Hero stack, own row below tabs */}
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
+            Pot&nbsp;$
+            <input
+              type="number"
+              min={0}
+              value={value.pot_size ?? ''}
+              onChange={(e) =>
+                patch({ pot_size: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)) })
+              }
+              placeholder="0"
+              className="w-20 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+              style={{ userSelect: 'text' }}
+            />
+          </label>
 
-        {/* Hero position */}
-        <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
-          Hero
-          <select
-            value={heroPos}
-            onChange={(e) => setHeroPos(e.target.value as Position)}
-            className="rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
-          >
-            {POSITIONS.map((p) => (
-              <option key={p} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
-        </label>
+          <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
+            Hero
+            <select
+              value={heroPos}
+              onChange={(e) => setHeroPos(e.target.value as Position)}
+              className="rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+            >
+              {POSITIONS.map((p) => (
+                <option key={p} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
+          </label>
 
-        {/* Hero stack */}
-        <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
-          Hero stack&nbsp;$
-          <input
-            type="number"
-            min={0}
-            value={value.stack_sizes?.[heroPos] ?? ''}
-            onChange={(e) =>
-              setSeatStack(heroPos, Math.max(0, Number(e.target.value)))
-            }
-            placeholder="500"
-            className="w-20 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
-            style={{ userSelect: 'text' }}
-          />
-        </label>
+          <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
+            Hero stack&nbsp;$
+            <input
+              type="number"
+              min={0}
+              value={value.stack_sizes?.[heroPos] ?? ''}
+              onChange={(e) =>
+                setSeatStack(heroPos, Math.max(0, Number(e.target.value)))
+              }
+              placeholder="500"
+              className="w-20 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+              style={{ userSelect: 'text' }}
+            />
+          </label>
+        </div>
       </div>
 
-      {/* ── Main: table + config panel ────────────────────────────────────── */}
-      <div className="flex flex-wrap gap-6 items-start">
+      {/* Right: "Live preview" label, aligned with tabs on large screens */}
+      {livePreviewSlot && (
+        <div className="hidden lg:flex flex-1 items-center justify-center">
+          <p className="text-[11px] font-mono uppercase tracking-widest" style={{ color: '#F4A024' }}>
+            Live preview
+          </p>
+        </div>
+      )}
 
-        {/* ── Interactive oval table ─────────────────────────────────────── */}
-        <div className="w-full max-w-sm flex-shrink-0">
-          <div className="relative w-full" style={{ height: 290 }}>
+      </div>{/* end controls row */}
+
+      {/* -- Main: table + config panel --------------------------------------- */}
+      <div className={livePreviewSlot ? 'flex flex-col lg:flex-row gap-6 lg:items-start' : 'flex flex-wrap gap-6 items-start'}>
+
+        {/* Left column: interactive table + config panel */}
+        <div className={livePreviewSlot ? 'w-full lg:flex-1 lg:min-w-0 space-y-5' : 'contents'}>
+
+        {/* -- Interactive oval table ---------------------------------------- */}
+        <div className={livePreviewSlot ? 'mx-auto' : 'flex-shrink-0 mx-auto sm:mx-0'} style={{ width: 240 }}>
+
+          <div className="relative w-full" style={{ height: 360 }}>
 
             {/* Leather rail */}
             <div
-              className="absolute inset-0 rounded-[50%]"
+              className="absolute inset-0 rounded-full"
               style={{
                 background: 'linear-gradient(180deg,#7A4E2A 0%,#5E3A1F 65%)',
                 boxShadow: 'inset 0 0 0 1px rgba(201,154,106,0.35)',
@@ -345,11 +364,10 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
             />
             {/* Green felt */}
             <div
-              className="absolute"
+              className="absolute rounded-full"
               style={{
-                inset: '10px 13px',
+                inset: '12px 10px',
                 background: '#1C6B43',
-                borderRadius: '50%',
                 boxShadow: 'inset 0 0 36px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.18)',
               }}
             />
@@ -359,7 +377,7 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
               {(value.pot_size ?? 0) > 0 && (
                 <div
                   className="text-[#EAF1F8] text-[12px] px-3 py-[4px] rounded-[13px] border border-[#2a5079]"
-                  style={{ background: 'rgba(4,12,24,0.55)' }}
+                  style={{ background: 'rgba(9,9,11,0.55)' }}
                 >
                   Pot <strong className="font-semibold">${value.pot_size}</strong>
                 </div>
@@ -374,7 +392,7 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
               {street === 'preflop' && boardCards.filter(Boolean).length === 0 && (
                 <div
                   className="text-[#6B83A0] text-[10px] px-2 py-[2px] rounded uppercase tracking-widest"
-                  style={{ background: 'rgba(4,12,24,0.28)' }}
+                  style={{ background: 'rgba(9,9,11,0.28)' }}
                 >
                   Preflop
                 </div>
@@ -444,7 +462,7 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
                       {isActive && typeCode && <TypeBadge code={typeCode} active={isSelected} />}
                       <PosPill position={pos} stack={isActive ? stack : undefined} isBtn={pos === 'BTN'} />
                       {!isActive && (
-                        <span className="text-[#3a5068] text-[10px] leading-none">+ add</span>
+                        <span className="text-[#2a5079] text-[10px] leading-none">+ add</span>
                       )}
                     </button>
                   )}
@@ -454,8 +472,8 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
           </div>
         </div>
 
-        {/* ── Right config panel ─────────────────────────────────────────── */}
-        <div className="flex-1 min-w-[280px] space-y-5">
+        {/* -- Config panel ---------------------------------------------------- */}
+        <div className={livePreviewSlot ? 'space-y-5 flex flex-col items-center' : 'flex-1 min-w-[280px] space-y-5'}>
 
           {/* Villain seat config */}
           {selectedSeat && selectedSeatType && (
@@ -465,7 +483,7 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
                 <button
                   type="button"
                   onClick={() => toggleSeat(selectedSeat)}
-                  className="text-[11px] text-[#D6483B] hover:text-red-400 transition-colors"
+                  className="text-[11px] text-[#f87171] hover:text-red-400 transition-colors"
                 >
                   Remove
                 </button>
@@ -635,6 +653,22 @@ export function TableBuilder({ value, onChange }: TableBuilderProps): JSX.Elemen
             </div>
           )}
         </div>
+
+        {/* End left column */}
+        </div>
+
+        {/* -- Vertical divider (large screens only) -------------------------- */}
+        {livePreviewSlot && (
+          <div className="hidden lg:block self-stretch w-px bg-[#2a5079]" />
+        )}
+
+        {/* -- Right column: live preview (large screens only) --------------- */}
+        {livePreviewSlot && (
+          <div className="hidden lg:flex flex-1 min-w-0 justify-center">
+            {livePreviewSlot}
+          </div>
+        )}
+
       </div>
     </div>
   )

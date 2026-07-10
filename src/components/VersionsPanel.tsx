@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 
 import { supabaseProd } from '../lib/supabase-prod'
@@ -212,41 +212,41 @@ function renderVersionsBody(
     return <p className="text-sm text-red-400">Failed to load versions: {loadError}</p>
   }
   if (versions === null) {
-    return <p className="text-sm text-slate-400">Loading versions…</p>
+    return <p className="text-sm text-ink-2">Loading versions…</p>
   }
   if (versions.length === 0) {
-    return <p className="text-sm text-slate-400">No production versions yet.</p>
+    return <p className="text-sm text-ink-2">No production versions yet.</p>
   }
 
   const currentVersionNumber = versions[0].version_number
 
   return (
-    <ul className="rounded border border-slate-700 bg-slate-950 divide-y divide-slate-800">
+    <ul className="rounded border border-line bg-canvas divide-y divide-line">
       {versions.map((v) => {
         const isCurrent = v.version_number === currentVersionNumber
         return (
           <li key={v.id} className="flex items-center justify-between px-4 py-2 text-sm">
             <div className="space-x-2">
-              <span className="font-mono text-slate-200">v{v.version_number}</span>
-              <span className="text-slate-500">
+              <span className="font-mono text-ink">v{v.version_number}</span>
+              <span className="text-ink-3">
                 · {formatRelative(v.created_at)} · {v.created_by ?? 'unknown'}
               </span>
               {v.source_version !== null ? (
-                <span className="text-slate-500">(from v{v.source_version})</span>
+                <span className="text-ink-3">(from v{v.source_version})</span>
               ) : null}
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => onPreview(v.version_number)}
-                className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                className="text-xs px-2 py-1 rounded bg-surface hover:bg-surface-raised text-ink-2"
               >
                 {openPreviewVersion === v.version_number ? 'Hide' : 'Preview'}
               </button>
               <button
                 type="button"
                 onClick={() => onExport(v.version_number)}
-                className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                className="text-xs px-2 py-1 rounded bg-surface hover:bg-surface-raised text-ink-2"
               >
                 Export
               </button>
@@ -259,7 +259,7 @@ function renderVersionsBody(
                   type="button"
                   onClick={() => onRollback(v.version_number)}
                   disabled={rollbackInFlight}
-                  className="text-xs px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="text-xs px-2 py-1 rounded bg-surface-raised hover:bg-surface-overlay text-ink disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Rollback
                 </button>
@@ -275,7 +275,7 @@ function renderVersionsBody(
 function renderPreview(preview: PreviewState, contentType: string): JSX.Element | null {
   if (preview.kind === 'closed') return null
   if (preview.kind === 'loading') {
-    return <p className="text-sm text-slate-400">Loading v{preview.version}…</p>
+    return <p className="text-sm text-ink-2">Loading v{preview.version}…</p>
   }
   if (preview.kind === 'error') {
     return (
@@ -285,8 +285,8 @@ function renderPreview(preview: PreviewState, contentType: string): JSX.Element 
     )
   }
   return (
-    <div className="space-y-2 rounded border border-slate-700 bg-slate-950 p-3">
-      <div className="text-xs text-slate-400">Preview of v{preview.version}</div>
+    <div className="space-y-2 rounded border border-line bg-canvas p-3">
+      <div className="text-xs text-ink-2">Preview of v{preview.version}</div>
       <div className="max-h-[24rem] overflow-y-auto pr-1">
         <ContentBody content={preview.content} contentType={contentType} />
       </div>
@@ -297,7 +297,7 @@ function renderPreview(preview: PreviewState, contentType: string): JSX.Element 
 function renderRollbackStatus(status: RollbackStatus): JSX.Element | null {
   if (status === 'idle') return null
   if ('running' in status) {
-    return <p className="text-sm text-slate-400">Rolling back to v{status.running}…</p>
+    return <p className="text-sm text-ink-2">Rolling back to v{status.running}…</p>
   }
   if ('done' in status) {
     return (

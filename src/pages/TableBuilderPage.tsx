@@ -3,6 +3,7 @@ import type { JSX } from 'react'
 import type { HandScenarioState } from '../../shared/schemas/lesson'
 import { TableBuilder } from '../components/TableBuilder'
 import { PokerTable } from '../components/PokerTable'
+import { TableBindPanel } from '../components/TableBindPanel'
 
 const INITIAL: HandScenarioState = {
   street: 'preflop',
@@ -34,16 +35,27 @@ export function TableBuilderPage(): JSX.Element {
         </p>
       </div>
 
-      <TableBuilder value={state} onChange={setState} />
+      <TableBuilder
+        value={state}
+        onChange={setState}
+        livePreviewSlot={
+          <div style={{ width: 240 }}>
+            <PokerTable tableState={state} size="sm" />
+          </div>
+        }
+      />
 
-      <div className="space-y-4">
-        <p className="text-[11px] font-mono uppercase tracking-widest" style={{ color: '#F4A024' }}>
+      {/* Mobile-only live preview (hidden on lg where it appears inline above) */}
+      <div className="space-y-4 lg:hidden flex flex-col items-center">
+        <p className="text-[11px] font-mono uppercase tracking-widest text-center" style={{ color: '#F4A024' }}>
           Live preview
         </p>
-        <div className="max-w-sm">
+        <div className="max-w-sm w-full">
           <PokerTable tableState={state} />
         </div>
       </div>
+
+      <TableBindPanel tableState={state} />
 
       <div className="space-y-2">
         <p className="text-[11px] font-mono uppercase tracking-widest" style={{ color: '#F4A024' }}>

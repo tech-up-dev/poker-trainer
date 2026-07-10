@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { supabaseProd } from '../lib/supabase-prod'
 import { downloadJson, exportFilename } from '../lib/download'
+import { ConfirmDialog } from './ConfirmDialog'
 import type { ContentType } from '../../shared/schemas/content'
 
 type StagedItem = {
@@ -18,15 +19,17 @@ type LoadState =
 
 // Per-item promote status, keyed by `${type}:${id}`.
 type PromoteStatus = 'idle' | 'promoting' | { version: number } | { error: string }
+// Per-item delete status, keyed the same way.
+type DeleteStatus = 'deleting' | { error: string }
 
 // Content types this build exposes, mapped to their editor route. The Staging
 // list only shows these types (others stay hidden, e.g. unreleased types on M1),
 // and each gets an Edit button to its route.
 const EDITOR_ROUTE: Partial<Record<ContentType, string>> = {
-  lesson: '/admin',
-  glossary: '/admin/glossary',
-  tip: '/admin/tips',
-  reference: '/admin/references',
+  lesson:    '/admin?tab=lesson',
+  glossary:  '/admin?tab=glossary',
+  tip:       '/admin?tab=tip',
+  reference: '/admin?tab=reference',
 }
 
 function key(item: StagedItem): string {
@@ -62,6 +65,8 @@ export function StagingBrowser(): JSX.Element {
   const navigate = useNavigate()
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
   const [promote, setPromote] = useState<Record<string, PromoteStatus>>({})
+  const [deleteState, setDeleteState] = useState<Record<string, DeleteStatus>>({})
+  const [confirmItem, setConfirmItem] = useState<StagedItem | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [promotingAll, setPromotingAll] = useState(false)
   // Bumped to trigger a reload of the staging list (mount + Refresh button).
@@ -127,12 +132,43 @@ export function StagingBrowser(): JSX.Element {
     navigate(route, { state: { preloadContent: item.content } })
   }
 
+  // Full delete (staging + production) after the user confirms in the dialog.
+  async function deleteItem(item: StagedItem): Promise<void> {
+    setConfirmItem(null)
+    setDeleteState((s) => ({ ...s, [key(item)]: 'deleting' }))
+    const { data, error } = await supabaseProd.functions.invoke('delete-content', {
+      body: { content_id: item.content_id, content_type: item.content_type },
+    })
+    if (error) {
+      setDeleteState((s) => ({ ...s, [key(item)]: { error: error.message } }))
+      return
+    }
+    const result = data as { ok: boolean; message?: string }
+    if (!result.ok) {
+      setDeleteState((s) => ({ ...s, [key(item)]: { error: result.message ?? 'Delete failed' } }))
+      return
+    }
+    // Drop it from the list; the version history stays in the DB.
+    setState((prev) =>
+      prev.kind === 'loaded'
+        ? { kind: 'loaded', items: prev.items.filter((i) => key(i) !== key(item)) }
+        : prev,
+    )
+  }
+
+  function deleteMessage(item: StagedItem): string {
+    const base = `This permanently deletes "${labelFor(item)}" from BOTH staging and production. The version history is kept, but this cannot be undone.`
+    return item.content_type === 'glossary'
+      ? `${base} Lessons that reference this term will be updated to stop linking it.`
+      : base
+  }
+
   return (
     <section className="space-y-6">
       <header className="flex items-end justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold">Staging</h1>
-          <p className="text-slate-400">
+          <p className="text-ink-2">
             Everything saved to staging but not necessarily promoted. Promote items to production,
             or open one in its editor to make changes.
           </p>
@@ -140,19 +176,32 @@ export function StagingBrowser(): JSX.Element {
         <button
           type="button"
           onClick={() => setReloadKey((k) => k + 1)}
-          className="px-3 py-1.5 text-sm rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
+          className="px-3 py-1.5 text-sm rounded bg-surface-raised hover:bg-surface-overlay text-ink"
         >
           Refresh
         </button>
       </header>
 
       {renderBody()}
+
+      <ConfirmDialog
+        open={confirmItem !== null}
+        title="Delete content?"
+        message={confirmItem ? deleteMessage(confirmItem) : ''}
+        confirmLabel="Delete everywhere"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={() => {
+          if (confirmItem) void deleteItem(confirmItem)
+        }}
+        onCancel={() => setConfirmItem(null)}
+      />
     </section>
   )
 
   function renderBody(): JSX.Element {
     if (state.kind === 'loading') {
-      return <p className="text-sm text-slate-400">Loading staged content…</p>
+      return <p className="text-sm text-ink-2">Loading staged content…</p>
     }
     if (state.kind === 'error') {
       return <p className="text-sm text-red-400">Failed to load staging: {state.message}</p>
@@ -163,7 +212,7 @@ export function StagingBrowser(): JSX.Element {
     const visibleItems = state.items.filter((item) => EDITOR_ROUTE[item.content_type])
 
     if (visibleItems.length === 0) {
-      return <p className="text-sm text-slate-400">Nothing in staging.</p>
+      return <p className="text-sm text-ink-2">Nothing in staging.</p>
     }
 
     const groups = new Map<ContentType, StagedItem[]>()
@@ -184,7 +233,7 @@ export function StagingBrowser(): JSX.Element {
           >
             {promotingAll ? 'Promoting all…' : `Promote all ${visibleItems.length} to Production`}
           </button>
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-ink-3">
             {[...groups.entries()].map(([t, l]) => `${l.length} ${t}`).join(' · ')}
           </span>
         </div>
@@ -192,16 +241,17 @@ export function StagingBrowser(): JSX.Element {
         {[...groups.entries()].map(([type, items]) => (
           <div key={type} className="space-y-2">
             <h2 className="text-lg font-semibold capitalize">{type}</h2>
-            <ul className="rounded border border-slate-700 bg-slate-950 divide-y divide-slate-800">
+            <ul className="rounded border border-line bg-canvas divide-y divide-line">
               {items.map((item) => {
                 const status = promote[key(item)] ?? 'idle'
+                const del = deleteState[key(item)]
                 const isOpen = expanded[key(item)] === true
                 return (
                   <li key={key(item)} className="px-4 py-3 space-y-2">
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="text-sm text-slate-100 truncate">{labelFor(item)}</div>
-                        <div className="text-xs text-slate-500">
+                        <div className="text-sm text-ink truncate">{labelFor(item)}</div>
+                        <div className="text-xs text-ink-3">
                           <span className="font-mono">{item.content_id}</span>
                           <span> · {formatRelative(item.updated_at)}</span>
                         </div>
@@ -210,7 +260,7 @@ export function StagingBrowser(): JSX.Element {
                         <button
                           type="button"
                           onClick={() => setExpanded((e) => ({ ...e, [key(item)]: !isOpen }))}
-                          className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                          className="text-xs px-2 py-1 rounded bg-surface hover:bg-surface-raised text-ink-2"
                         >
                           {isOpen ? 'Hide' : 'View'}
                         </button>
@@ -218,7 +268,7 @@ export function StagingBrowser(): JSX.Element {
                           <button
                             type="button"
                             onClick={() => editItem(item)}
-                            className="text-xs px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
+                            className="text-xs px-2 py-1 rounded bg-surface-raised hover:bg-surface-overlay text-ink"
                           >
                             Edit
                           </button>
@@ -231,7 +281,7 @@ export function StagingBrowser(): JSX.Element {
                               item.content,
                             )
                           }
-                          className="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300"
+                          className="text-xs px-2 py-1 rounded bg-surface hover:bg-surface-raised text-ink-2"
                         >
                           Export
                         </button>
@@ -243,6 +293,14 @@ export function StagingBrowser(): JSX.Element {
                         >
                           {status === 'promoting' ? 'Promoting…' : 'Promote'}
                         </button>
+                        <button
+                          type="button"
+                          onClick={() => setConfirmItem(item)}
+                          disabled={deleteState[key(item)] === 'deleting'}
+                          className="text-xs px-2 py-1 rounded bg-red-800 hover:bg-red-700 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                        >
+                          {deleteState[key(item)] === 'deleting' ? 'Deleting…' : 'Delete'}
+                        </button>
                       </div>
                     </div>
 
@@ -252,9 +310,12 @@ export function StagingBrowser(): JSX.Element {
                     {typeof status === 'object' && 'error' in status ? (
                       <p className="text-xs text-red-400">Promote failed: {status.error}</p>
                     ) : null}
+                    {typeof del === 'object' && 'error' in del ? (
+                      <p className="text-xs text-red-400">Delete failed: {del.error}</p>
+                    ) : null}
 
                     {isOpen ? (
-                      <pre className="text-xs text-slate-300 bg-slate-900 border border-slate-800 rounded p-3 overflow-x-auto whitespace-pre-wrap break-words">
+                      <pre className="text-xs text-ink-2 bg-canvas border border-line rounded p-3 overflow-x-auto whitespace-pre-wrap break-words">
                         {JSON.stringify(item.content, null, 2)}
                       </pre>
                     ) : null}

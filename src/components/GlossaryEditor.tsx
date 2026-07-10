@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 
 import type { GlossaryEntry } from '../../shared/schemas/glossary'
@@ -140,7 +140,7 @@ export function GlossaryEditor({
     <section className="space-y-6">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold">Glossary Editor</h1>
-        <p className="text-slate-400">
+        <p className="text-ink-2">
           Paste a glossary entry JSON, validate, save to staging, and promote to production.
         </p>
       </header>
@@ -149,14 +149,14 @@ export function GlossaryEditor({
         <button
           type="button"
           onClick={() => loadSample(validSample)}
-          className="px-3 py-1.5 text-sm rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
+          className="px-3 py-1.5 text-sm rounded bg-surface-raised hover:bg-surface-overlay text-ink"
         >
           Load Sample (Valid)
         </button>
         <button
           type="button"
           onClick={() => loadSample(invalidSample)}
-          className="px-3 py-1.5 text-sm rounded bg-slate-700 hover:bg-slate-600 text-slate-100"
+          className="px-3 py-1.5 text-sm rounded bg-surface-raised hover:bg-surface-overlay text-ink"
         >
           Load Sample (Invalid)
         </button>
@@ -172,7 +172,7 @@ export function GlossaryEditor({
           value={inputText}
           onChange={(e) => handleTextChange(e.target.value)}
           placeholder="Paste glossary entry JSON here..."
-          className="w-full font-mono text-sm bg-slate-950 text-slate-100 placeholder-slate-500 border border-slate-700 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full font-mono text-sm bg-canvas text-ink placeholder-ink-3 border border-line rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           spellCheck={false}
         />
       </div>
@@ -189,7 +189,7 @@ export function GlossaryEditor({
           type="button"
           onClick={() => void handleSave()}
           disabled={!canSave || operationInFlight}
-          className="px-4 py-2 rounded bg-slate-700 hover:bg-slate-600 text-slate-100 font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+          className="px-4 py-2 rounded bg-surface-raised hover:bg-surface-overlay text-ink font-medium disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Save to Staging
         </button>
@@ -204,7 +204,7 @@ export function GlossaryEditor({
       </div>
 
       {canSave && saveStatus !== 'saved' ? (
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-ink-2">
           Save to staging first; promotion publishes the staged copy.
         </p>
       ) : null}
@@ -212,7 +212,7 @@ export function GlossaryEditor({
       <div aria-live="polite" className="space-y-3">
         {validationResult !== null && renderValidationPanel(validationResult)}
 
-        {isSaving ? <p className="text-sm text-slate-400">Saving…</p> : null}
+        {isSaving ? <p className="text-sm text-ink-2">Saving…</p> : null}
         {saveStatus === 'saved' && effectiveId !== null ? (
           <p className="text-sm text-green-400">Saved to staging as {effectiveId}</p>
         ) : null}
@@ -220,7 +220,7 @@ export function GlossaryEditor({
           <p className="text-sm text-red-400">Save failed: {saveStatus.error}</p>
         ) : null}
 
-        {isPromoting ? <p className="text-sm text-slate-400">Promoting…</p> : null}
+        {isPromoting ? <p className="text-sm text-ink-2">Promoting…</p> : null}
         {typeof promoteStatus === 'object' && 'promoted' in promoteStatus ? (
           <p className="text-sm text-green-400">
             Promoted to production as v{promoteStatus.promoted}

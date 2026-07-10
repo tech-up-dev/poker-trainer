@@ -134,7 +134,12 @@ For each project:
 1. **Database password:** generate and store securely
 2. **Region:** choose the closest US region (e.g., `us-east-1`)
 3. **Enable Email auth** with these settings:
-   - Confirm email: off for staging, on for production
+   - Confirm email: **off for both staging and production**. The spec requires
+     immediate access after purchase with no email-confirmation wait, so
+     confirmations stay disabled everywhere (see SUPABASE_IMPLEMENTATION_GUIDE
+     "Email Confirmation - Disabled for Immediate Access"). Turning this on in
+     production sends unsolicited "Confirm your signup" emails and breaks the
+     immediate-login flow - do not enable it without reworking the signup flow.
    - Allow signups: configurable per environment
    - JWT expiry: default (3600 seconds)
 4. **Storage buckets:** create `avatars` and `assets` (RLS-protected)

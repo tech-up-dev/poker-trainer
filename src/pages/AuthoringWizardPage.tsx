@@ -88,7 +88,12 @@ function assembleLesson(
   currentQuestion: DraftQuestion,
   vocabTerms: string[],
 ): unknown {
-  const allQuestions = [...completedQuestions, currentQuestion]
+  // Only include currentQuestion if the user has started filling it in.
+  // After "Done with questions" a blank currentQuestion is created as a reset;
+  // including it would produce a ghost empty question in the assembled lesson.
+  const allQuestions = currentQuestion.prompt.trim()
+    ? [...completedQuestions, currentQuestion]
+    : [...completedQuestions]
   return {
     title: title.trim(),
     principle_tag: principleTag.trim(),
@@ -176,14 +181,14 @@ function StepIndicator({
 }): JSX.Element {
   const currentIdx = ALL_STEPS.indexOf(current)
   return (
-    <div className="flex items-center gap-0">
+    <div className="flex items-center w-full">
       {ALL_STEPS.map((step, i) => {
         const isActive = step === current
         const isDone = i < currentIdx
         const isSkipped = step === 'table' && questionType === 'multiple_choice'
         return (
-          <div key={step} className="flex items-center">
-            <div className="flex flex-col items-center gap-1">
+          <div key={step} className="flex items-center flex-1 min-w-0">
+            <div className="flex flex-col items-center gap-1 shrink-0">
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
                   isSkipped
@@ -206,7 +211,7 @@ function StepIndicator({
               </span>
             </div>
             {i < ALL_STEPS.length - 1 && (
-              <div className={`w-8 h-px mb-5 mx-1 ${i < currentIdx ? 'bg-[#3dbe8a]' : 'bg-[#2a5079]'}`} />
+              <div className={`flex-1 h-px mb-5 mx-1 ${i < currentIdx ? 'bg-[#3dbe8a]' : 'bg-[#2a5079]'}`} />
             )}
           </div>
         )
@@ -651,7 +656,15 @@ function StepReview({
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-export function AuthoringWizardPage(): JSX.Element {
+// `embedded` renders the wizard inside a modal (no full-screen height, and the
+// header action closes the modal instead of navigating away).
+export function AuthoringWizardPage({
+  embedded = false,
+  onExit,
+}: {
+  embedded?: boolean
+  onExit?: () => void
+} = {}): JSX.Element {
   const navigate = useNavigate()
 
   // Step 1 state
@@ -831,7 +844,10 @@ export function AuthoringWizardPage(): JSX.Element {
   const showContinue = step !== 'review'
 
   return (
-    <div className="min-h-screen space-y-8 max-w-2xl" style={{ color: '#EAF1F8' }}>
+    <div
+      className={`${embedded ? '' : 'min-h-screen'} space-y-8 max-w-2xl`}
+      style={{ color: '#EAF1F8' }}
+    >
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -842,15 +858,17 @@ export function AuthoringWizardPage(): JSX.Element {
         </div>
         <button
           type="button"
-          onClick={() => navigate('/admin')}
+          onClick={() => (embedded && onExit ? onExit() : navigate('/admin'))}
           className="text-sm text-[#9DB2C9] hover:text-[#EAF1F8] shrink-0 mt-1"
         >
-          ← Back to admin
+          {embedded ? '✕ Close' : '← Back to admin'}
         </button>
       </div>
 
-      {/* Step indicator */}
-      <StepIndicator current={step} questionType={questionType} />
+      {/* Step indicator (scrolls horizontally on narrow screens instead of overflowing) */}
+      <div className="overflow-x-auto -mx-1 px-1">
+        <StepIndicator current={step} questionType={questionType} />
+      </div>
 
       {/* Step content */}
       <div className="bg-[#0E2A47] border border-[#2a5079] rounded-2xl p-6">

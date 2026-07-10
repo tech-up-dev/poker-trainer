@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 
 import type { Tip } from '../../shared/schemas/tip'
@@ -27,11 +27,11 @@ export function TodaysTip(): JSX.Element {
 
   if (loading) {
     return (
-      <div className="bg-surface border border-line rounded-xl p-4">
+      <div className="card">
         <p className="text-xs font-semibold uppercase tracking-widest text-gold mb-2">
           Today's Tip
         </p>
-        <p className="text-sm text-ink-2">Loading…</p>
+        <p className="text-sm text-ink-3">Loading…</p>
       </div>
     )
   }
@@ -39,9 +39,11 @@ export function TodaysTip(): JSX.Element {
   if (!tip) return <></>
 
   return (
-    <div className="bg-surface border border-line rounded-xl p-4 space-y-3">
+    <div className="card space-y-3">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-xs font-semibold uppercase tracking-widest text-gold">Today's Tip</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-gold">
+          Today's Tip
+        </p>
         {tip.tip_id && (
           <button
             type="button"
