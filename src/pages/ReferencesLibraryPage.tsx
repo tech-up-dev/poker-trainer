@@ -36,7 +36,7 @@ function renderMarkdown(md: string): string {
 type SavedEntry = { lesson: Lesson; question: Question }
 
 function ReferenceCard({ entry }: { entry: Reference }): JSX.Element {
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useState(true)
   const html = open ? renderMarkdown(entry.body_markdown) : ''
 
   return (

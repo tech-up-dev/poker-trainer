@@ -310,6 +310,31 @@
   }
 }
 
+
+@layer components {
+  /* Markdown / reference body */
+  .prose-reference {
+    @apply text-sm text-ink leading-relaxed space-y-3;
+  }
+
+  .prose-reference p          { @apply text-ink; }
+  .prose-reference h1         { @apply font-semibold text-ink mb-1; }
+  .prose-reference h2         { @apply font-semibold text-ink mb-1; }
+  .prose-reference h3         { @apply font-semibold text-ink mb-1; }
+  .prose-reference strong     { @apply font-semibold text-ink; }
+  .prose-reference em         { @apply italic text-ink-2; }
+  .prose-reference a          { @apply text-link underline hover:text-ink transition-colors; }
+  .prose-reference ul         { @apply list-disc pl-5 space-y-1 text-ink; }
+  .prose-reference ol         { @apply list-decimal pl-5 space-y-1 text-ink; }
+  .prose-reference li         { @apply text-ink; }
+  .prose-reference table      { @apply w-full text-sm border-collapse; }
+  .prose-reference th         { @apply text-left font-semibold text-ink-2 pb-1 border-b border-line; }
+  .prose-reference td         { @apply py-1 pr-4 text-ink; }
+  .prose-reference code       { @apply text-xs bg-surface-muted/60 text-ink px-1 py-0.5 rounded; }
+  .prose-reference pre        { @apply bg-surface-muted/60 text-ink p-3 rounded-xl overflow-x-auto text-xs; }
+  .prose-reference blockquote { @apply border-l-2 border-gold pl-3 text-ink-2 italic; }
+}
+
 /* ─── UTILITIES ──────────────────────────────────────────────────────────────*/
 
 @layer utilities {
