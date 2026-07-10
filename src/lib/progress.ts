@@ -1,5 +1,26 @@
 import { supabaseProd } from './supabase-prod'
 
+export type LessonProgress = {
+  lessonId: string
+  questionsCorrect: number
+  questionsAnswered: number
+  completed: boolean
+}
+
+export async function fetchLessonProgress(): Promise<LessonProgress[]> {
+  const { data, error } = await supabaseProd
+    .from('user_progress')
+    .select('content_id, questions_correct, questions_answered, completed')
+    .eq('content_type', 'lesson')
+  if (error) throw new Error(error.message)
+  return (data ?? []).map((row) => ({
+    lessonId: row.content_id as string,
+    questionsCorrect: row.questions_correct as number,
+    questionsAnswered: row.questions_answered as number,
+    completed: row.completed as boolean,
+  }))
+}
+
 export type ProgressPayload = {
   lessonId: string
   questionsAnswered: number
@@ -8,8 +29,14 @@ export type ProgressPayload = {
 }
 
 export async function upsertProgress(payload: ProgressPayload): Promise<void> {
+  const {
+    data: { user },
+  } = await supabaseProd.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
   const { error } = await supabaseProd.from('user_progress').upsert(
     {
+      user_id: user.id,
       content_id: payload.lessonId,
       content_type: 'lesson',
       questions_answered: payload.questionsAnswered,

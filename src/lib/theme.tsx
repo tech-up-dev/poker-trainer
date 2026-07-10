@@ -1,28 +1,33 @@
-import { useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import type { JSX, ReactNode } from 'react'
 
 import { ThemeContext, type Theme } from './theme-context'
 
-const STORAGE_KEY = 'bss-theme'
-
-function getInitialTheme(): Theme {
-  const stored = window.localStorage.getItem(STORAGE_KEY)
-  return stored === 'light' ? 'light' : 'dark'
+function applyTheme(theme: Theme): void {
+  if (theme === 'light') {
+    document.documentElement.classList.add('light')
+  } else {
+    document.documentElement.classList.remove('light')
+  }
 }
 
-// Dark is the brand default; light is an opt-in toggle for the 50+ desktop
-// crowd (per client color spec). Persisted so the choice survives a reload.
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(getInitialTheme)
+export function ThemeProvider({ children }: { children: ReactNode }): JSX.Element {
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem('bss-theme')
+    return saved === 'light' ? 'light' : 'dark'
+  })
 
   useEffect(() => {
-    document.documentElement.classList.toggle('light', theme === 'light')
-    window.localStorage.setItem(STORAGE_KEY, theme)
+    applyTheme(theme)
   }, [theme])
 
-  function toggleTheme(): void {
-    setTheme((current) => (current === 'dark' ? 'light' : 'dark'))
-  }
+  const toggleTheme = useCallback(() => {
+    setTheme((t) => {
+      const next = t === 'dark' ? 'light' : 'dark'
+      localStorage.setItem('bss-theme', next)
+      return next
+    })
+  }, [])
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>

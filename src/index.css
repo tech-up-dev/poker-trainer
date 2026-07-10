@@ -1,39 +1,332 @@
 @import 'tailwindcss';
 
 /*
- * Beat Small Stakes brand theme. Dark is the app default; `.light` on <html>
- * (toggled by ThemeProvider) overrides the same custom properties so every
- * `bg-canvas` / `text-ink` / etc. utility repaints without a rebuild.
- * Source: client color spec (navy + gold, colorblind-safe, tuned for 50+ eyes).
+ * ─── THEME TOKENS ────────────────────────────────────────────────────────────
+ *
+ * Semantic layer: all component classes reference these tokens.
+ * Two themes share the same token names — dark (navy, default) and light.
+ * Toggle by adding/removing the `light` class on <html>.
  */
+
 @theme {
-  --color-canvas: #07182c;
-  --color-surface: #0e2a47;
-  --color-elevated: #16395c;
-  --color-line: #21466b;
-  --color-gold: #f4a024;
-  --color-amber: #e0901a;
-  --color-on-gold: #0a1e33;
-  --color-ink: #eaf1f8;
-  --color-ink-2: #9db2c9;
-  --color-ink-3: #6b83a0;
-  --color-link: #5da2e0;
-  --color-success: #3dbe8a;
-  --color-error: #e2574b;
+  /* ── Dark theme — navy palette ───────────────────────────────────────────── */
+  --color-canvas:   #07182c;   /* deepest layer, app bg              */
+  --color-surface:  #0e2a47;   /* card / panel surface               */
+  --color-elevated: #16395c;   /* hover, active, progress track      */
+  --color-line:     #21466b;   /* card edges, dividers               */
+  --color-gold:     #f4a024;   /* CTA, progress, icons, links        */
+  --color-amber:    #e0901a;   /* deep amber — btn hover             */
+  --color-on-gold:  #0a1e33;   /* text on gold buttons               */
+  --color-ink:      #eaf1f8;   /* headings, body — off-white         */
+  --color-ink-2:    #9db2c9;   /* subtitles, lesson counts           */
+  --color-ink-3:    #6b83a0;   /* timestamps, muted hints            */
+  --color-link:     #5da2e0;   /* hyperlinks                         */
+  --color-success:  #3dbe8a;
+  --color-error:    #e2574b;
+
+  /* ── Brand scale (aliases for the gold accent) ───────────────────────────── */
+  --color-brand-50:  #fffbeb;
+  --color-brand-100: #fef3c7;
+  --color-brand-200: #fde68a;
+  --color-brand-300: #fcd34d;
+  --color-brand-400: #f7b547;
+  --color-brand-500: #f4a024;
+  --color-brand-600: #e0901a;
+  --color-brand-700: #b45309;
+  --color-brand-800: #92400e;
+  --color-brand-900: #78350f;
+  --color-brand-950: #451a03;
+
+  /* ── Semantic surface aliases (used by component classes) ────────────────── */
+  --color-surface-raised:   #0e2a47;  /* = surface  */
+  --color-surface-overlay:  #16395c;  /* = elevated */
+  --color-surface-muted:    #21466b;  /* = line     */
+
+  /* ── Felt (poker table) ──────────────────────────────────────────────────── */
+  --color-felt:       #1a472a;
+  --color-felt-light: #2d5a3f;
+  --color-felt-dark:  #0f3320;
+
+  /* ── Extended status ─────────────────────────────────────────────────────── */
+  --color-success-dark:  #16a34a;
+  --color-success-muted: #166534;
+  --color-error-dark:    #dc2626;
+  --color-error-muted:   #991b1b;
+  --color-warning:       #f4a024;
+  --color-warning-dark:  #e0901a;
+  --color-warning-muted: #92400e;
+
+  /* ── Typography ──────────────────────────────────────────────────────────── */
+  --font-sans: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --text-2xs: 0.625rem;
+  --text-2xs--line-height: 0.875rem;
+
+  /* ── Spacing extras ──────────────────────────────────────────────────────── */
+  --spacing-18: 4.5rem;
+  --spacing-22: 5.5rem;
+  --spacing-26: 6.5rem;
+  --spacing-30: 7.5rem;
+
+  /* ── Shadows ─────────────────────────────────────────────────────────────── */
+  --shadow-card:    0 2px 8px rgba(0, 0, 0, 0.3);
+  --shadow-raised:  0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-overlay: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  /* ── Animations ──────────────────────────────────────────────────────────── */
+  --animate-fade-in:    fadeIn 0.2s ease-out;
+  --animate-slide-up:   slideUp 0.3s ease-out;
+  --animate-slide-down: slideDown 0.3s ease-out;
+  --animate-scale-in:   scaleIn 0.2s ease-out;
+  --animate-pulse-slow:   pulse 3s ease-in-out infinite;
+  --animate-pop-bounce:   popBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  --animate-score-reveal: scoreReveal 0.4s ease-out forwards;
 }
 
+/* ─── LIGHT THEME OVERRIDES ──────────────────────────────────────────────────
+ * Applied when <html class="light"> is set by the theme toggle.
+ * Gold accent stays identical — only surfaces and body text flip.
+ */
 :root.light {
-  --color-canvas: #f4f6fa;
-  --color-surface: #ffffff;
-  --color-elevated: #f4f6fa;
-  --color-line: #dbe2ec;
-  --color-gold: #f4a024;
-  --color-amber: #e0901a;
-  --color-on-gold: #0a1e33;
-  --color-ink: #0c2340;
-  --color-ink-2: #4a5e78;
-  --color-ink-3: #4a5e78;
-  --color-link: #2e6fb8;
-  --color-success: #1c7a55;
-  --color-error: #a8332a;
+  --color-canvas:          #f4f6fa;
+  --color-surface:         #ffffff;
+  --color-elevated:        #f4f6fa;
+  --color-line:            #dbe2ec;
+  --color-gold:            #f4a024;
+  --color-amber:           #e0901a;
+  --color-on-gold:         #0a1e33;
+  --color-ink:             #0c2340;
+  --color-ink-2:           #4a5e78;
+  --color-ink-3:           #4a5e78;
+  --color-link:            #2e6fb8;
+  --color-success:         #1c7a55;
+  --color-error:           #a8332a;
+
+  --color-surface-raised:  #ffffff;
+  --color-surface-overlay: #f4f6fa;
+  --color-surface-muted:   #dbe2ec;
+
+  --shadow-card:    0 1px 4px rgba(12, 35, 64, 0.08);
+  --shadow-raised:  0 2px 12px rgba(12, 35, 64, 0.12);
+  --shadow-overlay: 0 4px 24px rgba(12, 35, 64, 0.16);
+}
+
+/* ─── KEYFRAMES ──────────────────────────────────────────────────────────────*/
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(10px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-10px); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes popBounce {
+  0%   { transform: scale(0);    opacity: 0; }
+  60%  { transform: scale(1.25); opacity: 1; }
+  80%  { transform: scale(0.9);  }
+  100% { transform: scale(1);    }
+}
+
+@keyframes scoreReveal {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── BASE ───────────────────────────────────────────────────────────────────*/
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  *:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-gold);
+  }
+}
+
+/* ─── COMPONENT CLASSES ──────────────────────────────────────────────────────
+ *
+ * All classes use semantic tokens so they respond to theme switching.
+ */
+
+@layer components {
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gold text-on-gold hover:bg-amber active:bg-amber;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-surface-raised text-ink hover:bg-surface-overlay border border-line;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-transparent text-ink-2 hover:bg-surface-raised hover:text-ink;
+  }
+
+  .btn-success {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-success text-white hover:bg-success-dark;
+  }
+
+  .btn-error {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-error text-white hover:bg-error-dark;
+  }
+
+  .btn-lg {
+    @apply px-8 py-4 text-lg;
+  }
+
+  .btn-sm {
+    @apply px-4 py-2 text-sm;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-surface-raised rounded-2xl p-5 shadow-card;
+  }
+
+  .card-elevated {
+    @apply bg-surface-overlay rounded-2xl p-6 shadow-raised;
+  }
+
+  /* Forms */
+  .input {
+    @apply w-full px-4 py-3 bg-surface border border-line rounded-xl text-ink placeholder:text-ink-3 focus:border-gold focus:ring-1 focus:ring-gold transition-colors outline-none;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-ink-2 mb-2;
+  }
+
+  /* Badges */
+  .badge {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full;
+  }
+
+  .badge-brand {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full bg-gold/20 text-gold;
+  }
+
+  .badge-success {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full bg-success/20 text-success;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full bg-warning/20 text-warning;
+  }
+
+  .badge-error {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full bg-error/20 text-error;
+  }
+
+  .badge-muted {
+    @apply inline-flex items-center gap-1.5 px-3 py-1 text-sm font-medium rounded-full bg-surface-muted/60 text-ink-2;
+  }
+
+  /* Navigation */
+  .nav-item {
+    @apply flex items-center gap-2 px-4 py-3 rounded-xl text-ink-2 hover:text-ink hover:bg-surface-overlay transition-colors;
+  }
+
+  .nav-item-active {
+    @apply flex items-center gap-2 px-4 py-3 rounded-xl text-gold bg-gold/10 hover:bg-gold/15 transition-colors;
+  }
+
+  /* Filter chips */
+  .chip-active {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg cursor-pointer bg-gold text-on-gold font-medium transition-colors;
+  }
+
+  .chip-inactive {
+    @apply inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg cursor-pointer bg-surface-raised text-ink-2 hover:text-ink hover:bg-surface-overlay transition-colors;
+  }
+
+  /* Progress */
+  .progress-bar {
+    @apply h-2 bg-elevated rounded-full overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-gold rounded-full transition-all duration-500;
+  }
+
+  /* Overlays & drawers */
+  .drawer {
+    @apply fixed inset-x-0 bottom-0 bg-surface-overlay rounded-t-3xl shadow-overlay z-50 animate-slide-up;
+  }
+
+  .overlay {
+    @apply fixed inset-0 bg-black/60 backdrop-blur-sm z-40 animate-fade-in;
+  }
+
+  /* Stat cards */
+  .stat-card {
+    @apply bg-surface-raised rounded-2xl p-5 shadow-card flex flex-col gap-1;
+  }
+
+  .stat-value {
+    @apply text-2xl font-bold text-ink;
+  }
+
+  .stat-label {
+    @apply text-sm text-ink-3;
+  }
+
+  /* Poker table primitives */
+  .table-seat {
+    @apply absolute w-10 h-10 rounded-full flex items-center justify-center text-xs font-bold;
+  }
+
+  .playing-card {
+    @apply inline-flex items-center justify-center w-8 h-11 bg-white rounded-md text-xs font-bold shadow;
+  }
+
+  .playing-card-red {
+    @apply inline-flex items-center justify-center w-8 h-11 bg-white rounded-md text-xs font-bold shadow text-red-600;
+  }
+
+  .playing-card-black {
+    @apply inline-flex items-center justify-center w-8 h-11 bg-white rounded-md text-xs font-bold shadow text-zinc-900;
+  }
+}
+
+/* ─── UTILITIES ──────────────────────────────────────────────────────────────*/
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .tap-highlight {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
 }

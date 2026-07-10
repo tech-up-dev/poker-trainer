@@ -39,6 +39,11 @@ function getCache(): Promise<GlossaryCache> {
   return cachePromise
 }
 
+export async function fetchAllGlossaryEntries(): Promise<GlossaryEntry[]> {
+  const cache = await getCache()
+  return Array.from(cache.byId.values())
+}
+
 // glossary_terms in lesson content (shared/schemas/lesson.ts) holds literal term
 // text per docs/schema-spec.md "Glossary references"; match on GlossaryEntry.term.
 export async function getGlossaryEntryByTerm(
