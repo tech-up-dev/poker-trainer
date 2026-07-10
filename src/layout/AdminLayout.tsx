@@ -17,7 +17,7 @@ import {
 
 import { supabaseProd } from '../lib/supabase-prod'
 import { useAuth } from '../lib/auth-context'
-import { useTheme } from '../lib/theme'
+import { useTheme } from '../lib/theme-context'
 
 const NAV_ITEMS = [
   { to: '/admin/import',        icon: Upload,    label: 'Bulk Import'   },
