@@ -1,4 +1,5 @@
 {
+  "id": "/",
   "name": "Beat Small Stakes Poker Trainer",
   "short_name": "Poker Trainer",
   "description": "Scenario-based poker training quizzes with instant teaching feedback.",
@@ -6,6 +7,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
+  "lang": "en",
+  "categories": ["education", "games"],
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
   "icons": [
@@ -17,3 +20,4 @@
     }
   ]
 }
+

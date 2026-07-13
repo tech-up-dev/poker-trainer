@@ -14,14 +14,22 @@
 // Bump CACHE_VERSION on a release that must invalidate the cached shell; the
 // activate handler drops every older cache.
 
-const CACHE_VERSION = 'v1'
+const CACHE_VERSION = 'v2'
 const CACHE_NAME = `poker-trainer-${CACHE_VERSION}`
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/favicon.svg']
+const APP_SHELL = ['/', '/index.html', '/offline.html', '/manifest.webmanifest', '/favicon.svg']
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)))
-  // Take over without waiting for existing tabs to close.
-  self.skipWaiting()
+  // Do NOT skipWaiting here. Waiting on the previous SW lets the app surface
+  // an "update available" toast so members refresh deliberately instead of
+  // having their bundle swapped mid-session. The waiting SW receives a
+  // SKIP_WAITING message when the user opts in (see the message handler).
+})
+
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting()
+  }
 })
 
 self.addEventListener('activate', (event) => {
@@ -45,8 +53,9 @@ self.addEventListener('fetch', (event) => {
   // promote to production is seen immediately.
   if (url.origin !== self.location.origin) return
 
-  // Navigations: network-first so new deploys appear right away; cached shell
-  // is the offline fallback.
+  // Navigations: network-first so new deploys appear right away. If the
+  // network is down, serve the cached shell so the SPA still boots; if even
+  // the shell isn't cached (first-visit-then-offline), serve offline.html.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -55,7 +64,16 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put('/index.html', copy))
           return response
         })
-        .catch(() => caches.match('/index.html').then((cached) => cached ?? caches.match('/'))),
+        .catch(async () => {
+          const shell = await caches.match('/index.html')
+          if (shell) return shell
+          const offline = await caches.match('/offline.html')
+          if (offline) return offline
+          return new Response('Offline', {
+            status: 503,
+            headers: { 'Content-Type': 'text/plain' },
+          })
+        }),
     )
     return
   }
