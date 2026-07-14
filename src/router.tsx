@@ -5,6 +5,7 @@ import { MemberLayout } from './layout/MemberLayout'
 import { RequireAuth } from './components/RequireAuth'
 import { RequireSession } from './components/RequireSession'
 import { GlossaryDrawerProvider } from './components/GlossaryDrawer'
+import { AdminDashboardPage } from './pages/AdminDashboardPage'
 import { ValidatorPage } from './pages/ValidatorPage'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
@@ -39,7 +40,8 @@ export const router = createBrowserRouter([
         path: '/',
         element: <AdminLayout />,
         children: [
-          { index: true, element: <Navigate to="/admin" replace /> },
+          { index: true, element: <Navigate to="/admin/dashboard" replace /> },
+          { path: 'admin/dashboard', element: <AdminDashboardPage /> },
           { path: 'admin', element: <ValidatorPage /> },
           { path: 'admin/import', element: <BulkImport /> },
           { path: 'admin/tips', element: <Navigate to="/admin?tab=tip" replace /> },
@@ -47,8 +49,8 @@ export const router = createBrowserRouter([
           { path: 'admin/glossary', element: <Navigate to="/admin?tab=glossary" replace /> },
           { path: 'admin/staging', element: <StagingBrowser /> },
           { path: 'admin/table-builder', element: <TableBuilderPage /> },
-          { path: 'admin/wizard', element: <GlossaryDrawerProvider><AuthoringWizardPage /></GlossaryDrawerProvider> },
-          { path: '*', element: <Navigate to="/admin" replace /> },
+          { path: 'admin/wizard', element: <GlossaryDrawerProvider><AuthoringWizardPage fullscreen /></GlossaryDrawerProvider> },
+          { path: '*', element: <Navigate to="/admin/dashboard" replace /> },
         ],
       },
     ],

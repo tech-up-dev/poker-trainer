@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { JSX, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { X, Tag, LayoutGrid, Table2, HelpCircle, BookText, Download } from 'lucide-react'
 
 import { LessonSchema } from '../../shared/schemas/lesson'
 import type { HandScenarioState } from '../../shared/schemas/lesson'
@@ -36,7 +37,16 @@ const STEP_LABELS: Record<WizardStep, string> = {
   table: 'Table',
   qa: 'Q&A',
   vocab: 'Vocab',
-  review: 'Review',
+  review: 'Export',
+}
+
+const STEP_ICONS: Record<WizardStep, typeof Tag> = {
+  lesson: Tag,
+  type:   LayoutGrid,
+  table:  Table2,
+  qa:     HelpCircle,
+  vocab:  BookText,
+  review: Download,
 }
 
 const ALL_STEPS: WizardStep[] = ['lesson', 'type', 'table', 'qa', 'vocab', 'review']
@@ -654,6 +664,45 @@ function StepReview({
   )
 }
 
+// ── Fullscreen step tabs ───────────────────────────────────────────────────────
+
+function FullscreenStepIndicator({
+  current,
+  questionType,
+}: {
+  current: WizardStep
+  questionType: 'multiple_choice' | 'hand_scenario'
+}): JSX.Element {
+  const currentIdx = ALL_STEPS.indexOf(current)
+  return (
+    <div className="flex border-b border-[#21466b] overflow-x-auto scrollbar-hide">
+      {ALL_STEPS.map((step, i) => {
+        const isActive = step === current
+        const isDone = i < currentIdx
+        const isSkipped = step === 'table' && questionType === 'multiple_choice'
+        const Icon = STEP_ICONS[step]
+        return (
+          <div
+            key={step}
+            className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 shrink-0 transition-colors ${
+              isActive
+                ? 'border-[#F4A024] text-[#F4A024]'
+                : isDone
+                  ? 'border-transparent text-[#3dbe8a]'
+                  : isSkipped
+                    ? 'border-transparent text-[#2a5079]'
+                    : 'border-transparent text-[#6B83A0]'
+            }`}
+          >
+            <Icon className="w-4 h-4 shrink-0" />
+            <span>{STEP_LABELS[step]}</span>
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 // Draft persistence: the wizard keeps everything in memory, so a remount (e.g. an
@@ -675,11 +724,14 @@ type WizardDraft = {
 
 // `embedded` renders the wizard inside a modal (no full-screen height, and the
 // header action closes the modal instead of navigating away).
+// `fullscreen` renders the wizard as a full-screen overlay with a fixed header/footer.
 export function AuthoringWizardPage({
   embedded = false,
+  fullscreen = false,
   onExit,
 }: {
   embedded?: boolean
+  fullscreen?: boolean
   onExit?: () => void
 } = {}): JSX.Element {
   const navigate = useNavigate()
@@ -894,7 +946,143 @@ export function AuthoringWizardPage({
   const questionNumber = completedQuestions.length + 1
   const isFirstStep = step === 'lesson'
   const showContinue = step !== 'review'
+  const stepIdx = ALL_STEPS.indexOf(step)
+  const progressPct = Math.round(((stepIdx + 1) / ALL_STEPS.length) * 100)
 
+  // ── Shared step content ──────────────────────────────────────────────────────
+  const stepContent = (
+    <>
+      {step === 'lesson' && (
+        <StepLesson
+          title={title} principleTag={principleTag} concept={concept} difficulty={difficulty}
+          onTitle={setTitle} onPrincipleTag={setPrincipleTag} onConcept={setConcept} onDifficulty={setDifficulty}
+          errors={errors}
+        />
+      )}
+      {step === 'type' && (
+        <StepType questionType={questionType} onQuestionType={handleSetQuestionType} />
+      )}
+      {step === 'table' && (
+        <StepTable
+          tableState={currentQuestion.table_state ?? { ...INITIAL_TABLE }}
+          onTableState={(s) => setCurrentQuestion({ ...currentQuestion, table_state: s })}
+          questionNumber={questionNumber}
+        />
+      )}
+      {step === 'qa' && (
+        <StepQA
+          question={currentQuestion}
+          onQuestion={setCurrentQuestion}
+          completedQuestions={completedQuestions}
+          onEditCompleted={handleEditCompleted}
+          onDeleteCompleted={handleDeleteCompleted}
+          errors={errors}
+          questionNumber={questionNumber}
+        />
+      )}
+      {step === 'vocab' && (
+        <StepVocab
+          vocabInput={vocabInput}
+          onVocabInput={setVocabInput}
+          previewQuestion={completedQuestions[0] ?? null}
+        />
+      )}
+      {step === 'review' && (
+        <StepReview
+          lesson={assembled}
+          saveState={saveState}
+          onSave={() => void handleSave()}
+          validationErrors={validationErrors}
+        />
+      )}
+    </>
+  )
+
+  // ── Shared nav buttons ───────────────────────────────────────────────────────
+  const navButtons = (
+    <>
+      {!isFirstStep && (
+        <button
+          type="button"
+          onClick={handleBack}
+          disabled={saveState.kind === 'saving' || saveState.kind === 'done'}
+          className="min-h-11 px-6 rounded-xl text-sm font-semibold border border-[#2a5079] text-[#9DB2C9] hover:border-[#5DA2E0] hover:text-[#EAF1F8] disabled:opacity-40 transition-colors"
+        >
+          ← Back
+        </button>
+      )}
+      {step === 'qa' && (
+        <button
+          type="button"
+          onClick={handleAddAnother}
+          className="min-h-11 px-5 rounded-xl text-sm font-semibold border border-[#2a5079] text-[#9DB2C9] hover:border-[#5DA2E0] hover:text-[#EAF1F8] transition-colors"
+        >
+          + Add another question
+        </button>
+      )}
+      {showContinue && (
+        <button
+          type="button"
+          onClick={handleContinue}
+          className="min-h-11 px-6 rounded-xl text-sm font-semibold bg-[#F4A024] text-[#07182C] hover:bg-[#E0901A] transition-colors ml-auto"
+        >
+          {step === 'qa' ? 'Done with questions →' : step === 'vocab' ? 'Review →' : 'Continue →'}
+        </button>
+      )}
+    </>
+  )
+
+  // ── Fullscreen layout ────────────────────────────────────────────────────────
+  if (fullscreen) {
+    return (
+      <div
+        className="fixed inset-0 z-50 flex flex-col"
+        style={{ backgroundColor: '#07182c', color: '#EAF1F8' }}
+      >
+        {/* Thin gold progress bar */}
+        <div className="h-0.5 bg-[#21466b] shrink-0">
+          <div
+            className="h-full bg-[#F4A024] transition-all duration-500"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center px-6 py-4 border-b border-[#21466b] shrink-0 relative">
+          <button
+            type="button"
+            onClick={() => (onExit ? onExit() : navigate('/admin/dashboard'))}
+            aria-label="Close wizard"
+            className="p-2 rounded-lg text-[#9DB2C9] hover:text-[#EAF1F8] hover:bg-[#0E2A47] transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <p className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-[#9DB2C9]">
+            Step {stepIdx + 1} of {ALL_STEPS.length}
+          </p>
+        </div>
+
+        {/* Step tabs */}
+        <FullscreenStepIndicator current={step} questionType={questionType} />
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-2xl mx-auto px-6 py-8 space-y-6">
+            <div className="bg-[#0E2A47] border border-[#2a5079] rounded-2xl p-6">
+              {stepContent}
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed footer */}
+        <div className="border-t border-[#21466b] px-6 py-4 flex items-center gap-3 shrink-0 bg-[#07182c]">
+          {navButtons}
+        </div>
+      </div>
+    )
+  }
+
+  // ── Regular (embedded or standalone) layout ──────────────────────────────────
   return (
     <div
       className={`${embedded ? '' : 'min-h-screen'} space-y-8 max-w-2xl`}
@@ -924,83 +1112,12 @@ export function AuthoringWizardPage({
 
       {/* Step content */}
       <div className="bg-[#0E2A47] border border-[#2a5079] rounded-2xl p-6">
-        {step === 'lesson' && (
-          <StepLesson
-            title={title} principleTag={principleTag} concept={concept} difficulty={difficulty}
-            onTitle={setTitle} onPrincipleTag={setPrincipleTag} onConcept={setConcept} onDifficulty={setDifficulty}
-            errors={errors}
-          />
-        )}
-        {step === 'type' && (
-          <StepType questionType={questionType} onQuestionType={handleSetQuestionType} />
-        )}
-        {step === 'table' && (
-          <StepTable
-            tableState={currentQuestion.table_state ?? { ...INITIAL_TABLE }}
-            onTableState={(s) => setCurrentQuestion({ ...currentQuestion, table_state: s })}
-            questionNumber={questionNumber}
-          />
-        )}
-        {step === 'qa' && (
-          <StepQA
-            question={currentQuestion}
-            onQuestion={setCurrentQuestion}
-            completedQuestions={completedQuestions}
-            onEditCompleted={handleEditCompleted}
-            onDeleteCompleted={handleDeleteCompleted}
-            errors={errors}
-            questionNumber={questionNumber}
-          />
-        )}
-        {step === 'vocab' && (
-          <StepVocab
-            vocabInput={vocabInput}
-            onVocabInput={setVocabInput}
-            previewQuestion={completedQuestions[0] ?? null}
-          />
-        )}
-        {step === 'review' && (
-          <StepReview
-            lesson={assembled}
-            saveState={saveState}
-            onSave={() => void handleSave()}
-            validationErrors={validationErrors}
-          />
-        )}
+        {stepContent}
       </div>
 
       {/* Navigation */}
       <div className="flex items-center gap-3">
-        {!isFirstStep && (
-          <button
-            type="button"
-            onClick={handleBack}
-            disabled={saveState.kind === 'saving' || saveState.kind === 'done'}
-            className="min-h-11 px-6 rounded-xl text-sm font-semibold border border-[#2a5079] text-[#9DB2C9] hover:border-[#5DA2E0] hover:text-[#EAF1F8] disabled:opacity-40 transition-colors"
-          >
-            ← Back
-          </button>
-        )}
-
-        {step === 'qa' && (
-          <button
-            type="button"
-            onClick={handleAddAnother}
-            className="min-h-11 px-5 rounded-xl text-sm font-semibold border border-[#2a5079] text-[#9DB2C9] hover:border-[#5DA2E0] hover:text-[#EAF1F8] transition-colors"
-          >
-            + Add another question
-          </button>
-        )}
-
-        {showContinue && (
-          <button
-            type="button"
-            onClick={handleContinue}
-            className="min-h-11 px-6 rounded-xl text-sm font-semibold bg-[#F4A024] text-[#07182C] hover:bg-[#E0901A] transition-colors ml-auto"
-          >
-            {step === 'qa' ? 'Done with questions →' : step === 'vocab' ? 'Review →' : 'Continue →'}
-          </button>
-        )}
+        {navButtons}
       </div>
     </div>
   )
