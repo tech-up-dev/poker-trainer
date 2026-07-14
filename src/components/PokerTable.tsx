@@ -260,8 +260,7 @@ function ScoutDrawer({
 }): JSX.Element {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center"
-      className="bg-canvas/80"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-canvas/80"
       onClick={onClose}
     >
       <div
