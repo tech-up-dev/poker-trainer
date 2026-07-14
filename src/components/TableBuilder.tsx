@@ -28,8 +28,8 @@ const SLOTS: { style: React.CSSProperties; align: Align }[] = [
   { style: { right: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'flex-end' },
   { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-end' },
   { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-end' },
-  { style: { left: '61%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
-  { style: { left: '39%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '65%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '35%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
   { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-start' },
   { style: { left: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-start' },
   { style: { left: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'flex-start' },
@@ -51,7 +51,8 @@ function getSeatedPositions(heroPosition: string): string[] {
 
 // --- Shared sub-components (same visual tokens as PokerTable) ----------------
 
-function PosPill({
+// Full pill used for hero seat in the interactive table
+function HeroPill({
   position,
   stack,
   isBtn,
@@ -81,27 +82,53 @@ function PosPill({
   )
 }
 
-function TypeBadge({ code, active }: { code: string; active: boolean }): JSX.Element {
+// Compact position-only pill for villain/background seats — keeps width narrow
+function SeatPill({
+  position,
+  isBtn,
+}: {
+  position: string
+  isBtn: boolean
+}): JSX.Element {
   return (
-    <div
-      className={`inline-flex items-center gap-[5px] rounded-[12px] px-[9px] py-[2px] border ${
-        active ? 'bg-gold border-gold' : 'bg-surface-overlay border-line'
-      }`}
-    >
-      <span
-        className={`w-[6px] h-[6px] rounded-full flex-shrink-0 ${active ? 'bg-on-gold' : 'bg-link'}`}
-      />
-      <span className={`text-[11px] font-medium leading-none ${active ? 'text-on-gold' : 'text-ink'}`}>
-        {code}
-      </span>
+    <div className="inline-flex items-center gap-1">
+      <div className="inline-flex rounded-[10px] border border-line bg-surface">
+        <span className="text-ink text-[10px] font-medium px-[6px] py-[2px] leading-none whitespace-nowrap">
+          {position}
+        </span>
+      </div>
+      {isBtn && (
+        <div className="w-[15px] h-[15px] rounded-full bg-gold text-on-gold text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+          D
+        </div>
+      )}
     </div>
   )
 }
+
 
 function EmptyCardSlot(): JSX.Element {
   return (
     <div className="w-[30px] h-[42px] rounded border-2 border-dashed border-line flex items-center justify-center">
       <span className="text-ink-3 text-[18px] leading-none font-light">+</span>
+    </div>
+  )
+}
+
+// Two tiny overlapping face-down cards — mirrors PokerTable's MiniCards
+function MiniCards(): JSX.Element {
+  const cardStyle: React.CSSProperties = {
+    width: 14,
+    height: 20,
+    borderRadius: 3,
+    border: '1px solid rgba(42,80,121,0.8)',
+    background: 'repeating-linear-gradient(45deg,#1b4068,#1b4068 2px,#16395C 2px,#16395C 4px)',
+    flexShrink: 0,
+  }
+  return (
+    <div className="flex items-end" style={{ marginBottom: 2 }}>
+      <div style={{ ...cardStyle, transform: 'rotate(-6deg)', zIndex: 1 }} />
+      <div style={{ ...cardStyle, transform: 'rotate(6deg)', marginLeft: -5, zIndex: 2 }} />
     </div>
   )
 }
@@ -449,7 +476,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                             </button>
                           ))}
                         </div>
-                        <PosPill position={heroPos} stack={stack} isBtn={heroPos === 'BTN'} />
+                        <HeroPill position={heroPos} stack={stack} isBtn={heroPos === 'BTN'} />
                       </div>
                     </div>
                   ) : (
@@ -468,15 +495,27 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                           : `Empty seat ${pos}, tap to add villain`
                       }
                     >
-                      {isActive && typeCode && <TypeBadge code={typeCode} active={isSelected} />}
-                      <PosPill position={pos} stack={isActive ? stack : undefined} isBtn={pos === 'BTN'} />
-                      {!isActive && (
-                        <span
-                          className="text-[10px] leading-none font-semibold px-[6px] py-[2px] rounded-full"
-                          style={{ background: 'rgba(255,255,255,0.85)', color: '#1C6B43' }}
-                        >
-                          + add
-                        </span>
+                      {/* Active villain: mini cards → compact pill (gold ring when selected) → stack text */}
+                      {isActive ? (
+                        <>
+                          <MiniCards />
+                          <div style={isSelected ? { outline: '2px solid var(--color-gold)', borderRadius: 10 } : {}}>
+                            <SeatPill position={pos} isBtn={pos === 'BTN'} />
+                          </div>
+                          {stack !== undefined && (
+                            <span className="text-[9px] text-ink-2 leading-none">${stack}</span>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          <SeatPill position={pos} isBtn={pos === 'BTN'} />
+                          <span
+                            className="text-[10px] leading-none font-semibold px-[6px] py-[2px] rounded-full"
+                            style={{ background: 'rgba(255,255,255,0.85)', color: '#1C6B43' }}
+                          >
+                            + add
+                          </span>
+                        </>
                       )}
                     </button>
                   )}

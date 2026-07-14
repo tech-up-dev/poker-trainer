@@ -1,13 +1,12 @@
 import { useState } from 'react';
 import type { JSX } from 'react';
 import type { HandScenarioState } from '../../shared/schemas/lesson';
-import { Card, CardBack } from './Card';
+import { Card } from './Card';
 
 // ─── Position data ───────────────────────────────────────────────────────────
 
 const POSITIONS = ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'UTG+2', 'LJ', 'HJ', 'CO'] as const;
 
-// Normalise non-standard aliases (MP/MP+1 were old labels — map them to correct names)
 function normalisePos(pos: string): string {
   return pos
     .replace(/^MP\+1$/i, 'LJ')
@@ -15,7 +14,6 @@ function normalisePos(pos: string): string {
     .toUpperCase();
 }
 
-// Rotate the position ring so the hero is always at slot 0 (bottom-center)
 function getSeatedPositions(heroPosition: string): string[] {
   const hero = normalisePos(heroPosition);
   const idx = (POSITIONS as readonly string[]).indexOf(hero);
@@ -24,7 +22,6 @@ function getSeatedPositions(heroPosition: string): string[] {
 }
 
 // ─── Visual slot layout (clockwise from bottom-center) ───────────────────────
-// Each slot has CSS style + flex-alignment for inward-facing content
 
 type Align = 'center' | 'flex-start' | 'flex-end';
 
@@ -42,10 +39,10 @@ const SLOTS: Slot[] = [
   { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-end' },
   // 3 – top-right
   { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-end' },
-  // 4 – top-center-right
-  { style: { left: '61%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
-  // 5 – top-center-left
-  { style: { left: '39%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
+  // 4 – top-center-right (pushed outward to avoid pill collision with slot 5)
+  { style: { left: '65%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
+  // 5 – top-center-left (pushed outward to avoid pill collision with slot 4)
+  { style: { left: '35%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
   // 6 – top-left
   { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-start' },
   // 7 – left
@@ -95,9 +92,28 @@ const PLAYER_TYPES: Record<string, PlayerTypeInfo> = {
   },
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// ─── Shared sub-components ────────────────────────────────────────────────────
 
-function PositionStackPill({
+// Two tiny overlapping face-down cards — shown above every active villain seat
+function MiniCards(): JSX.Element {
+  const cardStyle: React.CSSProperties = {
+    width: 14,
+    height: 20,
+    borderRadius: 3,
+    border: '1px solid rgba(42,80,121,0.8)',
+    background: 'repeating-linear-gradient(45deg,#1b4068,#1b4068 2px,#16395C 2px,#16395C 4px)',
+    flexShrink: 0,
+  };
+  return (
+    <div className="flex items-end" style={{ marginBottom: 2 }}>
+      <div style={{ ...cardStyle, transform: 'rotate(-6deg)', zIndex: 1 }} />
+      <div style={{ ...cardStyle, transform: 'rotate(6deg)', marginLeft: -5, zIndex: 2 }} />
+    </div>
+  );
+}
+
+// Full pill for hero — position + stack side-by-side, more spacious
+function HeroPill({
   position,
   stack,
   isBtn,
@@ -127,6 +143,31 @@ function PositionStackPill({
   );
 }
 
+// Compact pill for villain/background seats — position label only (narrow)
+// Stack shown as separate small text below to avoid adjacent seat overlap
+function SeatPill({
+  position,
+  isBtn,
+}: {
+  position: string;
+  isBtn: boolean;
+}): JSX.Element {
+  return (
+    <div className="inline-flex items-center gap-1">
+      <div className="inline-flex rounded-[10px] border border-line bg-surface">
+        <span className="text-ink text-[10px] font-medium px-[6px] py-[2px] leading-none whitespace-nowrap">
+          {position}
+        </span>
+      </div>
+      {isBtn && (
+        <div className="w-[15px] h-[15px] rounded-full bg-gold text-on-gold text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+          D
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TypeCodeBadge({ code }: { code: string }): JSX.Element {
   return (
     <div className="inline-flex items-center gap-[5px] bg-surface-overlay border border-line rounded-[12px] px-[9px] py-[2px]">
@@ -138,14 +179,11 @@ function TypeCodeBadge({ code }: { code: string }): JSX.Element {
 
 function ActionChip({ action, amount }: { action: string; amount?: number }): JSX.Element {
   return (
-    <div className="inline-flex items-center bg-surface border border-line rounded-[11px] px-[9px] py-[3px]">
-      <span className="text-ink text-[11px] leading-none whitespace-nowrap">
+    <div className="inline-flex items-center bg-surface border border-line rounded-[11px] px-[7px] py-[2px]">
+      <span className="text-ink text-[10px] leading-none whitespace-nowrap">
         {action}
         {amount !== undefined && (
-          <>
-            {' '}
-            <span className="text-gold">${amount}</span>
-          </>
+          <> <span className="text-gold">${amount}</span></>
         )}
       </span>
     </div>
@@ -184,8 +222,7 @@ function SeatDisplay({
 }: SeatDisplayProps): JSX.Element {
   const dimmed = folded && role !== 'hero';
 
-  const pill = <PositionStackPill position={position} stack={stack} isBtn={isBtn} />;
-
+  // ── Hero ──────────────────────────────────────────────────────────────────
   if (role === 'hero') {
     return (
       <div className="flex flex-col items-center gap-[4px]">
@@ -209,40 +246,42 @@ function SeatDisplay({
               )}
             </div>
           )}
-          {pill}
+          <HeroPill position={position} stack={stack} isBtn={isBtn} />
         </div>
       </div>
     );
   }
 
+  // ── Villain (has player type assigned) ────────────────────────────────────
+  // Compact layout: mini cards → narrow position pill → stack text → action chip
   if (role === 'focus') {
     return (
       <button
-        className={`flex flex-col gap-[4px] cursor-pointer transition-opacity ${dimmed ? 'opacity-40' : ''}`}
+        className={`flex flex-col gap-[2px] cursor-pointer transition-opacity ${dimmed ? 'opacity-40' : ''}`}
         style={{ alignItems: align, minWidth: 44, minHeight: 44 }}
         onClick={onTap}
         aria-label={`${typeCode ?? ''} at ${position}, tap for player info`}
       >
-        <div className="flex">
-          <CardBack />
-          <div style={{ marginLeft: -7 }}>
-            <CardBack />
-          </div>
-        </div>
-        {typeCode && <TypeCodeBadge code={typeCode} />}
-        {pill}
+        <MiniCards />
+        <SeatPill position={position} isBtn={isBtn} />
+        {stack !== undefined && (
+          <span className="text-[9px] text-ink-2 leading-none">${stack}</span>
+        )}
         {action && !folded && <ActionChip action={action.action} amount={action.amount} />}
       </button>
     );
   }
 
-  // background
+  // ── Background (seat present, no villain assigned) ────────────────────────
   return (
     <div
-      className={`flex flex-col gap-[4px] transition-opacity ${dimmed ? 'opacity-40' : ''}`}
+      className={`flex flex-col gap-[2px] transition-opacity ${dimmed ? 'opacity-40' : ''}`}
       style={{ alignItems: align }}
     >
-      {pill}
+      <SeatPill position={position} isBtn={isBtn} />
+      {stack !== undefined && (
+        <span className="text-[9px] text-ink-2 leading-none">${stack}</span>
+      )}
     </div>
   );
 }
@@ -274,10 +313,7 @@ function ScoutDrawer({
         <p className="text-ink-2 text-[13.5px] leading-relaxed mb-4">{info.desc}</p>
         <div className="flex flex-wrap gap-2 mb-4">
           {info.tags.map((t) => (
-            <span
-              key={t}
-              className="text-ink-2 text-[12px] bg-surface-overlay rounded-xl px-3 py-1"
-            >
+            <span key={t} className="text-ink-2 text-[12px] bg-surface-overlay rounded-xl px-3 py-1">
               {t}
             </span>
           ))}
@@ -323,8 +359,7 @@ export function PokerTable({ tableState, size = 'md' }: PokerTableProps): JSX.El
     return 'background';
   }
 
-  const scoutTypeCode =
-    scoutPosition ? (villain_player_types?.[scoutPosition] ?? null) : null;
+  const scoutTypeCode = scoutPosition ? (villain_player_types?.[scoutPosition] ?? null) : null;
   const scoutInfo = scoutTypeCode ? PLAYER_TYPES[scoutTypeCode] : null;
 
   const isSm = size === 'sm';
@@ -336,7 +371,7 @@ export function PokerTable({ tableState, size = 'md' }: PokerTableProps): JSX.El
     >
       {/* Oval table */}
       <div className="relative w-full" style={{ height: isSm ? 360 : 450 }}>
-        {/* Leather rail */}
+        {/* Leather rail — decorative real-world color */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
@@ -344,23 +379,20 @@ export function PokerTable({ tableState, size = 'md' }: PokerTableProps): JSX.El
             boxShadow: 'inset 0 0 0 1px rgba(201,154,106,0.35)',
           }}
         />
-        {/* Green felt */}
+        {/* Green felt — decorative real-world color */}
         <div
           className="absolute rounded-full"
           style={{
             inset: '12px 10px',
             background: '#1C6B43',
-            boxShadow:
-              'inset 0 0 36px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.18)',
+            boxShadow: 'inset 0 0 36px rgba(0,0,0,0.45), inset 0 0 0 1px rgba(0,0,0,0.18)',
           }}
         />
 
         {/* Pot + board cards (center) */}
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-2 pointer-events-none">
           {pot_size !== undefined && pot_size > 0 && (
-            <div
-              className="text-ink text-[12px] px-3 py-[4px] rounded-[13px] border border-line bg-canvas/60"
-            >
+            <div className="text-ink text-[12px] px-3 py-[4px] rounded-[13px] border border-line bg-canvas/60">
               Pot <strong className="font-semibold">${pot_size}</strong>
             </div>
           )}
@@ -372,9 +404,7 @@ export function PokerTable({ tableState, size = 'md' }: PokerTableProps): JSX.El
             </div>
           )}
           {street === 'preflop' && (!board_cards || board_cards.length === 0) && (
-            <div
-              className="text-ink-3 text-[10px] px-2 py-[2px] rounded uppercase tracking-widest bg-canvas/30"
-            >
+            <div className="text-ink-3 text-[10px] px-2 py-[2px] rounded uppercase tracking-widest bg-canvas/30">
               Preflop
             </div>
           )}
@@ -388,11 +418,7 @@ export function PokerTable({ tableState, size = 'md' }: PokerTableProps): JSX.El
           const folded = action?.action === 'Fold';
 
           return (
-            <div
-              key={pos}
-              className="absolute z-20"
-              style={slot.style}
-            >
+            <div key={pos} className="absolute z-20" style={slot.style}>
               <SeatDisplay
                 position={pos}
                 role={role}
