@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { JSX, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { X, Tag, LayoutGrid, Table2, HelpCircle, BookText, Download } from 'lucide-react'
 
 import { LessonSchema } from '../../shared/schemas/lesson'
 import type { HandScenarioState } from '../../shared/schemas/lesson'
@@ -36,7 +37,16 @@ const STEP_LABELS: Record<WizardStep, string> = {
   table: 'Table',
   qa: 'Q&A',
   vocab: 'Vocab',
-  review: 'Review',
+  review: 'Export',
+}
+
+const STEP_ICONS: Record<WizardStep, typeof Tag> = {
+  lesson: Tag,
+  type:   LayoutGrid,
+  table:  Table2,
+  qa:     HelpCircle,
+  vocab:  BookText,
+  review: Download,
 }
 
 const ALL_STEPS: WizardStep[] = ['lesson', 'type', 'table', 'qa', 'vocab', 'review']
@@ -119,9 +129,9 @@ function assembleLesson(
 function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }): JSX.Element {
   return (
     <div className="space-y-1.5">
-      <p className="text-[11px] font-semibold uppercase tracking-widest text-[#9DB2C9]">{label}</p>
+      <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-2">{label}</p>
       {children}
-      {error && <p className="text-xs text-red-400">{error}</p>}
+      {error && <p className="text-xs text-error">{error}</p>}
     </div>
   )
 }
@@ -143,7 +153,7 @@ function AdminInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className={`w-full bg-[#0E2A47] border rounded px-3 py-2 text-sm text-[#EAF1F8] placeholder-[#4a6280] outline-none focus:border-[#5DA2E0] transition-colors ${hasError ? 'border-red-500' : 'border-[#2a5079]'}`}
+      className={`w-full bg-surface border rounded px-3 py-2 text-sm text-ink placeholder-ink-3 outline-none focus:border-link transition-colors ${hasError ? 'border-error' : 'border-line'}`}
     />
   )
 }
@@ -167,7 +177,7 @@ function AdminTextarea({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className={`w-full bg-[#0E2A47] border rounded px-3 py-2 text-sm text-[#EAF1F8] placeholder-[#4a6280] outline-none focus:border-[#5DA2E0] resize-none transition-colors ${hasError ? 'border-red-500' : 'border-[#2a5079]'}`}
+      className={`w-full bg-surface border rounded px-3 py-2 text-sm text-ink placeholder-ink-3 outline-none focus:border-link resize-none transition-colors ${hasError ? 'border-error' : 'border-line'}`}
     />
   )
 }
@@ -192,26 +202,26 @@ function StepIndicator({
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
                   isSkipped
-                    ? 'bg-[#0E2A47] text-[#2a5079] border border-[#2a5079]'
+                    ? 'bg-surface text-line border border-line'
                     : isActive
-                      ? 'bg-[#F4A024] text-[#07182C]'
+                      ? 'bg-gold text-on-gold'
                       : isDone
-                        ? 'bg-[#3dbe8a] text-[#07182C]'
-                        : 'bg-[#0E2A47] text-[#6B83A0] border border-[#2a5079]'
+                        ? 'bg-success text-on-gold'
+                        : 'bg-surface text-ink-3 border border-line'
                 }`}
               >
                 {isDone ? '✓' : i + 1}
               </div>
               <span
                 className={`text-[10px] font-medium ${
-                  isSkipped ? 'text-[#2a5079]' : isActive ? 'text-[#F4A024]' : isDone ? 'text-[#3dbe8a]' : 'text-[#6B83A0]'
+                  isSkipped ? 'text-line' : isActive ? 'text-gold' : isDone ? 'text-success' : 'text-ink-3'
                 }`}
               >
                 {STEP_LABELS[step]}
               </span>
             </div>
             {i < ALL_STEPS.length - 1 && (
-              <div className={`flex-1 h-px mb-5 mx-1 ${i < currentIdx ? 'bg-[#3dbe8a]' : 'bg-[#2a5079]'}`} />
+              <div className={`flex-1 h-px mb-5 mx-1 ${i < currentIdx ? 'bg-success' : 'bg-line'}`} />
             )}
           </div>
         )
@@ -235,8 +245,8 @@ function StepLesson({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-[#EAF1F8]">Lesson details</h2>
-        <p className="text-sm text-[#9DB2C9] mt-1">Fill in the lesson metadata. Title, tag and concept are required.</p>
+        <h2 className="text-lg font-bold text-ink">Lesson details</h2>
+        <p className="text-sm text-ink-2 mt-1">Fill in the lesson metadata. Title, tag and concept are required.</p>
       </div>
 
       <Field label="Title *" error={errors.title}>
@@ -255,7 +265,7 @@ function StepLesson({
         <select
           value={difficulty}
           onChange={(e) => onDifficulty(e.target.value)}
-          className="w-full bg-[#0E2A47] border border-[#2a5079] rounded px-3 py-2 text-sm text-[#EAF1F8] outline-none focus:border-[#5DA2E0]"
+          className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
         >
           <option value="">- optional -</option>
           <option value="beginner">Beginner</option>
@@ -278,8 +288,8 @@ function StepType({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-[#EAF1F8]">Question type</h2>
-        <p className="text-sm text-[#9DB2C9] mt-1">Applies to all questions in this lesson. Hand scenarios include the visual poker table.</p>
+        <h2 className="text-lg font-bold text-ink">Question type</h2>
+        <p className="text-sm text-ink-2 mt-1">Applies to all questions in this lesson. Hand scenarios include the visual poker table.</p>
       </div>
 
       <div className="space-y-3">
@@ -303,19 +313,19 @@ function StepType({
             onClick={() => onQuestionType(value)}
             className={`w-full text-left p-4 rounded-xl border transition-colors ${
               questionType === value
-                ? 'border-[#F4A024] bg-[#F4A024]/10'
-                : 'border-[#2a5079] bg-[#0E2A47] hover:border-[#5DA2E0]'
+                ? 'border-gold bg-gold/10'
+                : 'border-line bg-surface hover:border-link'
             }`}
           >
             <div className="flex items-center gap-3">
               <div
                 className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
-                  questionType === value ? 'border-[#F4A024] bg-[#F4A024]' : 'border-[#6B83A0]'
+                  questionType === value ? 'border-gold bg-gold' : 'border-ink-3'
                 }`}
               />
               <div>
-                <p className="text-sm font-semibold text-[#EAF1F8]">{label}</p>
-                <p className="text-xs text-[#9DB2C9] mt-0.5">{desc}</p>
+                <p className="text-sm font-semibold text-ink">{label}</p>
+                <p className="text-xs text-ink-2 mt-0.5">{desc}</p>
               </div>
             </div>
           </button>
@@ -339,11 +349,11 @@ function StepTable({
   return (
     <div className="space-y-5">
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-[#F4A024]">
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-gold">
           Question {questionNumber}
         </p>
-        <h2 className="text-lg font-bold text-[#EAF1F8] mt-0.5">Configure the table</h2>
-        <p className="text-sm text-[#9DB2C9] mt-1">
+        <h2 className="text-lg font-bold text-ink mt-0.5">Configure the table</h2>
+        <p className="text-sm text-ink-2 mt-1">
           Set up the hand scenario: street, positions, hole cards, board, villains.
         </p>
       </div>
@@ -391,18 +401,18 @@ function StepQA({
     <div className="space-y-6">
       {completedQuestions.length > 0 && (
         <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-[#9DB2C9]">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-2">
             Questions added ({completedQuestions.length})
           </p>
           {completedQuestions.map((q, i) => (
-            <div key={q._id} className="flex items-start justify-between gap-3 bg-[#0E2A47] border border-[#2a5079] rounded-lg px-3 py-2">
-              <p className="text-xs text-[#9DB2C9] line-clamp-2 flex-1">
-                <span className="text-[#F4A024] font-semibold mr-1">Q{i + 1}.</span>
-                {q.prompt || <em className="text-[#6B83A0]">No prompt</em>}
+            <div key={q._id} className="flex items-start justify-between gap-3 bg-surface border border-line rounded-lg px-3 py-2">
+              <p className="text-xs text-ink-2 line-clamp-2 flex-1">
+                <span className="text-gold font-semibold mr-1">Q{i + 1}.</span>
+                {q.prompt || <em className="text-ink-3">No prompt</em>}
               </p>
               <div className="flex gap-2 shrink-0">
-                <button type="button" onClick={() => onEditCompleted(i)} className="text-[11px] text-[#5DA2E0] hover:underline">Edit</button>
-                <button type="button" onClick={() => onDeleteCompleted(i)} className="text-[11px] text-red-400 hover:underline">Remove</button>
+                <button type="button" onClick={() => onEditCompleted(i)} className="text-[11px] text-link hover:underline">Edit</button>
+                <button type="button" onClick={() => onDeleteCompleted(i)} className="text-[11px] text-error hover:underline">Remove</button>
               </div>
             </div>
           ))}
@@ -411,10 +421,10 @@ function StepQA({
 
       <div className="space-y-5">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-[#F4A024]">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-gold">
             Question {questionNumber}
           </p>
-          <h2 className="text-lg font-bold text-[#EAF1F8] mt-0.5">Write the Q&A</h2>
+          <h2 className="text-lg font-bold text-ink mt-0.5">Write the Q&A</h2>
         </div>
 
         <Field label="Question prompt *" error={errors.prompt}>
@@ -428,15 +438,15 @@ function StepQA({
         </Field>
 
         <div className="space-y-3">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-[#9DB2C9]">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-2">
             Answers - mark exactly one correct
           </p>
-          {errors.answers && <p className="text-xs text-red-400">{errors.answers}</p>}
+          {errors.answers && <p className="text-xs text-error">{errors.answers}</p>}
           {question.answers.map((answer, i) => (
             <div
               key={i}
               className={`rounded-xl border p-3 space-y-2 transition-colors ${
-                answer.is_correct ? 'border-[#3dbe8a] bg-[#3dbe8a]/8' : 'border-[#2a5079] bg-[#0E2A47]'
+                answer.is_correct ? 'border-success bg-success/10' : 'border-line bg-surface'
               }`}
             >
               <div className="flex items-center gap-3">
@@ -445,26 +455,26 @@ function StepQA({
                   onClick={() => setAnswerField(i, 'is_correct', true)}
                   className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center text-[10px] font-bold transition-colors ${
                     answer.is_correct
-                      ? 'border-[#3dbe8a] bg-[#3dbe8a] text-[#07182C]'
-                      : 'border-[#6B83A0] hover:border-[#3dbe8a]'
+                      ? 'border-success bg-success text-on-gold'
+                      : 'border-ink-3 hover:border-success'
                   }`}
                 >
                   {answer.is_correct ? '✓' : ''}
                 </button>
-                <span className="text-[11px] font-bold text-[#9DB2C9]">{LETTERS[i]}</span>
+                <span className="text-[11px] font-bold text-ink-2">{LETTERS[i]}</span>
                 <input
                   type="text"
                   value={answer.text}
                   onChange={(e) => setAnswerField(i, 'text', e.target.value)}
                   placeholder={`Answer ${LETTERS[i]}`}
-                  className={`flex-1 bg-transparent border-b text-sm text-[#EAF1F8] placeholder-[#4a6280] outline-none pb-0.5 transition-colors ${
-                    errors[`answer_${i}_text`] ? 'border-red-500' : 'border-[#2a5079] focus:border-[#5DA2E0]'
+                  className={`flex-1 bg-transparent border-b text-sm text-ink placeholder-ink-3 outline-none pb-0.5 transition-colors ${
+                    errors[`answer_${i}_text`] ? 'border-error' : 'border-line focus:border-link'
                   }`}
                 />
               </div>
               <div>
                 {errors[`answer_${i}_explanation`] && (
-                  <p className="text-xs text-red-400 mb-1">{errors[`answer_${i}_explanation`]}</p>
+                  <p className="text-xs text-error mb-1">{errors[`answer_${i}_explanation`]}</p>
                 )}
                 <AdminTextarea
                   value={answer.explanation}
@@ -477,7 +487,7 @@ function StepQA({
             </div>
           ))}
           {correctIdx === -1 && (
-            <p className="text-xs text-red-400">Mark one answer as correct by clicking the circle.</p>
+            <p className="text-xs text-error">Mark one answer as correct by clicking the circle.</p>
           )}
         </div>
       </div>
@@ -504,8 +514,8 @@ function StepVocab({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-[#EAF1F8]">Vocabulary terms</h2>
-        <p className="text-sm text-[#9DB2C9] mt-1">
+        <h2 className="text-lg font-bold text-ink">Vocabulary terms</h2>
+        <p className="text-sm text-ink-2 mt-1">
           Enter glossary terms that appear in your questions. Members tap them to open the definition. Optional.
         </p>
       </div>
@@ -521,7 +531,7 @@ function StepVocab({
       {terms.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {terms.map((t) => (
-            <span key={t} className="text-xs px-2 py-0.5 rounded-full border border-[#2a5079] bg-[#0E2A47] text-[#9DB2C9]">
+            <span key={t} className="text-xs px-2 py-0.5 rounded-full border border-line bg-surface text-ink-2">
               {t}
             </span>
           ))}
@@ -530,18 +540,18 @@ function StepVocab({
 
       {previewQuestion && previewQuestion.prompt && terms.length > 0 && (
         <div className="space-y-2">
-          <p className="text-[11px] font-semibold uppercase tracking-widest text-[#9DB2C9]">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-2">
             Live preview - Q1 prompt
           </p>
-          <div className="bg-[#0E2A47] border border-[#2a5079] rounded-xl px-4 py-3 text-sm text-[#EAF1F8] leading-relaxed">
+          <div className="bg-surface border border-line rounded-xl px-4 py-3 text-sm text-ink leading-relaxed">
             {linkifyGlossaryTerms(previewQuestion.prompt, terms)}
           </div>
-          <p className="text-[11px] text-[#6B83A0]">Underlined terms open the glossary drawer in the member app.</p>
+          <p className="text-[11px] text-ink-3">Underlined terms open the glossary drawer in the member app.</p>
         </div>
       )}
 
       {(!previewQuestion?.prompt || terms.length === 0) && (
-        <p className="text-sm text-[#6B83A0]">
+        <p className="text-sm text-ink-3">
           {terms.length === 0
             ? 'No terms entered yet - you can skip this step.'
             : 'No prompt on Q1 to preview yet.'}
@@ -570,43 +580,43 @@ function StepReview({
   return (
     <div className="space-y-5">
       <div>
-        <h2 className="text-lg font-bold text-[#EAF1F8]">Review & save</h2>
-        <p className="text-sm text-[#9DB2C9] mt-1">
+        <h2 className="text-lg font-bold text-ink">Review & save</h2>
+        <p className="text-sm text-ink-2 mt-1">
           Check the summary below, then save to staging. You can promote to production from the staging browser.
         </p>
       </div>
 
-      <div className="bg-[#0E2A47] border border-[#2a5079] rounded-xl p-4 space-y-3 text-sm">
-        <div className="grid grid-cols-[120px_1fr] gap-y-2 text-[#9DB2C9]">
-          <span className="font-semibold text-[#EAF1F8]">Title</span>
+      <div className="bg-surface border border-line rounded-xl p-4 space-y-3 text-sm">
+        <div className="grid grid-cols-[120px_1fr] gap-y-2 text-ink-2">
+          <span className="font-semibold text-ink">Title</span>
           <span>{String(obj.title ?? '')}</span>
-          <span className="font-semibold text-[#EAF1F8]">Tag</span>
+          <span className="font-semibold text-ink">Tag</span>
           <span>{String(obj.principle_tag ?? '')}</span>
-          <span className="font-semibold text-[#EAF1F8]">Concept</span>
+          <span className="font-semibold text-ink">Concept</span>
           <span className="line-clamp-2">{String(obj.concept ?? '')}</span>
           {Boolean(obj.difficulty) && (
             <>
-              <span className="font-semibold text-[#EAF1F8]">Difficulty</span>
+              <span className="font-semibold text-ink">Difficulty</span>
               <span>{String(obj.difficulty)}</span>
             </>
           )}
-          <span className="font-semibold text-[#EAF1F8]">Questions</span>
+          <span className="font-semibold text-ink">Questions</span>
           <span>{questions.length}</span>
         </div>
       </div>
 
       <div className="space-y-2">
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-[#9DB2C9]">Questions</p>
+        <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-2">Questions</p>
         {questions.map((q, i) => {
           const qObj = q as Record<string, unknown>
           const answers = (qObj.answers as unknown[]) ?? []
           const correctAnswer = answers.find((a) => (a as Record<string, unknown>).is_correct)
           return (
-            <div key={i} className="bg-[#0E2A47] border border-[#2a5079] rounded-lg px-3 py-2 space-y-1">
-              <p className="text-xs font-semibold text-[#F4A024]">Q{i + 1} · {String(qObj.type ?? '')}</p>
-              <p className="text-sm text-[#EAF1F8] line-clamp-2">{String(qObj.prompt ?? '')}</p>
+            <div key={i} className="bg-surface border border-line rounded-lg px-3 py-2 space-y-1">
+              <p className="text-xs font-semibold text-gold">Q{i + 1} · {String(qObj.type ?? '')}</p>
+              <p className="text-sm text-ink line-clamp-2">{String(qObj.prompt ?? '')}</p>
               {Boolean(correctAnswer) && (
-                <p className="text-xs text-[#3dbe8a]">
+                <p className="text-xs text-success">
                   ✓ {String((correctAnswer as Record<string, unknown>).text ?? '')}
                 </p>
               )}
@@ -616,27 +626,27 @@ function StepReview({
       </div>
 
       {validationErrors.length > 0 && (
-        <div className="rounded-xl border border-red-600 bg-red-600/10 px-4 py-3 space-y-1">
-          <p className="text-sm font-semibold text-red-300">Validation errors - fix before saving:</p>
+        <div className="rounded-xl border border-error bg-error/10 px-4 py-3 space-y-1">
+          <p className="text-sm font-semibold text-error">Validation errors - fix before saving:</p>
           {validationErrors.map((e, i) => (
-            <p key={i} className="text-xs text-red-400">{e}</p>
+            <p key={i} className="text-xs text-error">{e}</p>
           ))}
         </div>
       )}
 
       {saveState.kind === 'done' && (
-        <div className="rounded-xl border border-[#3dbe8a] bg-[#3dbe8a]/10 px-4 py-3 space-y-1">
-          <p className="text-sm font-semibold text-[#3dbe8a]">Saved to staging</p>
-          <p className="text-xs text-[#9DB2C9] font-mono">{saveState.contentId}</p>
-          <p className="text-xs text-[#9DB2C9]">
+        <div className="rounded-xl border border-success bg-success/10 px-4 py-3 space-y-1">
+          <p className="text-sm font-semibold text-success">Saved to staging</p>
+          <p className="text-xs text-ink-2 font-mono">{saveState.contentId}</p>
+          <p className="text-xs text-ink-2">
             Go to Admin → Staging Browser to review and promote to production.
           </p>
         </div>
       )}
 
       {saveState.kind === 'error' && (
-        <div className="rounded-xl border border-red-600 bg-red-600/10 px-4 py-3">
-          <p className="text-sm text-red-300">{saveState.message}</p>
+        <div className="rounded-xl border border-error bg-error/10 px-4 py-3">
+          <p className="text-sm text-error">{saveState.message}</p>
         </div>
       )}
 
@@ -645,11 +655,50 @@ function StepReview({
           type="button"
           onClick={onSave}
           disabled={saveState.kind === 'saving' || validationErrors.length > 0}
-          className="w-full min-h-11 rounded-xl text-sm font-semibold bg-[#F4A024] text-[#07182C] hover:bg-[#E0901A] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="btn-primary w-full min-h-11 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {saveState.kind === 'saving' ? 'Saving…' : 'Save to staging'}
         </button>
       )}
+    </div>
+  )
+}
+
+// ── Fullscreen step tabs ───────────────────────────────────────────────────────
+
+function FullscreenStepIndicator({
+  current,
+  questionType,
+}: {
+  current: WizardStep
+  questionType: 'multiple_choice' | 'hand_scenario'
+}): JSX.Element {
+  const currentIdx = ALL_STEPS.indexOf(current)
+  return (
+    <div className="flex border-b border-line overflow-x-auto scrollbar-hide">
+      {ALL_STEPS.map((step, i) => {
+        const isActive = step === current
+        const isDone = i < currentIdx
+        const isSkipped = step === 'table' && questionType === 'multiple_choice'
+        const Icon = STEP_ICONS[step]
+        return (
+          <div
+            key={step}
+            className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 shrink-0 transition-colors ${
+              isActive
+                ? 'border-gold text-gold'
+                : isDone
+                  ? 'border-transparent text-success'
+                  : isSkipped
+                    ? 'border-transparent text-line'
+                    : 'border-transparent text-ink-3'
+            }`}
+          >
+            <Icon className="w-4 h-4 shrink-0" />
+            <span>{STEP_LABELS[step]}</span>
+          </div>
+        )
+      })}
     </div>
   )
 }
@@ -675,11 +724,14 @@ type WizardDraft = {
 
 // `embedded` renders the wizard inside a modal (no full-screen height, and the
 // header action closes the modal instead of navigating away).
+// `fullscreen` renders the wizard as a full-screen overlay with a fixed header/footer.
 export function AuthoringWizardPage({
   embedded = false,
+  fullscreen = false,
   onExit,
 }: {
   embedded?: boolean
+  fullscreen?: boolean
   onExit?: () => void
 } = {}): JSX.Element {
   const navigate = useNavigate()
@@ -894,113 +946,172 @@ export function AuthoringWizardPage({
   const questionNumber = completedQuestions.length + 1
   const isFirstStep = step === 'lesson'
   const showContinue = step !== 'review'
+  const stepIdx = ALL_STEPS.indexOf(step)
+  const progressPct = Math.round(((stepIdx + 1) / ALL_STEPS.length) * 100)
 
+  // ── Shared step content ──────────────────────────────────────────────────────
+  const stepContent = (
+    <>
+      {step === 'lesson' && (
+        <StepLesson
+          title={title} principleTag={principleTag} concept={concept} difficulty={difficulty}
+          onTitle={setTitle} onPrincipleTag={setPrincipleTag} onConcept={setConcept} onDifficulty={setDifficulty}
+          errors={errors}
+        />
+      )}
+      {step === 'type' && (
+        <StepType questionType={questionType} onQuestionType={handleSetQuestionType} />
+      )}
+      {step === 'table' && (
+        <StepTable
+          tableState={currentQuestion.table_state ?? { ...INITIAL_TABLE }}
+          onTableState={(s) => setCurrentQuestion({ ...currentQuestion, table_state: s })}
+          questionNumber={questionNumber}
+        />
+      )}
+      {step === 'qa' && (
+        <StepQA
+          question={currentQuestion}
+          onQuestion={setCurrentQuestion}
+          completedQuestions={completedQuestions}
+          onEditCompleted={handleEditCompleted}
+          onDeleteCompleted={handleDeleteCompleted}
+          errors={errors}
+          questionNumber={questionNumber}
+        />
+      )}
+      {step === 'vocab' && (
+        <StepVocab
+          vocabInput={vocabInput}
+          onVocabInput={setVocabInput}
+          previewQuestion={completedQuestions[0] ?? null}
+        />
+      )}
+      {step === 'review' && (
+        <StepReview
+          lesson={assembled}
+          saveState={saveState}
+          onSave={() => void handleSave()}
+          validationErrors={validationErrors}
+        />
+      )}
+    </>
+  )
+
+  // ── Shared nav buttons ───────────────────────────────────────────────────────
+  const navButtons = (
+    <>
+      {!isFirstStep && (
+        <button
+          type="button"
+          onClick={handleBack}
+          disabled={saveState.kind === 'saving' || saveState.kind === 'done'}
+          className="btn-secondary min-h-11 disabled:opacity-40"
+        >
+          ← Back
+        </button>
+      )}
+      {step === 'qa' && (
+        <button
+          type="button"
+          onClick={handleAddAnother}
+          className="btn-secondary min-h-11"
+        >
+          + Add another question
+        </button>
+      )}
+      {showContinue && (
+        <button
+          type="button"
+          onClick={handleContinue}
+          className="btn-primary min-h-11 ml-auto"
+        >
+          {step === 'qa' ? 'Done with questions →' : step === 'vocab' ? 'Review →' : 'Continue →'}
+        </button>
+      )}
+    </>
+  )
+
+  // ── Fullscreen layout ────────────────────────────────────────────────────────
+  if (fullscreen) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col bg-canvas text-ink">
+        {/* Thin gold progress bar */}
+        <div className="h-0.5 bg-line shrink-0">
+          <div
+            className="h-full bg-gold transition-all duration-500"
+            style={{ width: `${progressPct}%` }}
+          />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center px-6 py-4 border-b border-line shrink-0 relative">
+          <button
+            type="button"
+            onClick={() => (onExit ? onExit() : navigate('/admin/dashboard'))}
+            aria-label="Close wizard"
+            className="p-2 rounded-lg text-ink-2 hover:text-ink hover:bg-surface-overlay transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
+          <p className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-ink-2">
+            Step {stepIdx + 1} of {ALL_STEPS.length}
+          </p>
+        </div>
+
+        {/* Step tabs */}
+        <FullscreenStepIndicator current={step} questionType={questionType} />
+
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="max-w-2xl mx-auto px-6 py-8 space-y-6">
+            <div className="bg-surface border border-line rounded-2xl p-6">
+              {stepContent}
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed footer */}
+        <div className="border-t border-line px-6 py-4 flex items-center gap-3 shrink-0 bg-canvas">
+          {navButtons}
+        </div>
+      </div>
+    )
+  }
+
+  // ── Regular (embedded or standalone) layout ──────────────────────────────────
   return (
-    <div
-      className={`${embedded ? '' : 'min-h-screen'} space-y-8 max-w-2xl`}
-      style={{ color: '#EAF1F8' }}
-    >
+    <div className={`${embedded ? '' : 'min-h-screen'} space-y-8 max-w-2xl text-ink`}>
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-[11px] font-mono uppercase tracking-widest text-[#F4A024]">
+          <p className="text-[11px] font-mono uppercase tracking-widest text-gold">
             Admin · Content Studio
           </p>
-          <h1 className="text-2xl font-bold mt-1">New Lesson Wizard</h1>
+          <h1 className="text-2xl font-bold mt-1 text-ink">New Lesson Wizard</h1>
         </div>
         <button
           type="button"
           onClick={() => (embedded && onExit ? onExit() : navigate('/admin'))}
-          className="text-sm text-[#9DB2C9] hover:text-[#EAF1F8] shrink-0 mt-1"
+          className="text-sm text-ink-2 hover:text-ink shrink-0 mt-1 transition-colors"
         >
           {embedded ? '✕ Close' : '← Back to admin'}
         </button>
       </div>
 
-      {/* Step indicator (scrolls horizontally on narrow screens instead of overflowing) */}
+      {/* Step indicator */}
       <div className="overflow-x-auto -mx-1 px-1">
         <StepIndicator current={step} questionType={questionType} />
       </div>
 
       {/* Step content */}
-      <div className="bg-[#0E2A47] border border-[#2a5079] rounded-2xl p-6">
-        {step === 'lesson' && (
-          <StepLesson
-            title={title} principleTag={principleTag} concept={concept} difficulty={difficulty}
-            onTitle={setTitle} onPrincipleTag={setPrincipleTag} onConcept={setConcept} onDifficulty={setDifficulty}
-            errors={errors}
-          />
-        )}
-        {step === 'type' && (
-          <StepType questionType={questionType} onQuestionType={handleSetQuestionType} />
-        )}
-        {step === 'table' && (
-          <StepTable
-            tableState={currentQuestion.table_state ?? { ...INITIAL_TABLE }}
-            onTableState={(s) => setCurrentQuestion({ ...currentQuestion, table_state: s })}
-            questionNumber={questionNumber}
-          />
-        )}
-        {step === 'qa' && (
-          <StepQA
-            question={currentQuestion}
-            onQuestion={setCurrentQuestion}
-            completedQuestions={completedQuestions}
-            onEditCompleted={handleEditCompleted}
-            onDeleteCompleted={handleDeleteCompleted}
-            errors={errors}
-            questionNumber={questionNumber}
-          />
-        )}
-        {step === 'vocab' && (
-          <StepVocab
-            vocabInput={vocabInput}
-            onVocabInput={setVocabInput}
-            previewQuestion={completedQuestions[0] ?? null}
-          />
-        )}
-        {step === 'review' && (
-          <StepReview
-            lesson={assembled}
-            saveState={saveState}
-            onSave={() => void handleSave()}
-            validationErrors={validationErrors}
-          />
-        )}
+      <div className="bg-surface border border-line rounded-2xl p-6">
+        {stepContent}
       </div>
 
       {/* Navigation */}
       <div className="flex items-center gap-3">
-        {!isFirstStep && (
-          <button
-            type="button"
-            onClick={handleBack}
-            disabled={saveState.kind === 'saving' || saveState.kind === 'done'}
-            className="min-h-11 px-6 rounded-xl text-sm font-semibold border border-[#2a5079] text-[#9DB2C9] hover:border-[#5DA2E0] hover:text-[#EAF1F8] disabled:opacity-40 transition-colors"
-          >
-            ← Back
-          </button>
-        )}
-
-        {step === 'qa' && (
-          <button
-            type="button"
-            onClick={handleAddAnother}
-            className="min-h-11 px-5 rounded-xl text-sm font-semibold border border-[#2a5079] text-[#9DB2C9] hover:border-[#5DA2E0] hover:text-[#EAF1F8] transition-colors"
-          >
-            + Add another question
-          </button>
-        )}
-
-        {showContinue && (
-          <button
-            type="button"
-            onClick={handleContinue}
-            className="min-h-11 px-6 rounded-xl text-sm font-semibold bg-[#F4A024] text-[#07182C] hover:bg-[#E0901A] transition-colors ml-auto"
-          >
-            {step === 'qa' ? 'Done with questions →' : step === 'vocab' ? 'Review →' : 'Continue →'}
-          </button>
-        )}
+        {navButtons}
       </div>
     </div>
   )

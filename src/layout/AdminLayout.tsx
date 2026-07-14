@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { JSX } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import {
+  LayoutDashboard,
   Upload,
   PenTool,
   GitBranch,
@@ -20,6 +21,7 @@ import { useAuth } from '../lib/auth-context'
 import { useTheme } from '../lib/theme-context'
 
 const NAV_ITEMS = [
+  { to: '/admin/dashboard',     icon: LayoutDashboard, label: 'Dashboard'     },
   { to: '/admin/import',        icon: Upload,    label: 'Bulk Import'   },
   { to: '/admin',               icon: PenTool,   label: 'Editor',  end: true },
   { to: '/admin/staging',       icon: GitBranch, label: 'Staging'       },
