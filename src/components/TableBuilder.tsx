@@ -380,13 +380,13 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
       </div>{/* end controls row */}
 
       {/* -- Main: table + config panel --------------------------------------- */}
-      <div className={livePreviewSlot ? 'flex flex-col lg:flex-row gap-6 lg:items-start' : 'flex flex-wrap gap-6 items-start'}>
+      <div className={livePreviewSlot ? 'flex flex-col lg:flex-row gap-6 lg:items-start' : 'flex flex-col sm:flex-row flex-wrap gap-6 sm:items-start'}>
 
         {/* Left column: interactive table + config panel */}
         <div className={livePreviewSlot ? 'w-full lg:flex-1 lg:min-w-0 space-y-5' : 'contents'}>
 
         {/* -- Interactive oval table ---------------------------------------- */}
-        <div className={livePreviewSlot ? 'mx-auto' : 'flex-shrink-0 mx-auto sm:mx-0'} style={{ width: 240 }}>
+        <div className={livePreviewSlot ? 'mx-auto' : 'mx-auto sm:mx-0 flex-shrink-0'} style={{ width: 240 }}>
 
           <div className="relative w-full" style={{ height: 360 }}>
 
@@ -526,7 +526,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
         </div>
 
         {/* -- Config panel ---------------------------------------------------- */}
-        <div className={livePreviewSlot ? 'space-y-5 flex flex-col items-center' : 'flex-1 min-w-[280px] space-y-5'}>
+        <div className={livePreviewSlot ? 'space-y-5 flex flex-col items-center' : 'flex-1 min-w-0 space-y-5'}>
 
           {/* Villain seat config — open until Apply is clicked */}
           {selectedSeat && selectedSeatType && (
@@ -763,11 +763,13 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
               <p className="text-[11px] text-ink-3">
                 Board card {editingSlot.index + 1} — click to pick, click again to clear
               </p>
-              <CardPicker
-                value={pickerValue}
-                usedCards={usedCards}
-                onChange={handlePickerChange}
-              />
+              <div className="overflow-x-auto">
+                <CardPicker
+                  value={pickerValue}
+                  usedCards={usedCards}
+                  onChange={handlePickerChange}
+                />
+              </div>
             </div>
           )}
         </div>

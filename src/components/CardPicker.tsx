@@ -25,9 +25,9 @@ export function CardPicker({ value, usedCards, onChange }: CardPickerProps): JSX
   const normValue = value ? norm(value) : null
 
   return (
-    <div className="inline-block space-y-0.5">
+    <div className="inline-block space-y-px sm:space-y-0.5">
       {SUITS.map((suit) => (
-        <div key={suit} className="flex gap-0.5">
+        <div key={suit} className="flex gap-px sm:gap-0.5">
           {RANKS.map((rank) => {
             const code = rank + suit
             const isSelected = normValue === code
@@ -41,7 +41,7 @@ export function CardPicker({ value, usedCards, onChange }: CardPickerProps): JSX
                 disabled={isUsed}
                 onClick={() => onChange(isSelected ? null : code)}
                 className={[
-                  'w-7 h-8 rounded text-[10px] font-bold leading-none flex flex-col items-center justify-center gap-px select-none transition-colors',
+                  'w-6 h-7 sm:w-7 sm:h-8 rounded text-[9px] sm:text-[10px] font-bold leading-none flex flex-col items-center justify-center gap-px select-none transition-colors',
                   isSelected
                     ? 'bg-[#F4A024] text-[#07182C]'
                     : isUsed
