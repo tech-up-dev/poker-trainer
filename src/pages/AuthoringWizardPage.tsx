@@ -371,7 +371,7 @@ function StepTable({
 function StepTableAndQA({
   tableState, onTableState,
   question, onQuestion,
-  completedQuestions, onEditCompleted, onDeleteCompleted,
+  completedQuestions, editingIdx, onEditCompleted, onDeleteCompleted,
   errors, questionNumber,
 }: {
   tableState: HandScenarioState
@@ -379,6 +379,7 @@ function StepTableAndQA({
   question: DraftQuestion
   onQuestion: (q: DraftQuestion) => void
   completedQuestions: DraftQuestion[]
+  editingIdx: number | null
   onEditCompleted: (idx: number) => void
   onDeleteCompleted: (idx: number) => void
   errors: Record<string, string>
@@ -392,6 +393,7 @@ function StepTableAndQA({
         question={question}
         onQuestion={onQuestion}
         completedQuestions={completedQuestions}
+        editingIdx={editingIdx}
         onEditCompleted={onEditCompleted}
         onDeleteCompleted={onDeleteCompleted}
         errors={errors}
@@ -407,6 +409,7 @@ function StepQA({
   question,
   onQuestion,
   completedQuestions,
+  editingIdx,
   onEditCompleted,
   onDeleteCompleted,
   errors,
@@ -415,6 +418,7 @@ function StepQA({
   question: DraftQuestion
   onQuestion: (q: DraftQuestion) => void
   completedQuestions: DraftQuestion[]
+  editingIdx: number | null
   onEditCompleted: (idx: number) => void
   onDeleteCompleted: (idx: number) => void
   errors: Record<string, string>
@@ -443,18 +447,27 @@ function StepQA({
           <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-2">
             Questions added ({completedQuestions.length})
           </p>
-          {completedQuestions.map((q, i) => (
-            <div key={q._id} className="flex items-start justify-between gap-3 bg-surface border border-line rounded-lg px-3 py-2">
-              <p className="text-xs text-ink-2 line-clamp-2 flex-1">
-                <span className="text-gold font-semibold mr-1">Q{i + 1}.</span>
-                {q.prompt || <em className="text-ink-3">No prompt</em>}
-              </p>
-              <div className="flex gap-2 shrink-0">
-                <button type="button" onClick={() => onEditCompleted(i)} className="text-[11px] text-link hover:underline">Edit</button>
-                <button type="button" onClick={() => onDeleteCompleted(i)} className="text-[11px] text-error hover:underline">Remove</button>
+          {completedQuestions.map((q, i) => {
+            const isEditing = editingIdx === i
+            return (
+              <div key={q._id} className={`flex items-start justify-between gap-3 rounded-lg px-3 py-2 border ${isEditing ? 'border-gold bg-gold/10' : 'bg-surface border-line'}`}>
+                <p className="text-xs text-ink-2 line-clamp-2 flex-1">
+                  <span className={`font-semibold mr-1 ${isEditing ? 'text-gold' : 'text-gold'}`}>Q{i + 1}.</span>
+                  {isEditing
+                    ? <em className="text-gold">Editing…</em>
+                    : (q.prompt || <em className="text-ink-3">No prompt</em>)
+                  }
+                </p>
+                <div className="flex gap-2 shrink-0">
+                  {isEditing
+                    ? <span className="text-[11px] text-gold">Editing</span>
+                    : <button type="button" onClick={() => onEditCompleted(i)} className="text-[11px] text-link hover:underline">Edit</button>
+                  }
+                  <button type="button" onClick={() => onDeleteCompleted(i)} className="text-[11px] text-error hover:underline">Remove</button>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
@@ -761,6 +774,7 @@ type WizardDraft = {
   questionType: 'multiple_choice' | 'hand_scenario'
   completedQuestions: DraftQuestion[]
   currentQuestion: DraftQuestion
+  editingIdx: number | null
   vocabInput: string
   step: WizardStep
 }
@@ -807,6 +821,8 @@ export function AuthoringWizardPage({
   const [currentQuestion, setCurrentQuestion] = useState<DraftQuestion>(
     () => savedDraft?.currentQuestion ?? blankQuestion('multiple_choice', 0),
   )
+  // null = writing a new question; number = editing existing question at that index
+  const [editingIdx, setEditingIdx] = useState<number | null>(savedDraft?.editingIdx ?? null)
 
   // Step 5 state
   const [vocabInput, setVocabInput] = useState(savedDraft?.vocabInput ?? '')
@@ -821,20 +837,27 @@ export function AuthoringWizardPage({
   useEffect(() => {
     const draft: WizardDraft = {
       title, principleTag, concept, difficulty, questionType,
-      completedQuestions, currentQuestion, vocabInput, step,
+      completedQuestions, currentQuestion, editingIdx, vocabInput, step,
     }
     try {
       sessionStorage.setItem(WIZARD_DRAFT_KEY, JSON.stringify(draft))
     } catch {
       // sessionStorage may be unavailable (private mode); persistence is best-effort.
     }
-  }, [title, principleTag, concept, difficulty, questionType, completedQuestions, currentQuestion, vocabInput, step])
+  }, [title, principleTag, concept, difficulty, questionType, completedQuestions, currentQuestion, editingIdx, vocabInput, step])
 
   const vocabTerms = vocabInput.split(',').map((t) => t.trim()).filter(Boolean)
 
+  // When editing an existing question, substitute it in-place; otherwise append if started.
+  const questionsForAssembly = editingIdx !== null
+    ? completedQuestions.map((q, i) => i === editingIdx ? currentQuestion : q)
+    : completedQuestions
   const assembled = assembleLesson(
     title, principleTag, concept, difficulty,
-    questionType, completedQuestions, currentQuestion, vocabTerms,
+    questionType,
+    questionsForAssembly,
+    editingIdx !== null ? blankQuestion(questionType, 0) : currentQuestion,
+    vocabTerms,
   )
 
   // When question type changes, reset question drafts
@@ -842,6 +865,7 @@ export function AuthoringWizardPage({
     setQuestionType(t)
     setCompletedQuestions([])
     setCurrentQuestion(blankQuestion(t, 0))
+    setEditingIdx(null)
   }
 
   // Validate step 1
@@ -866,6 +890,14 @@ export function AuthoringWizardPage({
     return e
   }
 
+  // Save currentQuestion into its slot (or append) and reset to a new blank question.
+  function commitCurrent(questions: DraftQuestion[]): DraftQuestion[] {
+    if (editingIdx !== null) {
+      return questions.map((q, i) => i === editingIdx ? currentQuestion : q)
+    }
+    return [...questions, currentQuestion]
+  }
+
   // Commit current question and start a new one
   function commitAndAddAnother(): boolean {
     const e = validateQuestion()
@@ -874,8 +906,9 @@ export function AuthoringWizardPage({
       return false
     }
     setErrors({})
-    setCompletedQuestions((prev) => [...prev, currentQuestion])
-    setCurrentQuestion(blankQuestion(questionType, completedQuestions.length + 1))
+    setCompletedQuestions((prev) => commitCurrent(prev))
+    setEditingIdx(null)
+    setCurrentQuestion(blankQuestion(questionType, editingIdx !== null ? completedQuestions.length : completedQuestions.length + 1))
     return true
   }
 
@@ -889,19 +922,31 @@ export function AuthoringWizardPage({
   }
 
   function handleEditCompleted(idx: number): void {
+    // No-op if already editing this question — prevents confusing toggle
+    if (editingIdx === idx) return
     setErrors({})
-    // Load the clicked question for editing. Do NOT validate the current draft
-    // first (that blocked the edit when the current question was blank/partial).
-    // Keep the current draft only if it has been started, so real in-progress
-    // work is preserved; a blank reset is discarded.
-    const toEdit = completedQuestions[idx]
-    const rest = completedQuestions.filter((_, i) => i !== idx)
-    setCompletedQuestions(currentQuestion.prompt.trim() ? [...rest, currentQuestion] : rest)
-    setCurrentQuestion(toEdit)
+    // Auto-save current form state back to its slot before switching
+    setCompletedQuestions((prev) => {
+      if (editingIdx !== null) {
+        // Save current edits back in-place
+        return prev.map((q, i) => i === editingIdx ? currentQuestion : q)
+      }
+      // If writing a new question with content, append it first
+      return currentQuestion.prompt.trim() ? [...prev, currentQuestion] : prev
+    })
+    setCurrentQuestion(completedQuestions[idx])
+    setEditingIdx(idx)
     if (questionType === 'hand_scenario') setStep('table')
   }
 
   function handleDeleteCompleted(idx: number): void {
+    if (editingIdx === idx) {
+      // Deleting the question currently in the form — reset to new
+      setEditingIdx(null)
+      setCurrentQuestion(blankQuestion(questionType, completedQuestions.length - 1))
+    } else if (editingIdx !== null && editingIdx > idx) {
+      setEditingIdx(editingIdx - 1)
+    }
     setCompletedQuestions((prev) => prev.filter((_, i) => i !== idx))
   }
 
@@ -924,11 +969,9 @@ export function AuthoringWizardPage({
       if (questionType === 'hand_scenario') {
         const e = validateQuestion()
         if (Object.keys(e).length > 0) { setErrors(e); return }
-        setCompletedQuestions((prev) => {
-          const next = [...prev, currentQuestion]
-          setCurrentQuestion(blankQuestion(questionType, next.length))
-          return next
-        })
+        setCompletedQuestions((prev) => commitCurrent(prev))
+        setEditingIdx(null)
+        setCurrentQuestion(blankQuestion(questionType, 0))
         setStep('vocab')
       } else {
         setStep('qa')
@@ -939,12 +982,9 @@ export function AuthoringWizardPage({
     if (step === 'qa') {
       const e = validateQuestion()
       if (Object.keys(e).length > 0) { setErrors(e); return }
-      // Commit the current question before moving to vocab
-      setCompletedQuestions((prev) => {
-        const next = [...prev, currentQuestion]
-        setCurrentQuestion(blankQuestion(questionType, next.length))
-        return next
-      })
+      setCompletedQuestions((prev) => commitCurrent(prev))
+      setEditingIdx(null)
+      setCurrentQuestion(blankQuestion(questionType, 0))
       setStep('vocab')
       return
     }
@@ -959,11 +999,10 @@ export function AuthoringWizardPage({
     setErrors({})
     if (step === 'review') { setStep('vocab'); return }
     if (step === 'vocab') {
-      // Restore the last completed question back to currentQuestion for editing
       if (completedQuestions.length > 0) {
-        const last = completedQuestions[completedQuestions.length - 1]
-        setCompletedQuestions((prev) => prev.slice(0, -1))
-        setCurrentQuestion(last)
+        const lastIdx = completedQuestions.length - 1
+        setEditingIdx(lastIdx)
+        setCurrentQuestion(completedQuestions[lastIdx])
       }
       setStep(questionType === 'hand_scenario' ? 'table' : 'qa')
       return
@@ -997,7 +1036,7 @@ export function AuthoringWizardPage({
     }
   }
 
-  const questionNumber = completedQuestions.length + 1
+  const questionNumber = editingIdx !== null ? editingIdx + 1 : completedQuestions.length + 1
   const isFirstStep = step === 'lesson'
   const showContinue = step !== 'review'
   const stepIdx = ALL_STEPS.indexOf(step)
@@ -1023,6 +1062,7 @@ export function AuthoringWizardPage({
           question={currentQuestion}
           onQuestion={setCurrentQuestion}
           completedQuestions={completedQuestions}
+          editingIdx={editingIdx}
           onEditCompleted={handleEditCompleted}
           onDeleteCompleted={handleDeleteCompleted}
           errors={errors}
@@ -1041,6 +1081,7 @@ export function AuthoringWizardPage({
           question={currentQuestion}
           onQuestion={setCurrentQuestion}
           completedQuestions={completedQuestions}
+          editingIdx={editingIdx}
           onEditCompleted={handleEditCompleted}
           onDeleteCompleted={handleDeleteCompleted}
           errors={errors}
