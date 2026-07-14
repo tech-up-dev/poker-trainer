@@ -45,14 +45,14 @@ export function CardPicker({ value, usedCards, onChange }: CardPickerProps): JSX
                   isSelected
                     ? 'bg-[#F4A024] text-[#07182C]'
                     : isUsed
-                      ? 'bg-[#0f1e2e] text-[#3a5068] cursor-not-allowed'
+                      ? 'bg-[#e8e8e8] text-[#bbb] cursor-not-allowed'
                       : red
-                        ? 'bg-[#1a2e45] text-[#D6483B] hover:bg-[#243d58] cursor-pointer'
-                        : 'bg-[#1a2e45] text-[#EAF1F8] hover:bg-[#243d58] cursor-pointer',
+                        ? 'bg-white text-[#D6483B] hover:bg-[#fff5f5] cursor-pointer border border-[#e0e0e0]'
+                        : 'bg-white text-[#1a1a1a] hover:bg-[#f5f5f5] cursor-pointer border border-[#e0e0e0]',
                 ].join(' ')}
               >
                 <span>{rank === 'T' ? '10' : rank}</span>
-                <span className="text-[8px]">{SUIT_META[suit].symbol}</span>
+                <span className="text-[10px] sm:text-[11px]">{SUIT_META[suit].symbol}</span>
               </button>
             )
           })}
