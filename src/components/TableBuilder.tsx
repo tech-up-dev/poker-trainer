@@ -6,7 +6,7 @@ import { CardPicker } from './CardPicker'
 
 // --- Constants (mirrors PokerTable) -----------------------------------------
 
-const POSITIONS = ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'MP', 'MP+1', 'HJ', 'CO'] as const
+const POSITIONS = ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'UTG+2', 'LJ', 'HJ', 'CO'] as const
 type Position = (typeof POSITIONS)[number]
 
 const PLAYER_TYPE_CODES = ['OMC', 'PLF', 'Y2K', 'GTO', 'DWM', 'STP'] as const
@@ -36,7 +36,10 @@ const SLOTS: { style: React.CSSProperties; align: Align }[] = [
 ]
 
 function normalisePos(pos: string): string {
-  return pos.replace(/^LJ$/i, 'HJ').toUpperCase()
+  return pos
+    .replace(/^MP\+1$/i, 'LJ')
+    .replace(/^MP$/i, 'UTG+2')
+    .toUpperCase()
 }
 
 function getSeatedPositions(heroPosition: string): string[] {
@@ -59,18 +62,18 @@ function PosPill({
 }): JSX.Element {
   return (
     <div className="inline-flex items-center gap-1">
-      <div className="inline-flex rounded-[11px] overflow-hidden border border-[#2a5079]">
-        <span className="bg-[#0E2A47] text-[#EAF1F8] text-[11px] px-[7px] py-[3px] leading-none whitespace-nowrap">
+      <div className="inline-flex rounded-[11px] overflow-hidden border border-line">
+        <span className="bg-surface text-ink text-[11px] px-[7px] py-[3px] leading-none whitespace-nowrap">
           {position}
         </span>
         {stack !== undefined && (
-          <span className="bg-[#16395C] text-[#EAF1F8] text-[11px] px-[8px] py-[3px] leading-none whitespace-nowrap">
+          <span className="bg-surface-overlay text-ink text-[11px] px-[8px] py-[3px] leading-none whitespace-nowrap">
             ${stack}
           </span>
         )}
       </div>
       {isBtn && (
-        <div className="w-[18px] h-[18px] rounded-full bg-[#F4A024] text-[#07182C] text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+        <div className="w-[18px] h-[18px] rounded-full bg-gold text-on-gold text-[10px] font-bold flex items-center justify-center flex-shrink-0">
           D
         </div>
       )}
@@ -82,13 +85,13 @@ function TypeBadge({ code, active }: { code: string; active: boolean }): JSX.Ele
   return (
     <div
       className={`inline-flex items-center gap-[5px] rounded-[12px] px-[9px] py-[2px] border ${
-        active ? 'bg-[#F4A024] border-[#F4A024]' : 'bg-[#16395C] border-[#2a5079]'
+        active ? 'bg-gold border-gold' : 'bg-surface-overlay border-line'
       }`}
     >
       <span
-        className={`w-[6px] h-[6px] rounded-full flex-shrink-0 ${active ? 'bg-[#07182C]' : 'bg-[#5DA2E0]'}`}
+        className={`w-[6px] h-[6px] rounded-full flex-shrink-0 ${active ? 'bg-on-gold' : 'bg-link'}`}
       />
-      <span className={`text-[11px] font-medium leading-none ${active ? 'text-[#07182C]' : 'text-[#EAF1F8]'}`}>
+      <span className={`text-[11px] font-medium leading-none ${active ? 'text-on-gold' : 'text-ink'}`}>
         {code}
       </span>
     </div>
@@ -97,8 +100,8 @@ function TypeBadge({ code, active }: { code: string; active: boolean }): JSX.Ele
 
 function EmptyCardSlot(): JSX.Element {
   return (
-    <div className="w-[30px] h-[42px] rounded border-2 border-dashed border-[#2a5079] flex items-center justify-center">
-      <span className="text-[#2a5079] text-[18px] leading-none font-light">+</span>
+    <div className="w-[30px] h-[42px] rounded border-2 border-dashed border-line flex items-center justify-center">
+      <span className="text-ink-3 text-[18px] leading-none font-light">+</span>
     </div>
   )
 }
@@ -265,8 +268,8 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
       {/* Left: street tabs + fields */}
       <div className={livePreviewSlot ? 'flex-1 space-y-2' : 'space-y-2'}>
 
-        {/* Street tabs, full width on mobile, natural width on large screens */}
-        <div className="flex lg:inline-flex rounded-lg overflow-hidden border border-[#2a5079]">
+        {/* Street tabs */}
+        <div className="flex lg:inline-flex rounded-lg overflow-hidden border border-line">
           {STREETS.map((s) => (
             <button
               key={s}
@@ -274,8 +277,8 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
               onClick={() => setStreet(s)}
               className={`flex-1 sm:flex-none sm:px-3 py-1.5 text-[12px] font-medium capitalize transition-colors ${
                 street === s
-                  ? 'bg-[#F4A024] text-[#07182C]'
-                  : 'bg-[#0E2A47] text-[#9DB2C9] hover:bg-[#16395C]'
+                  ? 'bg-gold text-on-gold'
+                  : 'bg-surface text-ink-2 hover:bg-surface-overlay'
               }`}
             >
               {s}
@@ -283,9 +286,9 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
           ))}
         </div>
 
-        {/* Pot + Hero + Hero stack, own row below tabs */}
+        {/* Pot + Hero + Hero stack */}
         <div className="flex flex-wrap items-center gap-3">
-          <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
+          <label className="flex items-center gap-1.5 text-[12px] text-ink-2">
             Pot&nbsp;$
             <input
               type="number"
@@ -295,17 +298,17 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                 patch({ pot_size: e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)) })
               }
               placeholder="0"
-              className="w-20 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+              className="w-20 rounded bg-surface border border-line text-ink text-[12px] px-2 py-1 outline-none focus:border-link"
               style={{ userSelect: 'text' }}
             />
           </label>
 
-          <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
+          <label className="flex items-center gap-1.5 text-[12px] text-ink-2">
             Hero
             <select
               value={heroPos}
               onChange={(e) => setHeroPos(e.target.value as Position)}
-              className="rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+              className="rounded bg-surface border border-line text-ink text-[12px] px-2 py-1 outline-none focus:border-link"
             >
               {POSITIONS.map((p) => (
                 <option key={p} value={p}>
@@ -315,7 +318,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
             </select>
           </label>
 
-          <label className="flex items-center gap-1.5 text-[12px] text-[#9DB2C9]">
+          <label className="flex items-center gap-1.5 text-[12px] text-ink-2">
             Hero stack&nbsp;$
             <input
               type="number"
@@ -325,17 +328,17 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                 setSeatStack(heroPos, Math.max(0, Number(e.target.value)))
               }
               placeholder="500"
-              className="w-20 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+              className="w-20 rounded bg-surface border border-line text-ink text-[12px] px-2 py-1 outline-none focus:border-link"
               style={{ userSelect: 'text' }}
             />
           </label>
         </div>
       </div>
 
-      {/* Right: "Live preview" label, aligned with tabs on large screens */}
+      {/* Right: "Live preview" label */}
       {livePreviewSlot && (
         <div className="hidden lg:flex flex-1 items-center justify-center">
-          <p className="text-[11px] font-mono uppercase tracking-widest" style={{ color: '#F4A024' }}>
+          <p className="text-[11px] font-mono uppercase tracking-widest text-gold">
             Live preview
           </p>
         </div>
@@ -354,7 +357,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
 
           <div className="relative w-full" style={{ height: 360 }}>
 
-            {/* Leather rail */}
+            {/* Leather rail — intentional decorative color, not theme */}
             <div
               className="absolute inset-0 rounded-full"
               style={{
@@ -362,7 +365,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                 boxShadow: 'inset 0 0 0 1px rgba(201,154,106,0.35)',
               }}
             />
-            {/* Green felt */}
+            {/* Green felt — intentional decorative color, not theme */}
             <div
               className="absolute rounded-full"
               style={{
@@ -376,7 +379,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-2 pointer-events-none">
               {(value.pot_size ?? 0) > 0 && (
                 <div
-                  className="text-[#EAF1F8] text-[12px] px-3 py-[4px] rounded-[13px] border border-[#2a5079]"
+                  className="text-ink text-[12px] px-3 py-[4px] rounded-[13px] border border-line"
                   style={{ background: 'rgba(9,9,11,0.55)' }}
                 >
                   Pot <strong className="font-semibold">${value.pot_size}</strong>
@@ -391,7 +394,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
               )}
               {street === 'preflop' && boardCards.filter(Boolean).length === 0 && (
                 <div
-                  className="text-[#6B83A0] text-[10px] px-2 py-[2px] rounded uppercase tracking-widest"
+                  className="text-ink-3 text-[10px] px-2 py-[2px] rounded uppercase tracking-widest"
                   style={{ background: 'rgba(9,9,11,0.28)' }}
                 >
                   Preflop
@@ -415,7 +418,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                       <div
                         className="flex flex-col items-center gap-[5px] p-[5px] rounded-[14px]"
                         style={{
-                          border: '2px solid #F4A024',
+                          border: '2px solid var(--color-gold)',
                           boxShadow: '0 0 0 4px rgba(244,160,36,0.18)',
                         }}
                       >
@@ -428,7 +431,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                               onClick={() => toggleEditSlot({ kind: 'hole', index: i })}
                               className={`rounded outline-none transition-shadow ${
                                 editingSlot?.kind === 'hole' && editingSlot.index === i
-                                  ? 'ring-2 ring-[#F4A024]'
+                                  ? 'ring-2 ring-gold'
                                   : ''
                               }`}
                             >
@@ -462,7 +465,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                       {isActive && typeCode && <TypeBadge code={typeCode} active={isSelected} />}
                       <PosPill position={pos} stack={isActive ? stack : undefined} isBtn={pos === 'BTN'} />
                       {!isActive && (
-                        <span className="text-[#2a5079] text-[10px] leading-none">+ add</span>
+                        <span className="text-ink-3 text-[10px] leading-none">+ add</span>
                       )}
                     </button>
                   )}
@@ -477,13 +480,13 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
 
           {/* Villain seat config */}
           {selectedSeat && selectedSeatType && (
-            <div className="space-y-3 p-3 rounded-lg border border-[#2a5079] bg-[#0E2A47]">
+            <div className="space-y-3 p-3 rounded-lg border border-line bg-surface">
               <div className="flex items-center justify-between">
-                <span className="text-[#EAF1F8] text-[13px] font-semibold">{selectedSeat}</span>
+                <span className="text-ink text-[13px] font-semibold">{selectedSeat}</span>
                 <button
                   type="button"
                   onClick={() => toggleSeat(selectedSeat)}
-                  className="text-[11px] text-[#f87171] hover:text-red-400 transition-colors"
+                  className="text-[11px] text-error hover:opacity-80 transition-opacity"
                 >
                   Remove
                 </button>
@@ -498,8 +501,8 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                     onClick={() => setSeatType(selectedSeat, code)}
                     className={`px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-colors ${
                       selectedSeatType === code
-                        ? 'bg-[#F4A024] border-[#F4A024] text-[#07182C]'
-                        : 'bg-[#16395C] border-[#2a5079] text-[#9DB2C9] hover:border-[#5DA2E0]'
+                        ? 'bg-gold border-gold text-on-gold'
+                        : 'bg-surface-overlay border-line text-ink-2 hover:border-link'
                     }`}
                   >
                     {code}
@@ -508,32 +511,32 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
               </div>
 
               {/* Stack */}
-              <label className="flex items-center gap-2 text-[12px] text-[#9DB2C9]">
+              <label className="flex items-center gap-2 text-[12px] text-ink-2">
                 Stack&nbsp;$
                 <input
                   type="number"
                   min={0}
                   value={selectedSeatStack}
                   onChange={(e) => setSeatStack(selectedSeat, Math.max(0, Number(e.target.value)))}
-                  className="w-24 rounded bg-[#07182C] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+                  className="w-24 rounded bg-canvas border border-line text-ink text-[12px] px-2 py-1 outline-none focus:border-link"
                   style={{ userSelect: 'text' }}
                 />
               </label>
 
               {/* Seat action */}
               <div className="flex items-center gap-2 flex-wrap">
-                <label className="text-[12px] text-[#9DB2C9]">Action</label>
+                <label className="text-[12px] text-ink-2">Action</label>
                 <select
                   value={value.seat_actions?.[selectedSeat]?.action ?? ''}
                   onChange={(e) => setSeatAction(selectedSeat, e.target.value === '' ? null : e.target.value as SeatAction)}
-                  className="rounded bg-[#07182C] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+                  className="rounded bg-canvas border border-line text-ink text-[12px] px-2 py-1 outline-none focus:border-link"
                 >
                   <option value="">- none -</option>
                   {SEAT_ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
                 </select>
                 {value.seat_actions?.[selectedSeat]?.action &&
                   ACTIONS_WITH_AMOUNT.includes(value.seat_actions[selectedSeat].action as SeatAction) && (
-                  <label className="flex items-center gap-1 text-[12px] text-[#9DB2C9]">
+                  <label className="flex items-center gap-1 text-[12px] text-ink-2">
                     $
                     <input
                       type="number"
@@ -541,7 +544,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                       value={value.seat_actions?.[selectedSeat]?.amount ?? ''}
                       onChange={(e) => setSeatActionAmount(selectedSeat, e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)))}
                       placeholder="amt"
-                      className="w-20 rounded bg-[#07182C] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+                      className="w-20 rounded bg-canvas border border-line text-ink text-[12px] px-2 py-1 outline-none focus:border-link"
                       style={{ userSelect: 'text' }}
                     />
                   </label>
@@ -552,7 +555,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
 
           {/* Hero hole cards */}
           <div className="space-y-2">
-            <p className="text-[11px] font-semibold text-[#9DB2C9] uppercase tracking-widest">
+            <p className="text-[11px] font-semibold text-ink-2 uppercase tracking-widest">
               Hero hole cards
             </p>
             <div className="flex gap-2">
@@ -563,8 +566,8 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                   onClick={() => toggleEditSlot({ kind: 'hole', index: i })}
                   className={`rounded outline-none transition-shadow ${
                     editingSlot?.kind === 'hole' && editingSlot.index === i
-                      ? 'ring-2 ring-[#F4A024]'
-                      : 'ring-1 ring-[#2a5079] hover:ring-[#5DA2E0]'
+                      ? 'ring-2 ring-gold'
+                      : 'ring-1 ring-line hover:ring-link'
                   }`}
                 >
                   {holeCards[i] ? <Card card={holeCards[i] as string} /> : <EmptyCardSlot />}
@@ -575,21 +578,21 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
 
           {/* Hero action */}
           <div className="space-y-2">
-            <p className="text-[11px] font-semibold text-[#9DB2C9] uppercase tracking-widest">
+            <p className="text-[11px] font-semibold text-ink-2 uppercase tracking-widest">
               Hero action
             </p>
             <div className="flex items-center gap-2 flex-wrap">
               <select
                 value={value.seat_actions?.[heroPos]?.action ?? ''}
                 onChange={(e) => setSeatAction(heroPos, e.target.value === '' ? null : e.target.value as SeatAction)}
-                className="rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+                className="rounded bg-surface border border-line text-ink text-[12px] px-2 py-1 outline-none focus:border-link"
               >
                 <option value="">- none -</option>
                 {SEAT_ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
               </select>
               {value.seat_actions?.[heroPos]?.action &&
                 ACTIONS_WITH_AMOUNT.includes(value.seat_actions[heroPos].action as SeatAction) && (
-                <label className="flex items-center gap-1 text-[12px] text-[#9DB2C9]">
+                <label className="flex items-center gap-1 text-[12px] text-ink-2">
                   $
                   <input
                     type="number"
@@ -597,7 +600,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                     value={value.seat_actions?.[heroPos]?.amount ?? ''}
                     onChange={(e) => setSeatActionAmount(heroPos, e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)))}
                     placeholder="amt"
-                    className="w-20 rounded bg-[#0E2A47] border border-[#2a5079] text-[#EAF1F8] text-[12px] px-2 py-1 outline-none focus:border-[#5DA2E0]"
+                    className="w-20 rounded bg-surface border border-line text-ink text-[12px] px-2 py-1 outline-none focus:border-link"
                     style={{ userSelect: 'text' }}
                   />
                 </label>
@@ -608,7 +611,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
           {/* Board cards (hidden for preflop) */}
           {boardSlotCount > 0 && (
             <div className="space-y-2">
-              <p className="text-[11px] font-semibold text-[#9DB2C9] uppercase tracking-widest">
+              <p className="text-[11px] font-semibold text-ink-2 uppercase tracking-widest">
                 Board cards
               </p>
               <div className="flex flex-wrap gap-2">
@@ -625,8 +628,8 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                         !enabled
                           ? 'opacity-30 cursor-not-allowed'
                           : isEditing
-                            ? 'ring-2 ring-[#F4A024]'
-                            : 'ring-1 ring-[#2a5079] hover:ring-[#5DA2E0]'
+                            ? 'ring-2 ring-gold'
+                            : 'ring-1 ring-line hover:ring-link'
                       }`}
                     >
                       {boardCards[i] ? <Card card={boardCards[i] as string} /> : <EmptyCardSlot />}
@@ -640,7 +643,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
           {/* Card picker - shown only when a slot is active */}
           {editingSlot && (
             <div className="space-y-1.5">
-              <p className="text-[11px] text-[#6B83A0]">
+              <p className="text-[11px] text-ink-3">
                 {editingSlot.kind === 'hole'
                   ? `Hole card ${editingSlot.index + 1} - click to pick, click again to clear`
                   : `Board card ${editingSlot.index + 1} - click to pick, click again to clear`}
@@ -659,7 +662,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
 
         {/* -- Vertical divider (large screens only) -------------------------- */}
         {livePreviewSlot && (
-          <div className="hidden lg:block self-stretch w-px bg-[#2a5079]" />
+          <div className="hidden lg:block self-stretch w-px bg-line" />
         )}
 
         {/* -- Right column: live preview (large screens only) --------------- */}

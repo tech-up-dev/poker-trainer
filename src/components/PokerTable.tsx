@@ -5,11 +5,14 @@ import { Card, CardBack } from './Card';
 
 // ─── Position data ───────────────────────────────────────────────────────────
 
-const POSITIONS = ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'MP', 'MP+1', 'HJ', 'CO'] as const;
+const POSITIONS = ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'UTG+2', 'LJ', 'HJ', 'CO'] as const;
 
-// Normalise non-standard aliases
+// Normalise non-standard aliases (MP/MP+1 were old labels — map them to correct names)
 function normalisePos(pos: string): string {
-  return pos.replace(/^LJ$/i, 'HJ').toUpperCase();
+  return pos
+    .replace(/^MP\+1$/i, 'LJ')
+    .replace(/^MP$/i, 'UTG+2')
+    .toUpperCase();
 }
 
 // Rotate the position ring so the hero is always at slot 0 (bottom-center)
@@ -105,18 +108,18 @@ function PositionStackPill({
 }): JSX.Element {
   return (
     <div className="inline-flex items-center gap-1">
-      <div className="inline-flex rounded-[11px] overflow-hidden border border-[#2a5079]">
-        <span className="bg-[#0E2A47] text-[#EAF1F8] text-[11px] px-[7px] py-[3px] leading-none whitespace-nowrap">
+      <div className="inline-flex rounded-[11px] overflow-hidden border border-line">
+        <span className="bg-surface text-ink text-[11px] px-[7px] py-[3px] leading-none whitespace-nowrap">
           {position}
         </span>
         {stack !== undefined && (
-          <span className="bg-[#16395C] text-[#EAF1F8] text-[11px] px-[8px] py-[3px] leading-none whitespace-nowrap">
+          <span className="bg-surface-overlay text-ink text-[11px] px-[8px] py-[3px] leading-none whitespace-nowrap">
             ${stack}
           </span>
         )}
       </div>
       {isBtn && (
-        <div className="w-[18px] h-[18px] rounded-full bg-[#F4A024] text-[#0A1E33] text-[10px] font-bold flex items-center justify-center flex-shrink-0">
+        <div className="w-[18px] h-[18px] rounded-full bg-gold text-on-gold text-[10px] font-bold flex items-center justify-center flex-shrink-0">
           D
         </div>
       )}
@@ -126,22 +129,22 @@ function PositionStackPill({
 
 function TypeCodeBadge({ code }: { code: string }): JSX.Element {
   return (
-    <div className="inline-flex items-center gap-[5px] bg-[#16395C] border border-[#2a5079] rounded-[12px] px-[9px] py-[2px]">
-      <span className="w-[6px] h-[6px] rounded-full bg-[#5DA2E0] flex-shrink-0" />
-      <span className="text-[#EAF1F8] text-[11px] font-medium leading-none">{code}</span>
+    <div className="inline-flex items-center gap-[5px] bg-surface-overlay border border-line rounded-[12px] px-[9px] py-[2px]">
+      <span className="w-[6px] h-[6px] rounded-full bg-link flex-shrink-0" />
+      <span className="text-ink text-[11px] font-medium leading-none">{code}</span>
     </div>
   );
 }
 
 function ActionChip({ action, amount }: { action: string; amount?: number }): JSX.Element {
   return (
-    <div className="inline-flex items-center bg-[#0E2A47] border border-[#2a5079] rounded-[11px] px-[9px] py-[3px]">
-      <span className="text-[#EAF1F8] text-[11px] leading-none whitespace-nowrap">
+    <div className="inline-flex items-center bg-surface border border-line rounded-[11px] px-[9px] py-[3px]">
+      <span className="text-ink text-[11px] leading-none whitespace-nowrap">
         {action}
         {amount !== undefined && (
           <>
             {' '}
-            <span className="text-[#F4A024]">${amount}</span>
+            <span className="text-gold">${amount}</span>
           </>
         )}
       </span>
@@ -190,7 +193,7 @@ function SeatDisplay({
         <div
           className="flex flex-col items-center gap-[5px] p-[5px] rounded-[14px]"
           style={{
-            border: '2px solid #F4A024',
+            border: '2px solid var(--color-gold)',
             boxShadow: '0 0 0 4px rgba(244,160,36,0.18)',
           }}
         >
@@ -258,32 +261,30 @@ function ScoutDrawer({
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center"
-      style={{ background: 'rgba(7,24,44,0.82)' }}
+      className="bg-canvas/80"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-sm rounded-t-2xl p-5 pb-8"
-        style={{ background: '#0E2A47', border: '1px solid #21466B' }}
+        className="w-full max-w-sm rounded-t-2xl p-5 pb-8 bg-surface border border-line"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-3 mb-3">
           <TypeCodeBadge code={typeCode} />
-          <span className="text-[#EAF1F8] font-semibold text-[15px]">{info.name}</span>
+          <span className="text-ink font-semibold text-[15px]">{info.name}</span>
         </div>
-        <p className="text-[#9DB2C9] text-[13.5px] leading-relaxed mb-4">{info.desc}</p>
+        <p className="text-ink-2 text-[13.5px] leading-relaxed mb-4">{info.desc}</p>
         <div className="flex flex-wrap gap-2 mb-4">
           {info.tags.map((t) => (
             <span
               key={t}
-              className="text-[#9DB2C9] text-[12px] bg-[#16395C] rounded-xl px-3 py-1"
+              className="text-ink-2 text-[12px] bg-surface-overlay rounded-xl px-3 py-1"
             >
               {t}
             </span>
           ))}
         </div>
         <button
-          className="w-full rounded-[10px] py-3 text-[#0A1E33] font-semibold text-[14px]"
-          style={{ background: '#F4A024' }}
+          className="w-full rounded-[10px] py-3 bg-gold text-on-gold font-semibold text-[14px]"
           onClick={onClose}
         >
           Close
@@ -359,8 +360,7 @@ export function PokerTable({ tableState, size = 'md' }: PokerTableProps): JSX.El
         <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex flex-col items-center gap-2 pointer-events-none">
           {pot_size !== undefined && pot_size > 0 && (
             <div
-              className="text-[#EAF1F8] text-[12px] px-3 py-[4px] rounded-[13px] border border-[#2a5079]"
-              style={{ background: 'rgba(4,12,24,0.55)' }}
+              className="text-ink text-[12px] px-3 py-[4px] rounded-[13px] border border-line bg-canvas/60"
             >
               Pot <strong className="font-semibold">${pot_size}</strong>
             </div>
@@ -374,8 +374,7 @@ export function PokerTable({ tableState, size = 'md' }: PokerTableProps): JSX.El
           )}
           {street === 'preflop' && (!board_cards || board_cards.length === 0) && (
             <div
-              className="text-[#6B83A0] text-[10px] px-2 py-[2px] rounded uppercase tracking-widest"
-              style={{ background: 'rgba(4,12,24,0.28)' }}
+              className="text-ink-3 text-[10px] px-2 py-[2px] rounded uppercase tracking-widest bg-canvas/30"
             >
               Preflop
             </div>
