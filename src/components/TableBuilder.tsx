@@ -465,7 +465,12 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                       {isActive && typeCode && <TypeBadge code={typeCode} active={isSelected} />}
                       <PosPill position={pos} stack={isActive ? stack : undefined} isBtn={pos === 'BTN'} />
                       {!isActive && (
-                        <span className="text-ink-3 text-[10px] leading-none">+ add</span>
+                        <span
+                          className="text-[10px] leading-none font-semibold px-[6px] py-[2px] rounded-full"
+                          style={{ background: 'rgba(255,255,255,0.85)', color: '#1C6B43' }}
+                        >
+                          + add
+                        </span>
                       )}
                     </button>
                   )}

@@ -16,12 +16,6 @@ import { WizardModal } from './WizardModal'
 type StagedLesson = { content_id: string; content: Lesson }
 type Status = 'idle' | 'busy' | { error: string } | { ok: string }
 
-const gold = '#F4A024'
-const muted = '#9DB2C9'
-const ink = '#EAF1F8'
-const panel = '#0E2A47'
-const border = '1px solid #2a5079'
-
 export function TableBindPanel({ tableState }: { tableState: HandScenarioState }): JSX.Element {
   const [lessons, setLessons] = useState<StagedLesson[]>([])
   const [loading, setLoading] = useState(true)
@@ -30,16 +24,11 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
   const [questionIndex, setQuestionIndex] = useState(-1)
   const [saveStatus, setSaveStatus] = useState<Status>('idle')
   const [promoteStatus, setPromoteStatus] = useState<Status>('idle')
-  // Signature of the (lesson, question, table) that was last saved. Promotion is
-  // allowed only while the current selection + table still match it, so editing
-  // the table or switching target re-locks Promote without any effect.
   const [savedSignature, setSavedSignature] = useState<string | null>(null)
 
   const [modalOpen, setModalOpen] = useState(false)
   const [wizardOpen, setWizardOpen] = useState(false)
 
-  // Pure fetch (no setState) plus a separate applier, so the mount effect only
-  // ever setStates inside a .then callback (react-hooks/set-state-in-effect).
   async function fetchStagedLessons(): Promise<{ lessons?: StagedLesson[]; error?: string }> {
     const { data, error } = await supabaseProd.functions.invoke('list-from-staging', { body: {} })
     if (error) return { error: error.message }
@@ -80,8 +69,6 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
   const currentSignature = JSON.stringify({ lessonId, questionIndex, tableState })
   const saved = savedSignature !== null && savedSignature === currentSignature
 
-  // Writes the modified lesson back to staging, refreshes, and marks the saved
-  // (lesson, question, table) so Promote unlocks for exactly this state.
   async function saveLesson(content: Lesson, keepQuestion: number): Promise<boolean> {
     const validation = validateLesson(content)
     if (!validation.ok) {
@@ -149,20 +136,19 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
     setModalOpen(false)
   }
 
-  // Success messages only make sense while still "saved"; errors always show.
-  function message(s: Status): { text: string; color: string } | null {
-    if (s === 'busy') return { text: 'Working…', color: muted }
+  function message(s: Status): { text: string; isError: boolean } | null {
+    if (s === 'busy') return { text: 'Working…', isError: false }
     if (s === 'idle') return null
-    if ('error' in s) return { text: s.error, color: '#F87171' }
-    return saved ? { text: s.ok, color: '#4ADE80' } : null
+    if ('error' in s) return { text: s.error, isError: true }
+    return saved ? { text: s.ok, isError: false } : null
   }
   const saveMsg = message(saveStatus)
   const promoteMsg = message(promoteStatus)
 
   return (
-    <div className="rounded-lg p-4 space-y-3" style={{ background: panel, border }}>
+    <div className="rounded-lg p-4 space-y-3 bg-surface border border-line">
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-[11px] font-mono uppercase tracking-widest" style={{ color: gold }}>
+        <p className="text-[11px] font-mono uppercase tracking-widest text-gold">
           Bind table to a staging question
         </p>
         <div className="flex items-center gap-2">
@@ -173,16 +159,14 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
               setLoadError(null)
               fetchStagedLessons().then(applyLoad)
             }}
-            className="text-[12px] px-2 py-1 rounded"
-            style={{ background: '#07182C', border, color: muted }}
+            className="text-[12px] px-2 py-1 rounded bg-canvas border border-line text-ink-2 hover:text-ink transition-colors"
           >
             ↻ Refresh
           </button>
           <button
             type="button"
             onClick={() => setWizardOpen(true)}
-            className="text-[12px] px-2 py-1 rounded"
-            style={{ background: '#07182C', border, color: muted }}
+            className="text-[12px] px-2 py-1 rounded bg-canvas border border-line text-ink-2 hover:text-ink transition-colors"
           >
             + New lesson (wizard)
           </button>
@@ -190,17 +174,13 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
       </div>
 
       {loadError && (
-        <p className="text-[12px]" style={{ color: '#F87171' }}>
-          {loadError}
-        </p>
+        <p className="text-[12px] text-error">{loadError}</p>
       )}
 
       <div className="space-y-3">
         <div className="grid gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
           <label className="block space-y-1 min-w-0">
-            <span className="block text-[11px]" style={{ color: muted }}>
-              Lesson
-            </span>
+            <span className="block text-[11px] text-ink-2">Lesson</span>
             <select
               value={lessonId}
               onChange={(e) => {
@@ -210,8 +190,7 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
                 setPromoteStatus('idle')
               }}
               disabled={loading}
-              className="w-full rounded px-2 py-1.5 text-[13px]"
-              style={{ background: '#07182C', border, color: ink }}
+              className="w-full rounded px-2 py-1.5 text-[13px] bg-canvas border border-line text-ink outline-none focus:border-link"
             >
               <option value="">{loading ? 'Loading…' : 'Select a lesson'}</option>
               {lessons.map((l) => (
@@ -223,9 +202,7 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
           </label>
 
           <label className="block space-y-1 min-w-0">
-            <span className="block text-[11px]" style={{ color: muted }}>
-              Question
-            </span>
+            <span className="block text-[11px] text-ink-2">Question</span>
             <select
               value={questionIndex}
               onChange={(e) => {
@@ -234,8 +211,7 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
                 setPromoteStatus('idle')
               }}
               disabled={!selectedLesson}
-              className="w-full rounded px-2 py-1.5 text-[13px]"
-              style={{ background: '#07182C', border, color: ink }}
+              className="w-full rounded px-2 py-1.5 text-[13px] bg-canvas border border-line text-ink outline-none focus:border-link"
             >
               <option value={-1}>Select a question</option>
               {questions.map((q, i) => (
@@ -251,8 +227,7 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
             type="button"
             onClick={() => setModalOpen(true)}
             disabled={!selectedLesson}
-            className="text-[12px] px-3 py-1.5 rounded disabled:opacity-40 whitespace-nowrap"
-            style={{ background: '#07182C', border, color: muted }}
+            className="text-[12px] px-3 py-1.5 rounded bg-canvas border border-line text-ink-2 hover:text-ink disabled:opacity-40 whitespace-nowrap transition-colors"
           >
             + Add question
           </button>
@@ -264,8 +239,7 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
           type="button"
           onClick={handleSave}
           disabled={questionIndex < 0 || saveStatus === 'busy'}
-          className="px-4 py-2 rounded-lg text-[13px] font-semibold disabled:opacity-40"
-          style={{ background: gold, color: '#07182C' }}
+          className="px-4 py-2 rounded-lg text-[13px] font-semibold bg-gold text-on-gold disabled:opacity-40"
         >
           Save to staging
         </button>
@@ -273,8 +247,7 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
           type="button"
           onClick={handlePromote}
           disabled={!saved || promoteStatus === 'busy'}
-          className="px-4 py-2 rounded-lg text-[13px] font-semibold disabled:opacity-40"
-          style={{ background: 'transparent', border: `1px solid ${gold}`, color: gold }}
+          className="px-4 py-2 rounded-lg text-[13px] font-semibold border border-gold text-gold bg-transparent disabled:opacity-40"
           title={saved ? 'Publish to production' : 'Save to staging first'}
         >
           Promote to production
@@ -282,12 +255,12 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
       </div>
 
       {saveMsg && (
-        <p className="text-[12px]" style={{ color: saveMsg.color }}>
+        <p className={`text-[12px] ${saveMsg.isError ? 'text-error' : 'text-success'}`}>
           {saveMsg.text}
         </p>
       )}
       {promoteMsg && (
-        <p className="text-[12px]" style={{ color: promoteMsg.color }}>
+        <p className={`text-[12px] ${promoteMsg.isError ? 'text-error' : 'text-success'}`}>
           {promoteMsg.text}
         </p>
       )}
