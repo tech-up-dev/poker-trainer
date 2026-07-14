@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { JSX, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -656,6 +656,23 @@ function StepReview({
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
+// Draft persistence: the wizard keeps everything in memory, so a remount (e.g. an
+// auth token refresh when the tab regains focus) would otherwise wipe in-progress
+// work. We mirror the draft into sessionStorage and rehydrate on mount.
+const WIZARD_DRAFT_KEY = 'bss_wizard_draft'
+
+type WizardDraft = {
+  title: string
+  principleTag: string
+  concept: string
+  difficulty: string
+  questionType: 'multiple_choice' | 'hand_scenario'
+  completedQuestions: DraftQuestion[]
+  currentQuestion: DraftQuestion
+  vocabInput: string
+  step: WizardStep
+}
+
 // `embedded` renders the wizard inside a modal (no full-screen height, and the
 // header action closes the modal instead of navigating away).
 export function AuthoringWizardPage({
@@ -667,26 +684,56 @@ export function AuthoringWizardPage({
 } = {}): JSX.Element {
   const navigate = useNavigate()
 
+  // Rehydrate any in-progress draft saved before a remount (read once on mount).
+  const savedDraft = useMemo<WizardDraft | null>(() => {
+    try {
+      const raw = sessionStorage.getItem(WIZARD_DRAFT_KEY)
+      return raw ? (JSON.parse(raw) as WizardDraft) : null
+    } catch {
+      return null
+    }
+  }, [])
+
   // Step 1 state
-  const [title, setTitle] = useState('')
-  const [principleTag, setPrincipleTag] = useState('')
-  const [concept, setConcept] = useState('')
-  const [difficulty, setDifficulty] = useState('')
+  const [title, setTitle] = useState(savedDraft?.title ?? '')
+  const [principleTag, setPrincipleTag] = useState(savedDraft?.principleTag ?? '')
+  const [concept, setConcept] = useState(savedDraft?.concept ?? '')
+  const [difficulty, setDifficulty] = useState(savedDraft?.difficulty ?? '')
 
   // Step 2 state
-  const [questionType, setQuestionType] = useState<'multiple_choice' | 'hand_scenario'>('multiple_choice')
+  const [questionType, setQuestionType] = useState<'multiple_choice' | 'hand_scenario'>(
+    savedDraft?.questionType ?? 'multiple_choice',
+  )
 
   // Steps 3-4 state
-  const [completedQuestions, setCompletedQuestions] = useState<DraftQuestion[]>([])
-  const [currentQuestion, setCurrentQuestion] = useState<DraftQuestion>(() => blankQuestion('multiple_choice', 0))
+  const [completedQuestions, setCompletedQuestions] = useState<DraftQuestion[]>(
+    savedDraft?.completedQuestions ?? [],
+  )
+  const [currentQuestion, setCurrentQuestion] = useState<DraftQuestion>(
+    () => savedDraft?.currentQuestion ?? blankQuestion('multiple_choice', 0),
+  )
 
   // Step 5 state
-  const [vocabInput, setVocabInput] = useState('')
+  const [vocabInput, setVocabInput] = useState(savedDraft?.vocabInput ?? '')
 
   // Navigation
-  const [step, setStep] = useState<WizardStep>('lesson')
+  const [step, setStep] = useState<WizardStep>(savedDraft?.step ?? 'lesson')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
+
+  // Mirror the draft to sessionStorage on every change so a tab-return remount
+  // restores it. Cleared on successful save (see handleSave).
+  useEffect(() => {
+    const draft: WizardDraft = {
+      title, principleTag, concept, difficulty, questionType,
+      completedQuestions, currentQuestion, vocabInput, step,
+    }
+    try {
+      sessionStorage.setItem(WIZARD_DRAFT_KEY, JSON.stringify(draft))
+    } catch {
+      // sessionStorage may be unavailable (private mode); persistence is best-effort.
+    }
+  }, [title, principleTag, concept, difficulty, questionType, completedQuestions, currentQuestion, vocabInput, step])
 
   const vocabTerms = vocabInput.split(',').map((t) => t.trim()).filter(Boolean)
 
@@ -747,15 +794,14 @@ export function AuthoringWizardPage({
   }
 
   function handleEditCompleted(idx: number): void {
-    const e = validateQuestion()
-    if (Object.keys(e).length > 0) { setErrors(e); return }
     setErrors({})
-    // Commit current question back into the completed list, then swap the
-    // selected one out to be the new current.
-    const allQ = [...completedQuestions, currentQuestion]
-    const toEdit = allQ[idx]
-    allQ.splice(idx, 1)
-    setCompletedQuestions(allQ)
+    // Load the clicked question for editing. Do NOT validate the current draft
+    // first (that blocked the edit when the current question was blank/partial).
+    // Keep the current draft only if it has been started, so real in-progress
+    // work is preserved; a blank reset is discarded.
+    const toEdit = completedQuestions[idx]
+    const rest = completedQuestions.filter((_, i) => i !== idx)
+    setCompletedQuestions(currentQuestion.prompt.trim() ? [...rest, currentQuestion] : rest)
     setCurrentQuestion(toEdit)
     if (questionType === 'hand_scenario') setStep('table')
   }
@@ -836,6 +882,12 @@ export function AuthoringWizardPage({
       setSaveState({ kind: 'error', message: result?.message ?? error?.message ?? 'Unknown error' })
     } else {
       setSaveState({ kind: 'done', contentId: result.content_id ?? '(unknown)' })
+      // Draft is now saved to staging; drop the local copy so a new wizard starts clean.
+      try {
+        sessionStorage.removeItem(WIZARD_DRAFT_KEY)
+      } catch {
+        // ignore
+      }
     }
   }
 
