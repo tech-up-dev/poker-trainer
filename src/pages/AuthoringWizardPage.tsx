@@ -83,7 +83,7 @@ function prevStep(step: WizardStep, qType: 'multiple_choice' | 'hand_scenario'):
   if (step === 'type') return 'lesson'
   if (step === 'table') return 'type'
   if (step === 'qa') return qType === 'hand_scenario' ? 'table' : 'type'
-  if (step === 'vocab') return 'qa'
+  if (step === 'vocab') return qType === 'hand_scenario' ? 'table' : 'qa'
   if (step === 'review') return 'vocab'
   return 'lesson'
 }
@@ -195,7 +195,11 @@ function StepIndicator({
       {ALL_STEPS.map((step, i) => {
         const isActive = step === current
         const isDone = i < currentIdx
-        const isSkipped = step === 'table' && questionType === 'multiple_choice'
+        const isSkipped =
+          (step === 'table' && questionType === 'multiple_choice') ||
+          (step === 'qa' && questionType === 'hand_scenario')
+        const label =
+          step === 'table' && questionType === 'hand_scenario' ? 'Table & Q&A' : STEP_LABELS[step]
         return (
           <div key={step} className="flex items-center flex-1 min-w-0">
             <div className="flex flex-col items-center gap-1 shrink-0">
@@ -217,7 +221,7 @@ function StepIndicator({
                   isSkipped ? 'text-line' : isActive ? 'text-gold' : isDone ? 'text-success' : 'text-ink-3'
                 }`}
               >
-                {STEP_LABELS[step]}
+                {label}
               </span>
             </div>
             {i < ALL_STEPS.length - 1 && (
@@ -358,6 +362,41 @@ function StepTable({
         </p>
       </div>
       <TableBuilder value={tableState} onChange={onTableState} />
+    </div>
+  )
+}
+
+// ── Step 3+4 combined: Table + Q&A (hand_scenario only) ──────────────────────
+
+function StepTableAndQA({
+  tableState, onTableState,
+  question, onQuestion,
+  completedQuestions, onEditCompleted, onDeleteCompleted,
+  errors, questionNumber,
+}: {
+  tableState: HandScenarioState
+  onTableState: (s: HandScenarioState) => void
+  question: DraftQuestion
+  onQuestion: (q: DraftQuestion) => void
+  completedQuestions: DraftQuestion[]
+  onEditCompleted: (idx: number) => void
+  onDeleteCompleted: (idx: number) => void
+  errors: Record<string, string>
+  questionNumber: number
+}): JSX.Element {
+  return (
+    <div className="space-y-6">
+      <StepTable tableState={tableState} onTableState={onTableState} questionNumber={questionNumber} />
+      <div className="border-t border-line" />
+      <StepQA
+        question={question}
+        onQuestion={onQuestion}
+        completedQuestions={completedQuestions}
+        onEditCompleted={onEditCompleted}
+        onDeleteCompleted={onDeleteCompleted}
+        errors={errors}
+        questionNumber={questionNumber}
+      />
     </div>
   )
 }
@@ -679,7 +718,11 @@ function FullscreenStepIndicator({
       {ALL_STEPS.map((step, i) => {
         const isActive = step === current
         const isDone = i < currentIdx
-        const isSkipped = step === 'table' && questionType === 'multiple_choice'
+        const isSkipped =
+          (step === 'table' && questionType === 'multiple_choice') ||
+          (step === 'qa' && questionType === 'hand_scenario')
+        const label =
+          step === 'table' && questionType === 'hand_scenario' ? 'Table & Q&A' : STEP_LABELS[step]
         const Icon = STEP_ICONS[step]
         return (
           <div
@@ -695,7 +738,7 @@ function FullscreenStepIndicator({
             }`}
           >
             <Icon className="w-4 h-4 shrink-0" />
-            <span>{STEP_LABELS[step]}</span>
+            <span>{label}</span>
           </div>
         )
       })}
@@ -878,7 +921,18 @@ export function AuthoringWizardPage({
     }
 
     if (step === 'table') {
-      setStep('qa')
+      if (questionType === 'hand_scenario') {
+        const e = validateQuestion()
+        if (Object.keys(e).length > 0) { setErrors(e); return }
+        setCompletedQuestions((prev) => {
+          const next = [...prev, currentQuestion]
+          setCurrentQuestion(blankQuestion(questionType, next.length))
+          return next
+        })
+        setStep('vocab')
+      } else {
+        setStep('qa')
+      }
       return
     }
 
@@ -911,7 +965,7 @@ export function AuthoringWizardPage({
         setCompletedQuestions((prev) => prev.slice(0, -1))
         setCurrentQuestion(last)
       }
-      setStep('qa')
+      setStep(questionType === 'hand_scenario' ? 'table' : 'qa')
       return
     }
     setStep(prevStep(step, questionType))
@@ -962,7 +1016,20 @@ export function AuthoringWizardPage({
       {step === 'type' && (
         <StepType questionType={questionType} onQuestionType={handleSetQuestionType} />
       )}
-      {step === 'table' && (
+      {step === 'table' && questionType === 'hand_scenario' && (
+        <StepTableAndQA
+          tableState={currentQuestion.table_state ?? { ...INITIAL_TABLE }}
+          onTableState={(s) => setCurrentQuestion({ ...currentQuestion, table_state: s })}
+          question={currentQuestion}
+          onQuestion={setCurrentQuestion}
+          completedQuestions={completedQuestions}
+          onEditCompleted={handleEditCompleted}
+          onDeleteCompleted={handleDeleteCompleted}
+          errors={errors}
+          questionNumber={questionNumber}
+        />
+      )}
+      {step === 'table' && questionType !== 'hand_scenario' && (
         <StepTable
           tableState={currentQuestion.table_state ?? { ...INITIAL_TABLE }}
           onTableState={(s) => setCurrentQuestion({ ...currentQuestion, table_state: s })}
@@ -1011,7 +1078,7 @@ export function AuthoringWizardPage({
           ← Back
         </button>
       )}
-      {step === 'qa' && (
+      {(step === 'qa' || (step === 'table' && questionType === 'hand_scenario')) && (
         <button
           type="button"
           onClick={handleAddAnother}
@@ -1026,7 +1093,11 @@ export function AuthoringWizardPage({
           onClick={handleContinue}
           className="btn-primary min-h-11 ml-auto"
         >
-          {step === 'qa' ? 'Done with questions →' : step === 'vocab' ? 'Review →' : 'Continue →'}
+          {(step === 'qa' || (step === 'table' && questionType === 'hand_scenario'))
+            ? 'Done with questions →'
+            : step === 'vocab'
+              ? 'Review →'
+              : 'Continue →'}
         </button>
       )}
     </>
@@ -1064,8 +1135,8 @@ export function AuthoringWizardPage({
 
         {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-2xl mx-auto px-6 py-8 space-y-6">
-            <div className="bg-surface border border-line rounded-2xl p-6">
+          <div className={`mx-auto px-6 py-8 space-y-6 ${step === 'table' ? 'max-w-3xl' : 'max-w-2xl'}`}>
+            <div className="bg-surface border border-line rounded-2xl px-4 py-6 sm:px-6">
               {stepContent}
             </div>
           </div>
