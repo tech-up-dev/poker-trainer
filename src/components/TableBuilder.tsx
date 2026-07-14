@@ -121,6 +121,7 @@ type EditingSlot =
 export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderProps): JSX.Element {
   const [selectedSeat, setSelectedSeat] = useState<string | null>(null)
   const [editingSlot, setEditingSlot] = useState<EditingSlot | null>(null)
+  const [heroOpen, setHeroOpen] = useState(false)
 
   const street = value.street as Street
   const heroPos = normalisePos(value.hero_position)
@@ -228,6 +229,11 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
     next[index] = card
     patch({ hero_hole_cards: next.filter((c): c is string => c !== null) })
     if (card !== null) setEditingSlot(null)
+  }
+
+  function openHeroConfig(slotIndex: 0 | 1): void {
+    setHeroOpen(true)
+    toggleEditSlot({ kind: 'hole', index: slotIndex })
   }
 
   function pickBoardCard(index: number, card: string | null): void {
@@ -428,9 +434,9 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                             <button
                               key={i}
                               type="button"
-                              onClick={() => toggleEditSlot({ kind: 'hole', index: i })}
+                              onClick={() => openHeroConfig(i)}
                               className={`rounded outline-none transition-shadow ${
-                                editingSlot?.kind === 'hole' && editingSlot.index === i
+                                heroOpen && editingSlot?.kind === 'hole' && editingSlot.index === i
                                   ? 'ring-2 ring-gold'
                                   : ''
                               }`}
@@ -451,7 +457,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                       type="button"
                       onClick={() =>
                         isActive
-                          ? setSelectedSeat(isSelected ? null : pos)
+                          ? setSelectedSeat(pos)
                           : toggleSeat(pos)
                       }
                       className="flex flex-col gap-[4px] cursor-pointer transition-opacity"
@@ -483,14 +489,14 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
         {/* -- Config panel ---------------------------------------------------- */}
         <div className={livePreviewSlot ? 'space-y-5 flex flex-col items-center' : 'flex-1 min-w-[280px] space-y-5'}>
 
-          {/* Villain seat config */}
+          {/* Villain seat config — open until Apply is clicked */}
           {selectedSeat && selectedSeatType && (
-            <div className="space-y-3 p-3 rounded-lg border border-line bg-surface">
+            <div className="space-y-3 p-3 rounded-lg border border-gold/40 bg-surface">
               <div className="flex items-center justify-between">
-                <span className="text-ink text-[13px] font-semibold">{selectedSeat}</span>
+                <span className="text-ink text-[13px] font-semibold">{selectedSeat} — configure</span>
                 <button
                   type="button"
-                  onClick={() => toggleSeat(selectedSeat)}
+                  onClick={() => { toggleSeat(selectedSeat) }}
                   className="text-[11px] text-error hover:opacity-80 transition-opacity"
                 >
                   Remove
@@ -555,63 +561,130 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                   </label>
                 )}
               </div>
+
+              {/* Apply — saves current seat config and closes panel */}
+              <button
+                type="button"
+                onClick={() => setSelectedSeat(null)}
+                className="w-full py-1.5 rounded-lg bg-gold text-on-gold text-[12px] font-semibold hover:opacity-90 transition-opacity"
+              >
+                Apply
+              </button>
             </div>
           )}
 
-          {/* Hero hole cards */}
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold text-ink-2 uppercase tracking-widest">
-              Hero hole cards
-            </p>
-            <div className="flex gap-2">
-              {([0, 1] as const).map((i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => toggleEditSlot({ kind: 'hole', index: i })}
-                  className={`rounded outline-none transition-shadow ${
-                    editingSlot?.kind === 'hole' && editingSlot.index === i
-                      ? 'ring-2 ring-gold'
-                      : 'ring-1 ring-line hover:ring-link'
-                  }`}
-                >
-                  {holeCards[i] ? <Card card={holeCards[i] as string} /> : <EmptyCardSlot />}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Hero action */}
-          <div className="space-y-2">
-            <p className="text-[11px] font-semibold text-ink-2 uppercase tracking-widest">
-              Hero action
-            </p>
-            <div className="flex items-center gap-2 flex-wrap">
-              <select
-                value={value.seat_actions?.[heroPos]?.action ?? ''}
-                onChange={(e) => setSeatAction(heroPos, e.target.value === '' ? null : e.target.value as SeatAction)}
-                className="rounded bg-surface border border-line text-ink text-[12px] px-2 py-1 outline-none focus:border-link"
+          {/* Hero config — collapsed summary / expanded editor */}
+          {!heroOpen ? (
+            <div className="flex items-center justify-between gap-3 p-3 rounded-lg border border-line bg-surface">
+              <div className="flex items-center gap-3">
+                <span className="text-[11px] font-semibold text-ink-2 uppercase tracking-widest">Hero</span>
+                <div className="flex gap-1">
+                  {([0, 1] as const).map((i) =>
+                    holeCards[i]
+                      ? <Card key={i} card={holeCards[i] as string} />
+                      : <EmptyCardSlot key={i} />
+                  )}
+                </div>
+                {value.seat_actions?.[heroPos]?.action && (
+                  <span className="text-[11px] bg-surface-overlay border border-line rounded px-2 py-0.5 text-ink">
+                    {value.seat_actions[heroPos].action}
+                    {value.seat_actions[heroPos].amount !== undefined
+                      ? ` $${value.seat_actions[heroPos].amount}`
+                      : ''}
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setHeroOpen(true)}
+                className="text-[11px] text-link hover:opacity-80 transition-opacity shrink-0"
               >
-                <option value="">- none -</option>
-                {SEAT_ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
-              </select>
-              {value.seat_actions?.[heroPos]?.action &&
-                ACTIONS_WITH_AMOUNT.includes(value.seat_actions[heroPos].action as SeatAction) && (
-                <label className="flex items-center gap-1 text-[12px] text-ink-2">
-                  $
-                  <input
-                    type="number"
-                    min={0}
-                    value={value.seat_actions?.[heroPos]?.amount ?? ''}
-                    onChange={(e) => setSeatActionAmount(heroPos, e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)))}
-                    placeholder="amt"
-                    className="w-20 rounded bg-surface border border-line text-ink text-[12px] px-2 py-1 outline-none focus:border-link"
-                    style={{ userSelect: 'text' }}
-                  />
-                </label>
-              )}
+                Edit
+              </button>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-3 p-3 rounded-lg border border-gold/40 bg-surface">
+              <span className="text-ink text-[13px] font-semibold">Hero — configure</span>
+
+              {/* Hero hole cards */}
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold text-ink-2 uppercase tracking-widest">
+                  Hole cards
+                </p>
+                <div className="flex gap-2">
+                  {([0, 1] as const).map((i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => toggleEditSlot({ kind: 'hole', index: i })}
+                      className={`rounded outline-none transition-shadow ${
+                        editingSlot?.kind === 'hole' && editingSlot.index === i
+                          ? 'ring-2 ring-gold'
+                          : 'ring-1 ring-line hover:ring-link'
+                      }`}
+                    >
+                      {holeCards[i] ? <Card card={holeCards[i] as string} /> : <EmptyCardSlot />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Hero action */}
+              <div className="space-y-2">
+                <p className="text-[11px] font-semibold text-ink-2 uppercase tracking-widest">
+                  Action
+                </p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select
+                    value={value.seat_actions?.[heroPos]?.action ?? ''}
+                    onChange={(e) => setSeatAction(heroPos, e.target.value === '' ? null : e.target.value as SeatAction)}
+                    className="rounded bg-canvas border border-line text-ink text-[12px] px-2 py-1 outline-none focus:border-link"
+                  >
+                    <option value="">- none -</option>
+                    {SEAT_ACTIONS.map((a) => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                  {value.seat_actions?.[heroPos]?.action &&
+                    ACTIONS_WITH_AMOUNT.includes(value.seat_actions[heroPos].action as SeatAction) && (
+                    <label className="flex items-center gap-1 text-[12px] text-ink-2">
+                      $
+                      <input
+                        type="number"
+                        min={0}
+                        value={value.seat_actions?.[heroPos]?.amount ?? ''}
+                        onChange={(e) => setSeatActionAmount(heroPos, e.target.value === '' ? undefined : Math.max(0, Number(e.target.value)))}
+                        placeholder="amt"
+                        className="w-20 rounded bg-canvas border border-line text-ink text-[12px] px-2 py-1 outline-none focus:border-link"
+                        style={{ userSelect: 'text' }}
+                      />
+                    </label>
+                  )}
+                </div>
+              </div>
+
+              {/* Card picker */}
+              {editingSlot?.kind === 'hole' && (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] text-ink-3">
+                    Hole card {editingSlot.index + 1} — click to pick, click again to clear
+                  </p>
+                  <CardPicker
+                    value={pickerValue}
+                    usedCards={usedCards}
+                    onChange={handlePickerChange}
+                  />
+                </div>
+              )}
+
+              {/* Apply */}
+              <button
+                type="button"
+                onClick={() => { setHeroOpen(false); setEditingSlot(null) }}
+                className="w-full py-1.5 rounded-lg bg-gold text-on-gold text-[12px] font-semibold hover:opacity-90 transition-opacity"
+              >
+                Apply
+              </button>
+            </div>
+          )}
 
           {/* Board cards (hidden for preflop) */}
           {boardSlotCount > 0 && (
@@ -645,13 +718,11 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
             </div>
           )}
 
-          {/* Card picker - shown only when a slot is active */}
-          {editingSlot && (
+          {/* Board card picker */}
+          {editingSlot?.kind === 'board' && (
             <div className="space-y-1.5">
               <p className="text-[11px] text-ink-3">
-                {editingSlot.kind === 'hole'
-                  ? `Hole card ${editingSlot.index + 1} - click to pick, click again to clear`
-                  : `Board card ${editingSlot.index + 1} - click to pick, click again to clear`}
+                Board card {editingSlot.index + 1} — click to pick, click again to clear
               </p>
               <CardPicker
                 value={pickerValue}
