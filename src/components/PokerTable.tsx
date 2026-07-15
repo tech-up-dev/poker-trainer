@@ -264,6 +264,7 @@ function SeatDisplay({
       >
         <MiniCards />
         <SeatPill position={position} isBtn={isBtn} />
+        {typeCode && <TypeCodeBadge code={typeCode} />}
         {stack !== undefined && (
           <span className="text-[9px] text-ink-2 leading-none">${stack}</span>
         )}
