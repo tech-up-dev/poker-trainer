@@ -9,7 +9,7 @@ import { useAuth } from '../lib/auth-context'
 export function RequireAuth(): JSX.Element {
   const { session, isAdmin, loading } = useAuth()
 
-  if (loading) {
+  if (loading && !session) {
     return (
       <div className="min-h-screen bg-canvas text-ink-2 flex items-center justify-center">
         Loading…
