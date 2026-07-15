@@ -42,8 +42,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = supabaseProd.auth.onAuthStateChange((event, next) => {
       // INITIAL_SESSION is handled by the getSession() path above.
-      // For actual auth changes (sign-in, sign-out, token refresh) set loading
-      // so RequireAuth waits until entitlements are resolved before checking isAdmin.
+      // TOKEN_REFRESHED only rotates the JWT — entitlements don't change, so
+      // we skip the loading flag and the entitlement re-fetch entirely. This
+      // prevents the lesson/page from unmounting mid-session when the browser
+      // fires a background token refresh after the user switches tabs.
+      if (event === 'TOKEN_REFRESHED') {
+        if (active) setSession(next)
+        return
+      }
+      // For real auth changes (sign-in, sign-out, user update) set loading so
+      // RequireAuth/RequireSession waits until entitlements are resolved.
       if (event !== 'INITIAL_SESSION' && active) setLoading(true)
       setSession(next)
       void resolveEntitlements(next)

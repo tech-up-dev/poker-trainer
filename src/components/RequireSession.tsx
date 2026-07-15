@@ -13,7 +13,10 @@ export function RequireSession(): JSX.Element {
   const { session, hasAccess, loading } = useAuth()
   const location = useLocation()
 
-  if (loading) {
+  // Block rendering only on the very first load before any session is known.
+  // If a session already exists (e.g. background token refresh), keep the Outlet
+  // mounted so in-progress lesson state isn't lost.
+  if (loading && !session) {
     return (
       <div className="min-h-screen bg-canvas text-ink-2 flex items-center justify-center">
         Loading…
