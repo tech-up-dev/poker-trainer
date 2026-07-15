@@ -470,7 +470,7 @@ function StepQuestions({
                     <button
                       type="button"
                       onClick={() => onEditCompleted(i)}
-                      className="text-[11px] text-link hover:underline"
+                      className="text-[11px] font-semibold text-link hover:underline cursor-pointer"
                     >
                       Edit
                     </button>
@@ -478,7 +478,7 @@ function StepQuestions({
                   <button
                     type="button"
                     onClick={() => onDeleteCompleted(i)}
-                    className="text-[11px] text-error hover:underline"
+                    className="text-[11px] font-semibold text-error hover:underline cursor-pointer"
                   >
                     Remove
                   </button>
