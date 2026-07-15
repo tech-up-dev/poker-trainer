@@ -922,7 +922,7 @@ export function AuthoringWizardPage({
   }
 
   function handleEditCompleted(idx: number): void {
-    // No-op if already editing this question — prevents confusing toggle
+    // No-op if already editing this question - prevents confusing toggle
     if (editingIdx === idx) return
     setErrors({})
     // Auto-save current form state back to its slot before switching
@@ -941,7 +941,7 @@ export function AuthoringWizardPage({
 
   function handleDeleteCompleted(idx: number): void {
     if (editingIdx === idx) {
-      // Deleting the question currently in the form — reset to new
+      // Deleting the question currently in the form - reset to new
       setEditingIdx(null)
       setCurrentQuestion(blankQuestion(questionType, completedQuestions.length - 1))
     } else if (editingIdx !== null && editingIdx > idx) {

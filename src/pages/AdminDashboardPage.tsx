@@ -61,7 +61,7 @@ export function AdminDashboardPage(): JSX.Element {
           <div key={stat.label} className="card flex flex-col gap-2">
             <stat.icon className={`w-6 h-6 ${stat.color}`} />
             <p className="text-3xl font-bold text-ink">
-              {loading ? '—' : stat.value}
+              {loading ? '-' : stat.value}
             </p>
             <p className="text-sm text-ink-3">{stat.label}</p>
           </div>
