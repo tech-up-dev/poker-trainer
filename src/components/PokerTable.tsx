@@ -94,20 +94,20 @@ const PLAYER_TYPES: Record<string, PlayerTypeInfo> = {
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
-// Two tiny overlapping face-down cards - shown above every active villain seat
+// Two vertical flush face-down cards shown above every active villain seat
 function MiniCards(): JSX.Element {
   const cardStyle: React.CSSProperties = {
-    width: 14,
-    height: 20,
-    borderRadius: 3,
+    width: 11,
+    height: 18,
+    borderRadius: 2,
     border: '1px solid rgba(42,80,121,0.8)',
     background: 'repeating-linear-gradient(45deg,#1b4068,#1b4068 2px,#16395C 2px,#16395C 4px)',
     flexShrink: 0,
   };
   return (
-    <div className="flex items-end" style={{ marginBottom: 2 }}>
-      <div style={{ ...cardStyle, transform: 'rotate(-6deg)', zIndex: 1 }} />
-      <div style={{ ...cardStyle, transform: 'rotate(6deg)', marginLeft: -5, zIndex: 2 }} />
+    <div className="flex items-center" style={{ gap: 1 }}>
+      <div style={cardStyle} />
+      <div style={cardStyle} />
     </div>
   );
 }
@@ -143,8 +143,7 @@ function HeroPill({
   );
 }
 
-// Compact pill for villain/background seats - position label only (narrow)
-// Stack shown as separate small text below to avoid adjacent seat overlap
+// Compact pill for background seats (no villain assigned) - position label only
 function SeatPill({
   position,
   isBtn,
@@ -158,6 +157,37 @@ function SeatPill({
         <span className="text-ink text-[10px] font-medium px-[6px] py-[2px] leading-none whitespace-nowrap">
           {position}
         </span>
+      </div>
+      {isBtn && (
+        <div className="w-[15px] h-[15px] rounded-full bg-gold text-on-gold text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+          D
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Combined pill for villain seats: [POSITION | TYPE_CODE] + optional dealer button
+function VillainPill({
+  position,
+  typeCode,
+  isBtn,
+}: {
+  position: string;
+  typeCode?: string;
+  isBtn: boolean;
+}): JSX.Element {
+  return (
+    <div className="inline-flex items-center gap-1">
+      <div className="inline-flex rounded-[10px] overflow-hidden border border-line">
+        <span className="bg-surface text-ink text-[10px] font-medium px-[6px] py-[2px] leading-none whitespace-nowrap">
+          {position}
+        </span>
+        {typeCode && (
+          <span className="bg-surface-overlay text-gold text-[10px] font-semibold px-[6px] py-[2px] leading-none whitespace-nowrap">
+            {typeCode}
+          </span>
+        )}
       </div>
       {isBtn && (
         <div className="w-[15px] h-[15px] rounded-full bg-gold text-on-gold text-[9px] font-bold flex items-center justify-center flex-shrink-0">
@@ -253,20 +283,23 @@ function SeatDisplay({
   }
 
   // ── Villain (has player type assigned) ────────────────────────────────────
-  // Compact layout: mini cards → narrow position pill → stack text → action chip
   if (role === 'focus') {
     return (
       <button
-        className={`flex flex-col gap-[2px] cursor-pointer transition-opacity ${dimmed ? 'opacity-40' : ''}`}
-        style={{ alignItems: align, minWidth: 44, minHeight: 44 }}
+        className={`relative flex flex-col gap-[2px] cursor-pointer transition-opacity ${dimmed ? 'opacity-40' : ''}`}
+        style={{ alignItems: align, minWidth: 44 }}
         onClick={onTap}
         aria-label={`${typeCode ?? ''} at ${position}, tap for player info`}
       >
-        <MiniCards />
-        <SeatPill position={position} isBtn={isBtn} />
-        {typeCode && <TypeCodeBadge code={typeCode} />}
+        <div
+          className="absolute bottom-full pointer-events-none pb-[3px]"
+          style={{ display: 'flex', justifyContent: align }}
+        >
+          <MiniCards />
+        </div>
+        <VillainPill position={position} typeCode={typeCode} isBtn={isBtn} />
         {stack !== undefined && (
-          <span className="text-[9px] text-ink-2 leading-none">${stack}</span>
+          <span className="text-[10px] text-ink font-medium leading-none">${stack}</span>
         )}
         {action && !folded && <ActionChip action={action.action} amount={action.amount} />}
       </button>
