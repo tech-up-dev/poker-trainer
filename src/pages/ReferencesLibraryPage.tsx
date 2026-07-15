@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { JSX } from 'react'
-import { Bookmark, Lightbulb, FileText, ChevronDown, ChevronUp } from 'lucide-react'
+import { Bookmark, Lightbulb, FileText, ChevronDown, ChevronUp, Search } from 'lucide-react'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 
@@ -36,7 +36,7 @@ function renderMarkdown(md: string): string {
 type SavedEntry = { lesson: Lesson; question: Question }
 
 function ReferenceCard({ entry }: { entry: Reference }): JSX.Element {
-  const [open, setOpen] = useState(true)
+  const [open, setOpen] = useState(false)
   const html = open ? renderMarkdown(entry.body_markdown) : ''
 
   return (
@@ -80,6 +80,7 @@ export function ReferencesLibraryPage(): JSX.Element {
 
   const [references, setReferences] = useState<Reference[]>([])
   const [refsLoading, setRefsLoading] = useState(true)
+  const [refSearch, setRefSearch] = useState('')
 
   useEffect(() => {
     async function loadSaved(): Promise<void> {
@@ -133,8 +134,18 @@ export function ReferencesLibraryPage(): JSX.Element {
     unsaveTip(tipId).catch(() => {})
   }
 
+  const filteredRefs = refSearch.trim()
+    ? references.filter((r) => {
+        const q = refSearch.toLowerCase()
+        return (
+          r.title.toLowerCase().includes(q) ||
+          (r.tags ?? []).some((t) => t.toLowerCase().includes(q))
+        )
+      })
+    : references
+
   const grouped = new Map<string, Reference[]>()
-  for (const ref of references) {
+  for (const ref of filteredRefs) {
     const key = ref.category ?? 'other'
     if (!grouped.has(key)) grouped.set(key, [])
     grouped.get(key)!.push(ref)
@@ -271,7 +282,25 @@ export function ReferencesLibraryPage(): JSX.Element {
       {/* References */}
       {activeTab === 'references' && (
         <div className="space-y-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-3" />
+            <input
+              type="text"
+              value={refSearch}
+              onChange={(e) => setRefSearch(e.target.value)}
+              placeholder="Search references…"
+              className="input pl-12"
+            />
+          </div>
+
           {refsLoading && <p className="text-ink-3 text-sm">Loading…</p>}
+
+          {!refsLoading && references.length > 0 && filteredRefs.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-ink font-medium">No references match your search</p>
+              <p className="text-sm text-ink-3 mt-1">Try a different keyword</p>
+            </div>
+          )}
 
           {!refsLoading && references.length === 0 && (
             <div className="text-center py-12">
