@@ -26,7 +26,7 @@ type DeleteStatus = 'deleting' | { error: string }
 // list only shows these types (others stay hidden, e.g. unreleased types on M1),
 // and each gets an Edit button to its route.
 const EDITOR_ROUTE: Partial<Record<ContentType, string>> = {
-  lesson:    '/admin?tab=lesson',
+  lesson:    '/admin/wizard',
   glossary:  '/admin?tab=glossary',
   tip:       '/admin?tab=tip',
   reference: '/admin?tab=reference',
@@ -129,6 +129,8 @@ export function StagingBrowser(): JSX.Element {
   function editItem(item: StagedItem): void {
     const route = EDITOR_ROUTE[item.content_type]
     if (!route) return
+    // Discard any in-progress new-lesson draft — editing an existing item supersedes it
+    try { sessionStorage.removeItem('bss_wizard_draft') } catch { /* ignore */ }
     navigate(route, { state: { preloadContent: item.content } })
   }
 

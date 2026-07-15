@@ -6,12 +6,42 @@ import { BookOpen, HelpCircle, BookText, Plus, ChevronRight } from 'lucide-react
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchAllGlossaryEntries } from '../lib/glossary'
+import { ConfirmDialog } from '../components/ConfirmDialog'
+
+const WIZARD_DRAFT_KEY = 'bss_wizard_draft'
 
 export function AdminDashboardPage(): JSX.Element {
   const navigate = useNavigate()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [glossaryCount, setGlossaryCount] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false)
+
+  function handleNewLesson(): void {
+    let hasDraft = false
+    try {
+      const raw = sessionStorage.getItem(WIZARD_DRAFT_KEY)
+      if (raw) {
+        const d = JSON.parse(raw) as {
+          title?: string
+          principleTag?: string
+          concept?: string
+          completedQuestions?: unknown[]
+        }
+        hasDraft = Boolean(
+          d.title?.trim() ||
+          d.principleTag?.trim() ||
+          d.concept?.trim() ||
+          (d.completedQuestions?.length ?? 0) > 0,
+        )
+      }
+    } catch { /* ignore */ }
+    if (hasDraft) {
+      setShowDiscardConfirm(true)
+    } else {
+      navigate('/admin/wizard', { state: { newLesson: true } })
+    }
+  }
 
   useEffect(() => {
     Promise.all([
@@ -35,6 +65,23 @@ export function AdminDashboardPage(): JSX.Element {
   ]
 
   return (
+    <>
+    <ConfirmDialog
+      open={showDiscardConfirm}
+      title="Discard unsaved lesson?"
+      message="You have a lesson draft in progress. Starting a new lesson will permanently discard it."
+      confirmLabel="Discard and start new"
+      cancelLabel="Keep editing"
+      destructive
+      onConfirm={() => {
+        setShowDiscardConfirm(false)
+        navigate('/admin/wizard', { state: { newLesson: true } })
+      }}
+      onCancel={() => {
+        setShowDiscardConfirm(false)
+        navigate('/admin/wizard')
+      }}
+    />
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
@@ -47,7 +94,7 @@ export function AdminDashboardPage(): JSX.Element {
         </div>
         <button
           type="button"
-          onClick={() => navigate('/admin/wizard')}
+          onClick={handleNewLesson}
           className="btn-primary shrink-0"
         >
           <Plus className="w-5 h-5" />
@@ -119,5 +166,6 @@ export function AdminDashboardPage(): JSX.Element {
         )}
       </div>
     </div>
+    </>
   )
 }
