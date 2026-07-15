@@ -34,21 +34,21 @@ const SLOTS: Slot[] = [
   // 0 – bottom-center (hero)
   { style: { left: '50%', top: '90%', transform: 'translate(-50%, -50%)' }, align: 'center' },
   // 1 – bottom-right
-  { style: { right: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'flex-end' },
+  { style: { right: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'center' },
   // 2 – right
-  { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-end' },
+  { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'center' },
   // 3 – top-right
-  { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-end' },
+  { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
   // 4 – top-center-right (pushed outward to avoid pill collision with slot 5)
-  { style: { left: '65%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '67%', top: '2%', transform: 'translateX(-50%)' }, align: 'center' },
   // 5 – top-center-left (pushed outward to avoid pill collision with slot 4)
-  { style: { left: '35%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '33%', top: '2%', transform: 'translateX(-50%)' }, align: 'center' },
   // 6 – top-left
-  { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
   // 7 – left
-  { style: { left: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { left: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'center' },
   // 8 – bottom-left
-  { style: { left: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { left: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'center' },
 ];
 
 // ─── Player type encyclopedia ────────────────────────────────────────────────
@@ -94,20 +94,21 @@ const PLAYER_TYPES: Record<string, PlayerTypeInfo> = {
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
-// Two tiny overlapping face-down cards - shown above every active villain seat
+// Two overlapping face-down cards shown above every active villain seat
+// Second card overlaps the first by ~20% of card width (≈2px)
 function MiniCards(): JSX.Element {
   const cardStyle: React.CSSProperties = {
-    width: 14,
-    height: 20,
-    borderRadius: 3,
+    width: 11,
+    height: 18,
+    borderRadius: 2,
     border: '1px solid rgba(42,80,121,0.8)',
     background: 'repeating-linear-gradient(45deg,#1b4068,#1b4068 2px,#16395C 2px,#16395C 4px)',
     flexShrink: 0,
   };
   return (
-    <div className="flex items-end" style={{ marginBottom: 2 }}>
-      <div style={{ ...cardStyle, transform: 'rotate(-6deg)', zIndex: 1 }} />
-      <div style={{ ...cardStyle, transform: 'rotate(6deg)', marginLeft: -5, zIndex: 2 }} />
+    <div className="flex items-center" style={{ position: 'relative', top: 5, zIndex: 0 }}>
+      <div style={cardStyle} />
+      <div style={{ ...cardStyle, marginLeft: -2 }} />
     </div>
   );
 }
@@ -143,8 +144,7 @@ function HeroPill({
   );
 }
 
-// Compact pill for villain/background seats - position label only (narrow)
-// Stack shown as separate small text below to avoid adjacent seat overlap
+// Compact pill for background seats (no villain assigned) - position label only
 function SeatPill({
   position,
   isBtn,
@@ -168,6 +168,37 @@ function SeatPill({
   );
 }
 
+// Combined pill for villain seats: [POSITION | TYPE_CODE] + optional dealer button
+function VillainPill({
+  position,
+  typeCode,
+  isBtn,
+}: {
+  position: string;
+  typeCode?: string;
+  isBtn: boolean;
+}): JSX.Element {
+  return (
+    <div className="inline-flex items-center gap-1">
+      <div className="inline-flex rounded-[10px] overflow-hidden border border-line">
+        <span className="bg-surface text-ink text-[10px] font-medium px-[6px] py-[2px] leading-none whitespace-nowrap">
+          {position}
+        </span>
+        {typeCode && (
+          <span className="bg-surface-overlay text-gold text-[10px] font-semibold px-[6px] py-[2px] leading-none whitespace-nowrap">
+            {typeCode}
+          </span>
+        )}
+      </div>
+      {isBtn && (
+        <div className="w-[15px] h-[15px] rounded-full bg-gold text-on-gold text-[9px] font-bold flex items-center justify-center flex-shrink-0">
+          D
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TypeCodeBadge({ code }: { code: string }): JSX.Element {
   return (
     <div className="inline-flex items-center gap-[5px] bg-surface-overlay border border-line rounded-[12px] px-[9px] py-[2px]">
@@ -179,12 +210,10 @@ function TypeCodeBadge({ code }: { code: string }): JSX.Element {
 
 function ActionChip({ action, amount }: { action: string; amount?: number }): JSX.Element {
   return (
-    <div className="inline-flex items-center bg-surface border border-line rounded-[11px] px-[7px] py-[2px]">
-      <span className="text-ink text-[10px] leading-none whitespace-nowrap">
+    <div className="inline-flex items-center bg-gold rounded-[11px] px-[7px] py-[2px]">
+      <span className="text-on-gold text-[10px] font-medium leading-none whitespace-nowrap">
         {action}
-        {amount !== undefined && (
-          <> <span className="text-gold">${amount}</span></>
-        )}
+        {amount !== undefined && <> ${amount}</>}
       </span>
     </div>
   );
@@ -235,15 +264,9 @@ function SeatDisplay({
           }}
         >
           {holeCards && holeCards.length > 0 && (
-            <div className="flex">
-              <div style={{ transform: 'rotate(-5deg)' }}>
-                <Card card={holeCards[0]} />
-              </div>
-              {holeCards[1] && (
-                <div style={{ transform: 'rotate(5deg)', marginLeft: -8 }}>
-                  <Card card={holeCards[1]} />
-                </div>
-              )}
+            <div className="flex gap-[3px]">
+              <Card card={holeCards[0]} />
+              {holeCards[1] && <Card card={holeCards[1]} />}
             </div>
           )}
           <HeroPill position={position} stack={stack} isBtn={isBtn} />
@@ -253,20 +276,20 @@ function SeatDisplay({
   }
 
   // ── Villain (has player type assigned) ────────────────────────────────────
-  // Compact layout: mini cards → narrow position pill → stack text → action chip
   if (role === 'focus') {
     return (
       <button
         className={`flex flex-col gap-[2px] cursor-pointer transition-opacity ${dimmed ? 'opacity-40' : ''}`}
-        style={{ alignItems: align, minWidth: 44, minHeight: 44 }}
+        style={{ alignItems: align, minWidth: 44 }}
         onClick={onTap}
         aria-label={`${typeCode ?? ''} at ${position}, tap for player info`}
       >
         <MiniCards />
-        <SeatPill position={position} isBtn={isBtn} />
-        {typeCode && <TypeCodeBadge code={typeCode} />}
+        <div style={{ marginTop: -6, zIndex: 1, position: 'relative' }}>
+          <VillainPill position={position} typeCode={typeCode} isBtn={isBtn} />
+        </div>
         {stack !== undefined && (
-          <span className="text-[9px] text-ink-2 leading-none">${stack}</span>
+          <span className="text-[10px] text-ink font-medium leading-none">${stack}</span>
         )}
         {action && !folded && <ActionChip action={action.action} amount={action.amount} />}
       </button>
