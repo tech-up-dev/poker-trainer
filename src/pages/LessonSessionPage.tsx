@@ -20,7 +20,7 @@ type SessionPhase =
   | { kind: 'loading' }
   | { kind: 'error'; message: string }
   | { kind: 'intro' }
-  | { kind: 'quiz'; questionIndex: number; feedbackViewed: boolean }
+  | { kind: 'quiz'; questionIndex: number }
   | { kind: 'complete'; correct: number; total: number; missed: MissedQuestion[] }
 
 function shuffled<T>(arr: T[]): T[] {
@@ -99,10 +99,10 @@ export function LessonSessionPage(): JSX.Element {
     setCorrectMap({})
     setAnsweredMap({})
     questionStartedAt.current = Date.now()
-    setPhase({ kind: 'quiz', questionIndex: 0, feedbackViewed: false })
+    setPhase({ kind: 'quiz', questionIndex: 0 })
   }
 
-  function handleFeedbackViewed(
+  function handleContinue(
     questionIndex: number,
     isCorrect: boolean,
     selectedIndex: number,
@@ -118,27 +118,22 @@ export function LessonSessionPage(): JSX.Element {
         timeTakenMs,
       }).catch(() => {})
     }
-    setCorrectMap((prev) => ({ ...prev, [questionIndex]: isCorrect }))
-    setAnsweredMap((prev) => ({ ...prev, [questionIndex]: selectedIndex }))
-    setPhase((prev) =>
-      prev.kind === 'quiz' ? { ...prev, feedbackViewed: true } : prev,
-    )
-  }
 
-  function handleNext(): void {
-    if (phase.kind !== 'quiz') return
-    const nextIndex = phase.questionIndex + 1
+    // Build updated maps inline so the complete-phase calculation is accurate
+    // without waiting for React state to flush.
+    const nextCorrectMap = { ...correctMap, [questionIndex]: isCorrect }
+    const nextAnsweredMap = { ...answeredMap, [questionIndex]: selectedIndex }
+    setCorrectMap(nextCorrectMap)
+    setAnsweredMap(nextAnsweredMap)
 
+    const nextIndex = questionIndex + 1
     if (nextIndex >= orderedQuestions.length) {
-      const finalCorrectMap = { ...correctMap }
-      const finalAnsweredMap = { ...answeredMap }
-      const correct = Object.values(finalCorrectMap).filter(Boolean).length
+      const correct = Object.values(nextCorrectMap).filter(Boolean).length
       const total = orderedQuestions.length
-
       const missed: MissedQuestion[] = orderedQuestions
-        .map((q, i) => ({ question: q, selectedIndex: finalAnsweredMap[i] ?? 0, correct: finalCorrectMap[i] }))
+        .map((q, i) => ({ question: q, selectedIndex: nextAnsweredMap[i] ?? 0, correct: nextCorrectMap[i] }))
         .filter((entry) => entry.correct === false)
-        .map(({ question, selectedIndex }) => ({ question, selectedIndex }))
+        .map(({ question, selectedIndex: si }) => ({ question, selectedIndex: si }))
 
       void upsertProgress({
         lessonId: lessonId ?? '',
@@ -150,7 +145,7 @@ export function LessonSessionPage(): JSX.Element {
       setPhase({ kind: 'complete', correct, total, missed })
     } else {
       questionStartedAt.current = Date.now()
-      setPhase({ kind: 'quiz', questionIndex: nextIndex, feedbackViewed: false })
+      setPhase({ kind: 'quiz', questionIndex: nextIndex })
     }
   }
 
@@ -259,7 +254,7 @@ export function LessonSessionPage(): JSX.Element {
 
   // ── Quiz screen ───────────────────────────────────────────────────────────
   if (phase.kind === 'quiz') {
-    const { questionIndex, feedbackViewed } = phase
+    const { questionIndex } = phase
     const question = orderedQuestions[questionIndex]
     const total = orderedQuestions.length
 
@@ -298,7 +293,7 @@ export function LessonSessionPage(): JSX.Element {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto">
-          <div className="max-w-md mx-auto px-4 py-3 space-y-3 pb-6">
+          <div className="max-w-md mx-auto px-4 py-3 pb-6">
             <div className="card-elevated !p-4 md:!p-6 space-y-2">
               <p className="text-xs font-semibold uppercase tracking-widest text-ink-3">Scenario</p>
               <QuestionCard
@@ -306,19 +301,10 @@ export function LessonSessionPage(): JSX.Element {
                 question={question}
                 lessonId={lessonId}
                 onContinue={(isCorrect, selectedIndex) =>
-                  handleFeedbackViewed(questionIndex, isCorrect, selectedIndex)
+                  handleContinue(questionIndex, isCorrect, selectedIndex)
                 }
               />
             </div>
-
-            <button
-              type="button"
-              disabled={!feedbackViewed}
-              onClick={handleNext}
-              className="btn-primary w-full disabled:opacity-40 disabled:cursor-not-allowed"
-            >
-              {questionIndex + 1 < total ? 'Next question' : 'See results'}
-            </button>
           </div>
         </div>
       </div>
