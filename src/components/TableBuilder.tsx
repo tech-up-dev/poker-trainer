@@ -25,14 +25,14 @@ type Align = 'center' | 'flex-start' | 'flex-end'
 // Identical to PokerTable SLOTS
 const SLOTS: { style: React.CSSProperties; align: Align }[] = [
   { style: { left: '50%', top: '90%', transform: 'translate(-50%, -50%)' }, align: 'center' },
-  { style: { right: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'flex-end' },
-  { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-end' },
-  { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-end' },
-  { style: { left: '65%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
-  { style: { left: '35%', top: '6%', transform: 'translateX(-50%)' }, align: 'center' },
-  { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'flex-start' },
-  { style: { left: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'flex-start' },
-  { style: { left: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'flex-start' },
+  { style: { right: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'center' },
+  { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'center' },
+  { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
+  { style: { left: '67%', top: '2%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '33%', top: '2%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
+  { style: { left: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'center' },
+  { style: { left: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'center' },
 ]
 
 function normalisePos(pos: string): string {
@@ -115,7 +115,7 @@ function EmptyCardSlot(): JSX.Element {
   )
 }
 
-// Two tiny vertical flush face-down cards - mirrors PokerTable's MiniCards
+// Two overlapping face-down cards - mirrors PokerTable's MiniCards
 function MiniCards(): JSX.Element {
   const cardStyle: React.CSSProperties = {
     width: 11,
@@ -126,9 +126,9 @@ function MiniCards(): JSX.Element {
     flexShrink: 0,
   }
   return (
-    <div className="flex items-center" style={{ gap: 1 }}>
+    <div className="flex items-center" style={{ position: 'relative', top: 5, zIndex: 0 }}>
       <div style={cardStyle} />
-      <div style={cardStyle} />
+      <div style={{ ...cardStyle, marginLeft: -2 }} />
     </div>
   )
 }
@@ -523,7 +523,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                           ? setSelectedSeat(pos)
                           : toggleSeat(pos)
                       }
-                      className="relative flex flex-col gap-[2px] cursor-pointer transition-opacity"
+                      className="flex flex-col gap-[2px] cursor-pointer transition-opacity"
                       style={{ alignItems: slot.align, minWidth: 44 }}
                       aria-label={
                         isActive
@@ -534,18 +534,15 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                       {/* Active villain: mini cards (absolute above pill) → combined pill → stack text */}
                       {isActive ? (
                         <>
-                          <div
-                            className="absolute bottom-full pointer-events-none pb-[3px]"
-                            style={{ display: 'flex', justifyContent: slot.align }}
-                          >
-                            <MiniCards />
+                          <MiniCards />
+                          <div style={{ marginTop: -6, zIndex: 1, position: 'relative' }}>
+                            <VillainPill
+                              position={pos}
+                              typeCode={typeCode}
+                              isBtn={pos === 'BTN'}
+                              isSelected={isSelected}
+                            />
                           </div>
-                          <VillainPill
-                            position={pos}
-                            typeCode={typeCode}
-                            isBtn={pos === 'BTN'}
-                            isSelected={isSelected}
-                          />
                           {stack !== undefined && (
                             <span className="text-[10px] text-ink font-medium leading-none">${stack}</span>
                           )}
