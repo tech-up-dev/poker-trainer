@@ -242,7 +242,7 @@ export function LessonSessionPage(): JSX.Element {
                 className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${randomise ? 'translate-x-5' : 'translate-x-1'}`}
               />
             </div>
-            <span className="text-sm text-ink-2">Randomise question order</span>
+            <span className="text-sm text-ink-2">Randomize question order</span>
           </label>
 
           <button
