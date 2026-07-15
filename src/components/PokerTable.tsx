@@ -94,7 +94,7 @@ const PLAYER_TYPES: Record<string, PlayerTypeInfo> = {
 
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
-// Two tiny overlapping face-down cards — shown above every active villain seat
+// Two tiny overlapping face-down cards - shown above every active villain seat
 function MiniCards(): JSX.Element {
   const cardStyle: React.CSSProperties = {
     width: 14,
@@ -112,7 +112,7 @@ function MiniCards(): JSX.Element {
   );
 }
 
-// Full pill for hero — position + stack side-by-side, more spacious
+// Full pill for hero - position + stack side-by-side, more spacious
 function HeroPill({
   position,
   stack,
@@ -143,7 +143,7 @@ function HeroPill({
   );
 }
 
-// Compact pill for villain/background seats — position label only (narrow)
+// Compact pill for villain/background seats - position label only (narrow)
 // Stack shown as separate small text below to avoid adjacent seat overlap
 function SeatPill({
   position,
@@ -264,6 +264,7 @@ function SeatDisplay({
       >
         <MiniCards />
         <SeatPill position={position} isBtn={isBtn} />
+        {typeCode && <TypeCodeBadge code={typeCode} />}
         {stack !== undefined && (
           <span className="text-[9px] text-ink-2 leading-none">${stack}</span>
         )}
@@ -371,7 +372,7 @@ export function PokerTable({ tableState, size = 'md' }: PokerTableProps): JSX.El
     >
       {/* Oval table */}
       <div className="relative w-full" style={{ height: isSm ? 360 : 450 }}>
-        {/* Leather rail — decorative real-world color */}
+        {/* Leather rail - decorative real-world color */}
         <div
           className="absolute inset-0 rounded-full"
           style={{
@@ -379,7 +380,7 @@ export function PokerTable({ tableState, size = 'md' }: PokerTableProps): JSX.El
             boxShadow: 'inset 0 0 0 1px rgba(201,154,106,0.35)',
           }}
         />
-        {/* Green felt — decorative real-world color */}
+        {/* Green felt - decorative real-world color */}
         <div
           className="absolute rounded-full"
           style={{

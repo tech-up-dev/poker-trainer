@@ -82,7 +82,7 @@ function HeroPill({
   )
 }
 
-// Compact position-only pill for villain/background seats — keeps width narrow
+// Compact position-only pill for villain/background seats - keeps width narrow
 function SeatPill({
   position,
   isBtn,
@@ -115,7 +115,7 @@ function EmptyCardSlot(): JSX.Element {
   )
 }
 
-// Two tiny overlapping face-down cards — mirrors PokerTable's MiniCards
+// Two tiny overlapping face-down cards - mirrors PokerTable's MiniCards
 function MiniCards(): JSX.Element {
   const cardStyle: React.CSSProperties = {
     width: 14,
@@ -390,7 +390,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
 
           <div className="relative w-full" style={{ height: 360 }}>
 
-            {/* Leather rail — intentional decorative color, not theme */}
+            {/* Leather rail - intentional decorative color, not theme */}
             <div
               className="absolute inset-0 rounded-full"
               style={{
@@ -398,7 +398,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                 boxShadow: 'inset 0 0 0 1px rgba(201,154,106,0.35)',
               }}
             />
-            {/* Green felt — intentional decorative color, not theme */}
+            {/* Green felt - intentional decorative color, not theme */}
             <div
               className="absolute rounded-full"
               style={{
@@ -528,11 +528,11 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
         {/* -- Config panel ---------------------------------------------------- */}
         <div className={livePreviewSlot ? 'space-y-5 flex flex-col items-center' : 'flex-1 min-w-0 space-y-5'}>
 
-          {/* Villain seat config — open until Apply is clicked */}
+          {/* Villain seat config - open until Apply is clicked */}
           {selectedSeat && selectedSeatType && (
             <div className="space-y-3 p-3 rounded-lg border border-gold/40 bg-surface">
               <div className="flex items-center justify-between">
-                <span className="text-ink text-[13px] font-semibold">{selectedSeat} — configure</span>
+                <span className="text-ink text-[13px] font-semibold">{selectedSeat} - configure</span>
                 <button
                   type="button"
                   onClick={() => { toggleSeat(selectedSeat) }}
@@ -601,7 +601,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                 )}
               </div>
 
-              {/* Apply — saves current seat config and closes panel */}
+              {/* Apply - saves current seat config and closes panel */}
               <button
                 type="button"
                 onClick={() => setSelectedSeat(null)}
@@ -612,7 +612,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
             </div>
           )}
 
-          {/* Hero config — collapsed summary / expanded editor */}
+          {/* Hero config - collapsed summary / expanded editor */}
           {!heroOpen ? (
             <div className="flex items-center justify-between gap-3 p-3 rounded-lg border border-line bg-surface">
               <div className="flex items-center gap-3">
@@ -643,7 +643,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
             </div>
           ) : (
             <div className="space-y-3 p-3 rounded-lg border border-gold/40 bg-surface">
-              <span className="text-ink text-[13px] font-semibold">Hero — configure</span>
+              <span className="text-ink text-[13px] font-semibold">Hero - configure</span>
 
               {/* Hero hole cards */}
               <div className="space-y-2">
@@ -704,7 +704,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
               {editingSlot?.kind === 'hole' && (
                 <div className="space-y-1.5">
                   <p className="text-[11px] text-ink-3">
-                    Hole card {editingSlot.index + 1} — click to pick, click again to clear
+                    Hole card {editingSlot.index + 1} - click to pick, click again to clear
                   </p>
                   <CardPicker
                     value={pickerValue}
@@ -761,7 +761,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
           {editingSlot?.kind === 'board' && (
             <div className="space-y-1.5">
               <p className="text-[11px] text-ink-3">
-                Board card {editingSlot.index + 1} — click to pick, click again to clear
+                Board card {editingSlot.index + 1} - click to pick, click again to clear
               </p>
               <div className="overflow-x-auto">
                 <CardPicker
