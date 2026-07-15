@@ -92,110 +92,131 @@ const PLAYER_TYPES: Record<string, PlayerTypeInfo> = {
   },
 };
 
+// ─── Pod spec constants ───────────────────────────────────────────────────────
+// All values match the approved player_pod_spec.html exactly.
+
+const C = {
+  canvas:       '#132C40',
+  posBg:        '#22384C',
+  posText:      '#CFE0EE',
+  typeBg:       '#2456C6',
+  typeText:     '#FFFFFF',
+  stackBg:      '#0F2233',
+  stackText:    '#7FD8A8',
+  actionBg:     '#EF9430',
+  actionText:   '#3A2600',
+  dealerBg:     '#E8912A',
+  cardbackBg:   '#1E3E8C',
+  cardbackBorder:'#5B93D6',
+  seatBg:       '#22384C',
+  seatText:     '#8FA8BC',
+} as const;
+
 // ─── Shared sub-components ────────────────────────────────────────────────────
 
-// Two overlapping face-down cards shown above every active villain seat
-// Second card overlaps the first by ~20% of card width (≈2px)
-function MiniCards(): JSX.Element {
-  const cardStyle: React.CSSProperties = {
-    width: 11,
-    height: 18,
-    borderRadius: 2,
-    border: '1px solid rgba(42,80,121,0.8)',
-    background: 'repeating-linear-gradient(45deg,#1b4068,#1b4068 2px,#16395C 2px,#16395C 4px)',
+// Two overlapping card backs per spec (22×32px, crosshatch pattern).
+// Positioned absolutely inside the pod wrapper so they sit behind the identity block.
+function PodCardBacks(): JSX.Element {
+  const back: React.CSSProperties = {
+    width: 22, height: 32, borderRadius: 4,
+    border: `2px solid ${C.cardbackBorder}`,
+    backgroundColor: C.cardbackBg,
+    backgroundImage: [
+      'repeating-linear-gradient(45deg,rgba(255,255,255,.16) 0 1px,transparent 1px 5px)',
+      'repeating-linear-gradient(-45deg,rgba(255,255,255,.16) 0 1px,transparent 1px 5px)',
+    ].join(','),
     flexShrink: 0,
   };
   return (
-    <div className="flex items-center" style={{ position: 'relative', top: 5, zIndex: 0 }}>
-      <div style={cardStyle} />
-      <div style={{ ...cardStyle, marginLeft: -2 }} />
+    <div style={{ position: 'absolute', left: '50%', top: 2, transform: 'translateX(-50%)', zIndex: 0, display: 'flex' }}>
+      <div style={back} />
+      <div style={{ ...back, marginLeft: -8 }} />
     </div>
   );
 }
 
-// Full pill for hero - position + stack side-by-side, more spacious
-function HeroPill({
-  position,
-  stack,
-  isBtn,
-}: {
-  position: string;
-  stack?: number;
-  isBtn: boolean;
-}): JSX.Element {
+// Hero hole cards sit higher (top:-16px) and have a gap between them.
+function PodHeroCards({ cards }: { cards: string[] }): JSX.Element {
   return (
-    <div className="inline-flex items-center gap-1">
-      <div className="inline-flex rounded-[11px] overflow-hidden border border-line">
-        <span className="bg-surface text-ink text-[11px] px-[7px] py-[3px] leading-none whitespace-nowrap">
-          {position}
-        </span>
-        {stack !== undefined && (
-          <span className="bg-surface-overlay text-ink text-[11px] px-[8px] py-[3px] leading-none whitespace-nowrap">
-            ${stack}
-          </span>
-        )}
-      </div>
-      {isBtn && (
-        <div className="w-[18px] h-[18px] rounded-full bg-gold text-on-gold text-[10px] font-bold flex items-center justify-center flex-shrink-0">
-          D
-        </div>
-      )}
+    <div style={{ position: 'absolute', left: '50%', top: -16, transform: 'translateX(-50%)', zIndex: 0, display: 'flex', gap: 4 }}>
+      {cards.slice(0, 2).map((c, i) => (
+        <Card key={i} card={c} />
+      ))}
     </div>
   );
 }
 
-// Compact pill for background seats (no villain assigned) - position label only
-function SeatPill({
-  position,
-  isBtn,
-}: {
-  position: string;
-  isBtn: boolean;
-}): JSX.Element {
-  return (
-    <div className="inline-flex items-center gap-1">
-      <div className="inline-flex rounded-[10px] border border-line bg-surface">
-        <span className="text-ink text-[10px] font-medium px-[6px] py-[2px] leading-none whitespace-nowrap">
-          {position}
-        </span>
-      </div>
-      {isBtn && (
-        <div className="w-[15px] h-[15px] rounded-full bg-gold text-on-gold text-[9px] font-bold flex items-center justify-center flex-shrink-0">
-          D
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Combined pill for villain seats: [POSITION | TYPE_CODE] + optional dealer button
-function VillainPill({
+// Three-segment identity block: [pos | type] on top row, stack full-width below.
+function PodIdentityBlock({
   position,
   typeCode,
-  isBtn,
+  stack,
+  hero = false,
 }: {
   position: string;
   typeCode?: string;
-  isBtn: boolean;
+  stack?: number;
+  hero?: boolean;
 }): JSX.Element {
+  const radius = hero ? 12 : 11;
+  const fontSize = hero ? 13 : 12;
+  const rowPad = hero ? '4px 0' : '3px 0';
+  const stackPad = hero ? '4px 0 9px' : '3px 0 8px';
   return (
-    <div className="inline-flex items-center gap-1">
-      <div className="inline-flex rounded-[10px] overflow-hidden border border-line">
-        <span className="bg-surface text-ink text-[10px] font-medium px-[6px] py-[2px] leading-none whitespace-nowrap">
+    <div style={{ position: 'relative', zIndex: 1, borderRadius: radius, overflow: 'hidden', fontSize, fontWeight: 500, lineHeight: 1.15 }}>
+      <div style={{ display: 'flex' }}>
+        <span style={{ background: C.posBg, color: C.posText, padding: rowPad, flex: 1, textAlign: 'center' }}>
           {position}
         </span>
         {typeCode && (
-          <span className="bg-surface-overlay text-gold text-[10px] font-semibold px-[6px] py-[2px] leading-none whitespace-nowrap">
+          <span style={{ background: C.typeBg, color: C.typeText, padding: rowPad, flex: 1, textAlign: 'center' }}>
             {typeCode}
           </span>
         )}
       </div>
-      {isBtn && (
-        <div className="w-[15px] h-[15px] rounded-full bg-gold text-on-gold text-[9px] font-bold flex items-center justify-center flex-shrink-0">
-          D
+      {stack !== undefined && (
+        <div style={{ background: C.stackBg, color: C.stackText, padding: stackPad, textAlign: 'center' }}>
+          ${stack.toLocaleString()}
         </div>
       )}
     </div>
+  );
+}
+
+// Orange action tag that overlaps the bottom of the identity block.
+function PodActionTag({ action, amount, hero = false }: { action: string; amount?: number; hero?: boolean }): JSX.Element {
+  return (
+    <div style={{ position: 'relative', zIndex: 2, marginTop: hero ? -12 : -11, textAlign: 'center' }}>
+      <span style={{
+        display: 'inline-block',
+        background: C.actionBg,
+        color: C.actionText,
+        fontSize: hero ? 13 : 12,
+        fontWeight: 500,
+        padding: hero ? '4px 18px' : '3px 14px',
+        borderRadius: 999,
+        lineHeight: 1.15,
+        boxShadow: `0 0 0 2px ${C.canvas}`,
+        whiteSpace: 'nowrap',
+      }}>
+        {action}{amount !== undefined ? ` $${amount}` : ''}
+      </span>
+    </div>
+  );
+}
+
+// Dealer button: floating gold chip, absolute so it never gets clipped by identity block.
+function PodDealerButton(): JSX.Element {
+  return (
+    <div style={{
+      position: 'absolute', zIndex: 3,
+      right: -14, top: 34,
+      width: 22, height: 22, borderRadius: '50%',
+      background: C.dealerBg, color: C.actionText,
+      fontSize: 11, fontWeight: 500,
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      boxShadow: `0 0 0 2px ${C.canvas}`,
+    }}>D</div>
   );
 }
 
@@ -204,17 +225,6 @@ function TypeCodeBadge({ code }: { code: string }): JSX.Element {
     <div className="inline-flex items-center gap-[5px] bg-surface-overlay border border-line rounded-[12px] px-[9px] py-[2px]">
       <span className="w-[6px] h-[6px] rounded-full bg-link flex-shrink-0" />
       <span className="text-ink text-[11px] font-medium leading-none">{code}</span>
-    </div>
-  );
-}
-
-function ActionChip({ action, amount }: { action: string; amount?: number }): JSX.Element {
-  return (
-    <div className="inline-flex items-center bg-gold rounded-[11px] px-[7px] py-[2px]">
-      <span className="text-on-gold text-[10px] font-medium leading-none whitespace-nowrap">
-        {action}
-        {amount !== undefined && <> ${amount}</>}
-      </span>
     </div>
   );
 }
@@ -246,67 +256,53 @@ function SeatDisplay({
   holeCards,
   action,
   isBtn,
-  align,
   onTap,
 }: SeatDisplayProps): JSX.Element {
   const dimmed = folded && role !== 'hero';
 
-  // ── Hero ──────────────────────────────────────────────────────────────────
+  // ── Hero (132px pod, face-up hole cards, larger text) ─────────────────────
   if (role === 'hero') {
+    const hasCards = holeCards && holeCards.length > 0;
     return (
-      <div className="flex flex-col items-center gap-[4px]">
-        {action && <ActionChip action={action.action} amount={action.amount} />}
-        <div
-          className="flex flex-col items-center gap-[5px] p-[5px] rounded-[14px]"
-          style={{
-            border: '2px solid var(--color-gold)',
-            boxShadow: '0 0 0 4px rgba(244,160,36,0.18)',
-          }}
-        >
-          {holeCards && holeCards.length > 0 && (
-            <div className="flex gap-[3px]">
-              <Card card={holeCards[0]} />
-              {holeCards[1] && <Card card={holeCards[1]} />}
-            </div>
-          )}
-          <HeroPill position={position} stack={stack} isBtn={isBtn} />
-        </div>
+      <div style={{ position: 'relative', width: 132, paddingTop: 30, opacity: dimmed ? 0.4 : 1 }}>
+        {isBtn && <PodDealerButton />}
+        {hasCards && <PodHeroCards cards={holeCards} />}
+        <PodIdentityBlock position={position} stack={stack} hero />
+        {action && <PodActionTag action={action.action} amount={action.amount} hero />}
       </div>
     );
   }
 
-  // ── Villain (has player type assigned) ────────────────────────────────────
+  // ── Villain / focus (112px pod, card backs, clickable) ───────────────────
   if (role === 'focus') {
     return (
       <button
-        className={`flex flex-col gap-[2px] cursor-pointer transition-opacity ${dimmed ? 'opacity-40' : ''}`}
-        style={{ alignItems: align, minWidth: 44 }}
+        type="button"
         onClick={onTap}
         aria-label={`${typeCode ?? ''} at ${position}, tap for player info`}
+        style={{ position: 'relative', width: 112, paddingTop: 30, paddingBottom: 0, paddingLeft: 0, paddingRight: 0, opacity: dimmed ? 0.4 : 1, cursor: 'pointer', background: 'none', border: 'none' }}
       >
-        <MiniCards />
-        <div style={{ marginTop: -6, zIndex: 1, position: 'relative' }}>
-          <VillainPill position={position} typeCode={typeCode} isBtn={isBtn} />
-        </div>
-        {stack !== undefined && (
-          <span className="text-[10px] text-ink font-medium leading-none">${stack}</span>
-        )}
-        {action && !folded && <ActionChip action={action.action} amount={action.amount} />}
+        {isBtn && <PodDealerButton />}
+        <PodCardBacks />
+        <PodIdentityBlock position={position} typeCode={typeCode} stack={stack} />
+        {action && !folded && <PodActionTag action={action.action} amount={action.amount} />}
       </button>
     );
   }
 
-  // ── Background (seat present, no villain assigned) ────────────────────────
+  // ── Background / empty seat — single faint pill, no cards, no action ──────
   return (
-    <div
-      className={`flex flex-col gap-[2px] transition-opacity ${dimmed ? 'opacity-40' : ''}`}
-      style={{ alignItems: align }}
-    >
-      <SeatPill position={position} isBtn={isBtn} />
-      {stack !== undefined && (
-        <span className="text-[9px] text-ink-2 leading-none">${stack}</span>
-      )}
-    </div>
+    <span style={{
+      background: C.seatBg, color: C.seatText,
+      font: '500 12px system-ui',
+      padding: '4px 11px',
+      borderRadius: 999,
+      whiteSpace: 'nowrap',
+      opacity: dimmed ? 0.4 : 1,
+      display: 'inline-block',
+    }}>
+      {position}
+    </span>
   );
 }
 
