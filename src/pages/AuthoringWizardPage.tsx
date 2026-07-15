@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import type { JSX, ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { X, Tag, LayoutGrid, Table2, HelpCircle, BookText, Download } from 'lucide-react'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { X, Tag, HelpCircle, BookText, Download } from 'lucide-react'
 
 import { LessonSchema } from '../../shared/schemas/lesson'
 import type { HandScenarioState } from '../../shared/schemas/lesson'
@@ -11,7 +11,7 @@ import { linkifyGlossaryTerms } from '../lib/glossary-text'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type WizardStep = 'lesson' | 'type' | 'table' | 'qa' | 'vocab' | 'review'
+type WizardStep = 'lesson' | 'questions' | 'vocab' | 'review'
 
 type DraftAnswer = { text: string; is_correct: boolean; explanation: string }
 
@@ -32,24 +32,20 @@ type SaveState =
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const STEP_LABELS: Record<WizardStep, string> = {
-  lesson: 'Lesson',
-  type: 'Type',
-  table: 'Table',
-  qa: 'Q&A',
-  vocab: 'Vocab',
-  review: 'Export',
+  lesson:    'Lesson',
+  questions: 'Questions',
+  vocab:     'Vocab',
+  review:    'Export',
 }
 
 const STEP_ICONS: Record<WizardStep, typeof Tag> = {
-  lesson: Tag,
-  type:   LayoutGrid,
-  table:  Table2,
-  qa:     HelpCircle,
-  vocab:  BookText,
-  review: Download,
+  lesson:    Tag,
+  questions: HelpCircle,
+  vocab:     BookText,
+  review:    Download,
 }
 
-const ALL_STEPS: WizardStep[] = ['lesson', 'type', 'table', 'qa', 'vocab', 'review']
+const ALL_STEPS: WizardStep[] = ['lesson', 'questions', 'vocab', 'review']
 
 const INITIAL_TABLE: HandScenarioState = {
   street: 'preflop',
@@ -79,11 +75,9 @@ function blankQuestion(type: 'multiple_choice' | 'hand_scenario', n: number): Dr
   }
 }
 
-function prevStep(step: WizardStep, qType: 'multiple_choice' | 'hand_scenario'): WizardStep {
-  if (step === 'type') return 'lesson'
-  if (step === 'table') return 'type'
-  if (step === 'qa') return qType === 'hand_scenario' ? 'table' : 'type'
-  if (step === 'vocab') return qType === 'hand_scenario' ? 'table' : 'qa'
+function prevStep(step: WizardStep): WizardStep {
+  if (step === 'questions') return 'lesson'
+  if (step === 'vocab') return 'questions'
   if (step === 'review') return 'vocab'
   return 'lesson'
 }
@@ -93,40 +87,91 @@ function assembleLesson(
   principleTag: string,
   concept: string,
   difficulty: string,
-  questionType: 'multiple_choice' | 'hand_scenario',
+  lessonId: string,
   completedQuestions: DraftQuestion[],
   currentQuestion: DraftQuestion,
   vocabTerms: string[],
 ): unknown {
   // Only include currentQuestion if the user has started filling it in.
-  // After "Done with questions" a blank currentQuestion is created as a reset;
-  // including it would produce a ghost empty question in the assembled lesson.
   const allQuestions = currentQuestion.prompt.trim()
     ? [...completedQuestions, currentQuestion]
     : [...completedQuestions]
   return {
+    ...(lessonId ? { lesson_id: lessonId } : {}),
     title: title.trim(),
     principle_tag: principleTag.trim(),
     concept: concept.trim(),
     ...(difficulty ? { difficulty } : {}),
     questions: allQuestions.map((q, i) => ({
       question_id: `q-${i + 1}`,
-      type: questionType,
+      type: q.type,
       prompt: q.prompt.trim(),
       answers: q.answers.map((a) => ({
         text: a.text.trim(),
         is_correct: a.is_correct,
         explanation: a.explanation.trim(),
       })),
-      ...(questionType === 'hand_scenario' && q.table_state ? { table_state: q.table_state } : {}),
+      ...(q.type === 'hand_scenario' && q.table_state ? { table_state: q.table_state } : {}),
       ...(vocabTerms.length > 0 ? { glossary_terms: vocabTerms } : {}),
     })),
   }
 }
 
+// Convert a saved lesson JSON back into wizard draft state so it can be re-edited.
+function lessonToWizardDraft(lesson: unknown): WizardDraft {
+  const l = lesson as Record<string, unknown>
+  const rawQuestions = (l.questions as unknown[]) ?? []
+  const completedQuestions: DraftQuestion[] = rawQuestions.map((q, i) => {
+    const qObj = q as Record<string, unknown>
+    const rawAnswers = (qObj.answers as unknown[]) ?? []
+    const answers = rawAnswers.map((a) => {
+      const aObj = a as Record<string, unknown>
+      return {
+        text: String(aObj.text ?? ''),
+        is_correct: Boolean(aObj.is_correct),
+        explanation: String(aObj.explanation ?? ''),
+      }
+    })
+    while (answers.length < 4) answers.push(blankAnswer())
+    return {
+      _id: `q-${Date.now()}-${i}`,
+      type: ((qObj.type as string) === 'hand_scenario'
+        ? 'hand_scenario'
+        : 'multiple_choice') as 'multiple_choice' | 'hand_scenario',
+      table_state: qObj.table_state as HandScenarioState | undefined,
+      prompt: String(qObj.prompt ?? ''),
+      answers: answers.slice(0, 4) as [DraftAnswer, DraftAnswer, DraftAnswer, DraftAnswer],
+    }
+  })
+  const firstType = completedQuestions[0]?.type ?? 'multiple_choice'
+  const vocabTerms =
+    ((rawQuestions[0] as Record<string, unknown>)?.glossary_terms as string[] | undefined) ?? []
+  return {
+    title: String(l.title ?? ''),
+    principleTag: String(l.principle_tag ?? ''),
+    concept: String(l.concept ?? ''),
+    difficulty: String(l.difficulty ?? ''),
+    lessonId: String(l.lesson_id ?? ''),
+    questionType: firstType,
+    completedQuestions,
+    currentQuestion: blankQuestion(firstType, completedQuestions.length),
+    editingIdx: null,
+    vocabInput: vocabTerms.join(', '),
+    step: 'lesson',
+  }
+}
+
 // ── Shared UI primitives ──────────────────────────────────────────────────────
 
-function Field({ label, error, children }: { label: string; error?: string; children: ReactNode }): JSX.Element {
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string
+  error?: string
+  children: ReactNode
+}): JSX.Element {
   return (
     <div className="space-y-1.5">
       <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-2">{label}</p>
@@ -182,12 +227,14 @@ function AdminTextarea({
   )
 }
 
+// ── Step indicator (non-fullscreen) ───────────────────────────────────────────
+
 function StepIndicator({
   current,
-  questionType,
+  onStepClick,
 }: {
   current: WizardStep
-  questionType: 'multiple_choice' | 'hand_scenario'
+  onStepClick: (step: WizardStep) => void
 }): JSX.Element {
   const currentIdx = ALL_STEPS.indexOf(current)
   return (
@@ -195,39 +242,80 @@ function StepIndicator({
       {ALL_STEPS.map((step, i) => {
         const isActive = step === current
         const isDone = i < currentIdx
-        const isSkipped =
-          (step === 'table' && questionType === 'multiple_choice') ||
-          (step === 'qa' && questionType === 'hand_scenario')
-        const label =
-          step === 'table' && questionType === 'hand_scenario' ? 'Table & Q&A' : STEP_LABELS[step]
+        const isClickable = i < currentIdx
         return (
           <div key={step} className="flex items-center flex-1 min-w-0">
-            <div className="flex flex-col items-center gap-1 shrink-0">
+            <button
+              type="button"
+              disabled={!isClickable}
+              onClick={() => isClickable && onStepClick(step)}
+              className={`flex flex-col items-center gap-1 shrink-0 ${isClickable ? 'cursor-pointer' : 'cursor-default'}`}
+            >
               <div
                 className={`w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
-                  isSkipped
-                    ? 'bg-surface text-line border border-line'
-                    : isActive
-                      ? 'bg-gold text-on-gold'
-                      : isDone
-                        ? 'bg-success text-on-gold'
-                        : 'bg-surface text-ink-3 border border-line'
+                  isActive
+                    ? 'bg-gold text-on-gold'
+                    : isDone
+                      ? 'bg-success text-on-gold'
+                      : 'bg-surface text-ink-3 border border-line'
                 }`}
               >
                 {isDone ? '✓' : i + 1}
               </div>
               <span
                 className={`text-[10px] font-medium ${
-                  isSkipped ? 'text-line' : isActive ? 'text-gold' : isDone ? 'text-success' : 'text-ink-3'
+                  isActive ? 'text-gold' : isDone ? 'text-success' : 'text-ink-3'
                 }`}
               >
-                {label}
+                {STEP_LABELS[step]}
               </span>
-            </div>
+            </button>
             {i < ALL_STEPS.length - 1 && (
-              <div className={`flex-1 h-px mb-5 mx-1 ${i < currentIdx ? 'bg-success' : 'bg-line'}`} />
+              <div
+                className={`flex-1 h-px mb-5 mx-1 ${i < currentIdx ? 'bg-success' : 'bg-line'}`}
+              />
             )}
           </div>
+        )
+      })}
+    </div>
+  )
+}
+
+// ── Fullscreen step tabs ───────────────────────────────────────────────────────
+
+function FullscreenStepIndicator({
+  current,
+  onStepClick,
+}: {
+  current: WizardStep
+  onStepClick: (step: WizardStep) => void
+}): JSX.Element {
+  const currentIdx = ALL_STEPS.indexOf(current)
+  return (
+    <div className="flex border-b border-line overflow-x-auto scrollbar-hide">
+      {ALL_STEPS.map((step, i) => {
+        const isActive = step === current
+        const isDone = i < currentIdx
+        const isClickable = i < currentIdx
+        const Icon = STEP_ICONS[step]
+        return (
+          <button
+            key={step}
+            type="button"
+            disabled={!isClickable}
+            onClick={() => isClickable && onStepClick(step)}
+            className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 shrink-0 transition-colors ${
+              isActive
+                ? 'border-gold text-gold'
+                : isDone
+                  ? 'border-transparent text-success hover:text-ink cursor-pointer'
+                  : 'border-transparent text-ink-3 cursor-default'
+            }`}
+          >
+            <Icon className="w-4 h-4 shrink-0" />
+            <span>{STEP_LABELS[step]}</span>
+          </button>
         )
       })}
     </div>
@@ -237,32 +325,61 @@ function StepIndicator({
 // ── Step 1: Lesson metadata ───────────────────────────────────────────────────
 
 function StepLesson({
-  title, principleTag, concept, difficulty,
-  onTitle, onPrincipleTag, onConcept, onDifficulty,
+  title,
+  principleTag,
+  concept,
+  difficulty,
+  onTitle,
+  onPrincipleTag,
+  onConcept,
+  onDifficulty,
   errors,
 }: {
-  title: string; principleTag: string; concept: string; difficulty: string
-  onTitle: (v: string) => void; onPrincipleTag: (v: string) => void
-  onConcept: (v: string) => void; onDifficulty: (v: string) => void
+  title: string
+  principleTag: string
+  concept: string
+  difficulty: string
+  onTitle: (v: string) => void
+  onPrincipleTag: (v: string) => void
+  onConcept: (v: string) => void
+  onDifficulty: (v: string) => void
   errors: Record<string, string>
 }): JSX.Element {
   return (
     <div className="space-y-5">
       <div>
         <h2 className="text-lg font-bold text-ink">Lesson details</h2>
-        <p className="text-sm text-ink-2 mt-1">Fill in the lesson metadata. Title, tag and concept are required.</p>
+        <p className="text-sm text-ink-2 mt-1">
+          Fill in the lesson metadata. Title, tag and concept are required.
+        </p>
       </div>
 
       <Field label="Title *" error={errors.title}>
-        <AdminInput value={title} onChange={onTitle} placeholder="e.g. Pre-flop Opens from UTG" hasError={!!errors.title} />
+        <AdminInput
+          value={title}
+          onChange={onTitle}
+          placeholder="e.g. Pre-flop Opens from UTG"
+          hasError={!!errors.title}
+        />
       </Field>
 
       <Field label="Principle tag *" error={errors.principle_tag}>
-        <AdminInput value={principleTag} onChange={onPrincipleTag} placeholder="e.g. opening_ranges_utg" hasError={!!errors.principle_tag} />
+        <AdminInput
+          value={principleTag}
+          onChange={onPrincipleTag}
+          placeholder="e.g. opening_ranges_utg"
+          hasError={!!errors.principle_tag}
+        />
       </Field>
 
       <Field label="Concept / intro *" error={errors.concept}>
-        <AdminTextarea value={concept} onChange={onConcept} placeholder="One-sentence description shown on the lesson card and intro screen." rows={2} hasError={!!errors.concept} />
+        <AdminTextarea
+          value={concept}
+          onChange={onConcept}
+          placeholder="One-sentence description shown on the lesson card and intro screen."
+          rows={2}
+          hasError={!!errors.concept}
+        />
       </Field>
 
       <Field label="Difficulty">
@@ -281,131 +398,11 @@ function StepLesson({
   )
 }
 
-// ── Step 2: Question type ─────────────────────────────────────────────────────
+// ── Step 2: Questions (type selector + table + Q&A, all in one) ───────────────
 
-function StepType({
-  questionType, onQuestionType,
-}: {
-  questionType: 'multiple_choice' | 'hand_scenario'
-  onQuestionType: (v: 'multiple_choice' | 'hand_scenario') => void
-}): JSX.Element {
-  return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-lg font-bold text-ink">Question type</h2>
-        <p className="text-sm text-ink-2 mt-1">Applies to all questions in this lesson. Hand scenarios include the visual poker table.</p>
-      </div>
-
-      <div className="space-y-3">
-        {(
-          [
-            {
-              value: 'multiple_choice' as const,
-              label: 'General Q&A',
-              desc: 'Text-only question with 4 answer choices. No table required.',
-            },
-            {
-              value: 'hand_scenario' as const,
-              label: 'Hand Scenario',
-              desc: 'Question includes a visual poker table: street, positions, cards, pot.',
-            },
-          ] as const
-        ).map(({ value, label, desc }) => (
-          <button
-            key={value}
-            type="button"
-            onClick={() => onQuestionType(value)}
-            className={`w-full text-left p-4 rounded-xl border transition-colors ${
-              questionType === value
-                ? 'border-gold bg-gold/10'
-                : 'border-line bg-surface hover:border-link'
-            }`}
-          >
-            <div className="flex items-center gap-3">
-              <div
-                className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
-                  questionType === value ? 'border-gold bg-gold' : 'border-ink-3'
-                }`}
-              />
-              <div>
-                <p className="text-sm font-semibold text-ink">{label}</p>
-                <p className="text-xs text-ink-2 mt-0.5">{desc}</p>
-              </div>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-// ── Step 3: Table builder (hand_scenario only) ────────────────────────────────
-
-function StepTable({
-  tableState,
-  onTableState,
-  questionNumber,
-}: {
-  tableState: HandScenarioState
-  onTableState: (s: HandScenarioState) => void
-  questionNumber: number
-}): JSX.Element {
-  return (
-    <div className="space-y-5">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-widest text-gold">
-          Question {questionNumber}
-        </p>
-        <h2 className="text-lg font-bold text-ink mt-0.5">Configure the table</h2>
-        <p className="text-sm text-ink-2 mt-1">
-          Set up the hand scenario: street, positions, hole cards, board, villains.
-        </p>
-      </div>
-      <TableBuilder value={tableState} onChange={onTableState} />
-    </div>
-  )
-}
-
-// ── Step 3+4 combined: Table + Q&A (hand_scenario only) ──────────────────────
-
-function StepTableAndQA({
-  tableState, onTableState,
-  question, onQuestion,
-  completedQuestions, editingIdx, onEditCompleted, onDeleteCompleted,
-  errors, questionNumber,
-}: {
-  tableState: HandScenarioState
-  onTableState: (s: HandScenarioState) => void
-  question: DraftQuestion
-  onQuestion: (q: DraftQuestion) => void
-  completedQuestions: DraftQuestion[]
-  editingIdx: number | null
-  onEditCompleted: (idx: number) => void
-  onDeleteCompleted: (idx: number) => void
-  errors: Record<string, string>
-  questionNumber: number
-}): JSX.Element {
-  return (
-    <div className="space-y-6">
-      <StepTable tableState={tableState} onTableState={onTableState} questionNumber={questionNumber} />
-      <div className="border-t border-line" />
-      <StepQA
-        question={question}
-        onQuestion={onQuestion}
-        completedQuestions={completedQuestions}
-        editingIdx={editingIdx}
-        onEditCompleted={onEditCompleted}
-        onDeleteCompleted={onDeleteCompleted}
-        errors={errors}
-        questionNumber={questionNumber}
-      />
-    </div>
-  )
-}
-
-// ── Step 4: Q&A form ──────────────────────────────────────────────────────────
-
-function StepQA({
+function StepQuestions({
+  questionType,
+  onQuestionType,
   question,
   onQuestion,
   completedQuestions,
@@ -415,6 +412,8 @@ function StepQA({
   errors,
   questionNumber,
 }: {
+  questionType: 'multiple_choice' | 'hand_scenario'
+  onQuestionType: (v: 'multiple_choice' | 'hand_scenario') => void
   question: DraftQuestion
   onQuestion: (q: DraftQuestion) => void
   completedQuestions: DraftQuestion[]
@@ -424,24 +423,24 @@ function StepQA({
   errors: Record<string, string>
   questionNumber: number
 }): JSX.Element {
+  const tableState = question.table_state ?? { ...INITIAL_TABLE }
+  const correctIdx = question.answers.findIndex((a) => a.is_correct)
+
   function setPrompt(v: string): void {
     onQuestion({ ...question, prompt: v })
   }
 
   function setAnswerField(i: number, field: keyof DraftAnswer, value: string | boolean): void {
     const next = question.answers.map((a, idx) => {
-      if (field === 'is_correct') {
-        return { ...a, is_correct: idx === i }
-      }
+      if (field === 'is_correct') return { ...a, is_correct: idx === i }
       return idx === i ? { ...a, [field]: value } : a
     }) as [DraftAnswer, DraftAnswer, DraftAnswer, DraftAnswer]
     onQuestion({ ...question, answers: next })
   }
 
-  const correctIdx = question.answers.findIndex((a) => a.is_correct)
-
   return (
     <div className="space-y-6">
+      {/* ── Completed questions list ── */}
       {completedQuestions.length > 0 && (
         <div className="space-y-2">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-2">
@@ -450,34 +449,119 @@ function StepQA({
           {completedQuestions.map((q, i) => {
             const isEditing = editingIdx === i
             return (
-              <div key={q._id} className={`flex items-start justify-between gap-3 rounded-lg px-3 py-2 border ${isEditing ? 'border-gold bg-gold/10' : 'bg-surface border-line'}`}>
+              <div
+                key={q._id}
+                className={`flex items-start justify-between gap-3 rounded-lg px-3 py-2 border ${
+                  isEditing ? 'border-gold bg-gold/10' : 'bg-surface border-line'
+                }`}
+              >
                 <p className="text-xs text-ink-2 line-clamp-2 flex-1">
-                  <span className={`font-semibold mr-1 ${isEditing ? 'text-gold' : 'text-gold'}`}>Q{i + 1}.</span>
-                  {isEditing
-                    ? <em className="text-gold">Editing…</em>
-                    : (q.prompt || <em className="text-ink-3">No prompt</em>)
-                  }
+                  <span className="font-semibold mr-1 text-gold">Q{i + 1}.</span>
+                  {isEditing ? (
+                    <em className="text-gold">Editing…</em>
+                  ) : (
+                    q.prompt || <em className="text-ink-3">No prompt</em>
+                  )}
                 </p>
                 <div className="flex gap-2 shrink-0">
-                  {isEditing
-                    ? <span className="text-[11px] text-gold">Editing</span>
-                    : <button type="button" onClick={() => onEditCompleted(i)} className="text-[11px] text-link hover:underline">Edit</button>
-                  }
-                  <button type="button" onClick={() => onDeleteCompleted(i)} className="text-[11px] text-error hover:underline">Remove</button>
+                  {isEditing ? (
+                    <span className="text-[11px] text-gold">Editing</span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => onEditCompleted(i)}
+                      className="text-[11px] text-link hover:underline"
+                    >
+                      Edit
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => onDeleteCompleted(i)}
+                    className="text-[11px] text-error hover:underline"
+                  >
+                    Remove
+                  </button>
                 </div>
               </div>
             )
           })}
+          <div className="border-t border-line" />
         </div>
       )}
 
-      <div className="space-y-5">
+      {/* ── Type selector ── */}
+      <div className="space-y-3">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-widest text-gold">
             Question {questionNumber}
           </p>
-          <h2 className="text-lg font-bold text-ink mt-0.5">Write the Q&A</h2>
+          <h2 className="text-lg font-bold text-ink mt-0.5">Question type</h2>
+          <p className="text-sm text-ink-2 mt-1">Choose the format for this question.</p>
         </div>
+        <div className="flex gap-3">
+          {(
+            [
+              {
+                value: 'multiple_choice' as const,
+                label: 'General Q&A',
+                desc: 'Text-only question, no table.',
+              },
+              {
+                value: 'hand_scenario' as const,
+                label: 'Hand Scenario',
+                desc: 'Includes visual poker table.',
+              },
+            ] as const
+          ).map(({ value, label, desc }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => onQuestionType(value)}
+              className={`flex-1 text-left p-3 rounded-xl border transition-colors ${
+                questionType === value
+                  ? 'border-gold bg-gold/10'
+                  : 'border-line bg-surface hover:border-link'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${
+                    questionType === value ? 'border-gold bg-gold' : 'border-ink-3'
+                  }`}
+                />
+                <div>
+                  <p className="text-sm font-semibold text-ink">{label}</p>
+                  <p className="text-xs text-ink-2">{desc}</p>
+                </div>
+              </div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Table builder (hand_scenario only) ── */}
+      {questionType === 'hand_scenario' && (
+        <>
+          <div className="space-y-3">
+            <div>
+              <h2 className="text-lg font-bold text-ink">Configure the table</h2>
+              <p className="text-sm text-ink-2 mt-1">
+                Set up the hand scenario: street, positions, hole cards, board, villains.
+              </p>
+            </div>
+            <TableBuilder
+              value={tableState}
+              onChange={(s) => onQuestion({ ...question, table_state: s })}
+            />
+          </div>
+          <div className="border-t border-line" />
+        </>
+      )}
+
+      {/* ── Q&A form ── */}
+      <div className="space-y-5">
+        <h2 className="text-lg font-bold text-ink">Write the Q&A</h2>
 
         <Field label="Question prompt *" error={errors.prompt}>
           <AdminTextarea
@@ -547,7 +631,7 @@ function StepQA({
   )
 }
 
-// ── Step 5: Vocab / glossary terms ────────────────────────────────────────────
+// ── Step 3: Vocab / glossary terms ────────────────────────────────────────────
 
 function StepVocab({
   vocabInput,
@@ -568,7 +652,8 @@ function StepVocab({
       <div>
         <h2 className="text-lg font-bold text-ink">Vocabulary terms</h2>
         <p className="text-sm text-ink-2 mt-1">
-          Enter glossary terms that appear in your questions. Members tap them to open the definition. Optional.
+          Enter glossary terms that appear in your questions. Members tap them to open the
+          definition. Optional.
         </p>
       </div>
 
@@ -583,7 +668,10 @@ function StepVocab({
       {terms.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {terms.map((t) => (
-            <span key={t} className="text-xs px-2 py-0.5 rounded-full border border-line bg-surface text-ink-2">
+            <span
+              key={t}
+              className="text-xs px-2 py-0.5 rounded-full border border-line bg-surface text-ink-2"
+            >
               {t}
             </span>
           ))}
@@ -598,7 +686,9 @@ function StepVocab({
           <div className="bg-surface border border-line rounded-xl px-4 py-3 text-sm text-ink leading-relaxed">
             {linkifyGlossaryTerms(previewQuestion.prompt, terms)}
           </div>
-          <p className="text-[11px] text-ink-3">Underlined terms open the glossary drawer in the member app.</p>
+          <p className="text-[11px] text-ink-3">
+            Underlined terms open the glossary drawer in the member app.
+          </p>
         </div>
       )}
 
@@ -613,7 +703,7 @@ function StepVocab({
   )
 }
 
-// ── Step 6: Review + Save ─────────────────────────────────────────────────────
+// ── Step 4: Review + Save ─────────────────────────────────────────────────────
 
 function StepReview({
   lesson,
@@ -634,7 +724,8 @@ function StepReview({
       <div>
         <h2 className="text-lg font-bold text-ink">Review & save</h2>
         <p className="text-sm text-ink-2 mt-1">
-          Check the summary below, then save to staging. You can promote to production from the staging browser.
+          Check the summary below, then save to staging. You can promote to production from the
+          staging browser.
         </p>
       </div>
 
@@ -665,7 +756,9 @@ function StepReview({
           const correctAnswer = answers.find((a) => (a as Record<string, unknown>).is_correct)
           return (
             <div key={i} className="bg-surface border border-line rounded-lg px-3 py-2 space-y-1">
-              <p className="text-xs font-semibold text-gold">Q{i + 1} · {String(qObj.type ?? '')}</p>
+              <p className="text-xs font-semibold text-gold">
+                Q{i + 1} · {String(qObj.type ?? '')}
+              </p>
               <p className="text-sm text-ink line-clamp-2">{String(qObj.prompt ?? '')}</p>
               {Boolean(correctAnswer) && (
                 <p className="text-xs text-success">
@@ -681,7 +774,9 @@ function StepReview({
         <div className="rounded-xl border border-error bg-error/10 px-4 py-3 space-y-1">
           <p className="text-sm font-semibold text-error">Validation errors - fix before saving:</p>
           {validationErrors.map((e, i) => (
-            <p key={i} className="text-xs text-error">{e}</p>
+            <p key={i} className="text-xs text-error">
+              {e}
+            </p>
           ))}
         </div>
       )}
@@ -716,54 +811,8 @@ function StepReview({
   )
 }
 
-// ── Fullscreen step tabs ───────────────────────────────────────────────────────
-
-function FullscreenStepIndicator({
-  current,
-  questionType,
-}: {
-  current: WizardStep
-  questionType: 'multiple_choice' | 'hand_scenario'
-}): JSX.Element {
-  const currentIdx = ALL_STEPS.indexOf(current)
-  return (
-    <div className="flex border-b border-line overflow-x-auto scrollbar-hide">
-      {ALL_STEPS.map((step, i) => {
-        const isActive = step === current
-        const isDone = i < currentIdx
-        const isSkipped =
-          (step === 'table' && questionType === 'multiple_choice') ||
-          (step === 'qa' && questionType === 'hand_scenario')
-        const label =
-          step === 'table' && questionType === 'hand_scenario' ? 'Table & Q&A' : STEP_LABELS[step]
-        const Icon = STEP_ICONS[step]
-        return (
-          <div
-            key={step}
-            className={`flex items-center gap-2 px-5 py-3 text-sm font-medium border-b-2 shrink-0 transition-colors ${
-              isActive
-                ? 'border-gold text-gold'
-                : isDone
-                  ? 'border-transparent text-success'
-                  : isSkipped
-                    ? 'border-transparent text-line'
-                    : 'border-transparent text-ink-3'
-            }`}
-          >
-            <Icon className="w-4 h-4 shrink-0" />
-            <span>{label}</span>
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
 // ── Main page ─────────────────────────────────────────────────────────────────
 
-// Draft persistence: the wizard keeps everything in memory, so a remount (e.g. an
-// auth token refresh when the tab regains focus) would otherwise wipe in-progress
-// work. We mirror the draft into sessionStorage and rehydrate on mount.
 const WIZARD_DRAFT_KEY = 'bss_wizard_draft'
 
 type WizardDraft = {
@@ -771,6 +820,7 @@ type WizardDraft = {
   principleTag: string
   concept: string
   difficulty: string
+  lessonId: string
   questionType: 'multiple_choice' | 'hand_scenario'
   completedQuestions: DraftQuestion[]
   currentQuestion: DraftQuestion
@@ -779,9 +829,6 @@ type WizardDraft = {
   step: WizardStep
 }
 
-// `embedded` renders the wizard inside a modal (no full-screen height, and the
-// header action closes the modal instead of navigating away).
-// `fullscreen` renders the wizard as a full-screen overlay with a fixed header/footer.
 export function AuthoringWizardPage({
   embedded = false,
   fullscreen = false,
@@ -792,83 +839,99 @@ export function AuthoringWizardPage({
   onExit?: () => void
 } = {}): JSX.Element {
   const navigate = useNavigate()
+  const location = useLocation()
 
-  // Rehydrate any in-progress draft saved before a remount (read once on mount).
+  const locState = location.state as {
+    newLesson?: boolean
+    preloadContent?: unknown
+  } | null
+
+  // Don't persist sessionStorage drafts when editing from staging — so that
+  // navigating to /admin/wizard from the sidebar afterwards starts fresh.
+  const isEditMode = Boolean(locState?.preloadContent)
+
+  // Rehydrate draft on mount. Priority:
+  // 1. embedded mode - always start fresh
+  // 2. newLesson flag - start fresh, clear any saved draft
+  // 3. preloadContent - seed from a staged lesson (edit-in-wizard)
+  // 4. sessionStorage - restore an in-progress draft after tab refresh
   const savedDraft = useMemo<WizardDraft | null>(() => {
+    if (embedded) return null
+    if (locState?.newLesson) {
+      try { sessionStorage.removeItem(WIZARD_DRAFT_KEY) } catch { /* ignore */ }
+      return null
+    }
+    if (locState?.preloadContent) {
+      return lessonToWizardDraft(locState.preloadContent)
+    }
     try {
       const raw = sessionStorage.getItem(WIZARD_DRAFT_KEY)
       return raw ? (JSON.parse(raw) as WizardDraft) : null
     } catch {
       return null
     }
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps -- intentionally read once on mount
 
-  // Step 1 state
   const [title, setTitle] = useState(savedDraft?.title ?? '')
   const [principleTag, setPrincipleTag] = useState(savedDraft?.principleTag ?? '')
   const [concept, setConcept] = useState(savedDraft?.concept ?? '')
   const [difficulty, setDifficulty] = useState(savedDraft?.difficulty ?? '')
+  const [lessonId] = useState(savedDraft?.lessonId ?? '')
 
-  // Step 2 state
   const [questionType, setQuestionType] = useState<'multiple_choice' | 'hand_scenario'>(
     savedDraft?.questionType ?? 'multiple_choice',
   )
 
-  // Steps 3-4 state
   const [completedQuestions, setCompletedQuestions] = useState<DraftQuestion[]>(
     savedDraft?.completedQuestions ?? [],
   )
   const [currentQuestion, setCurrentQuestion] = useState<DraftQuestion>(
     () => savedDraft?.currentQuestion ?? blankQuestion('multiple_choice', 0),
   )
-  // null = writing a new question; number = editing existing question at that index
   const [editingIdx, setEditingIdx] = useState<number | null>(savedDraft?.editingIdx ?? null)
 
-  // Step 5 state
   const [vocabInput, setVocabInput] = useState(savedDraft?.vocabInput ?? '')
 
-  // Navigation
   const [step, setStep] = useState<WizardStep>(savedDraft?.step ?? 'lesson')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
 
   // Mirror the draft to sessionStorage on every change so a tab-return remount
-  // restores it. Cleared on successful save (see handleSave).
+  // restores it. Skip when in edit-from-staging mode so the sidebar always starts fresh.
   useEffect(() => {
+    if (embedded || isEditMode) return
     const draft: WizardDraft = {
-      title, principleTag, concept, difficulty, questionType,
+      title, principleTag, concept, difficulty, lessonId, questionType,
       completedQuestions, currentQuestion, editingIdx, vocabInput, step,
     }
     try {
       sessionStorage.setItem(WIZARD_DRAFT_KEY, JSON.stringify(draft))
     } catch {
-      // sessionStorage may be unavailable (private mode); persistence is best-effort.
+      // sessionStorage may be unavailable in private mode; persistence is best-effort.
     }
-  }, [title, principleTag, concept, difficulty, questionType, completedQuestions, currentQuestion, editingIdx, vocabInput, step])
+  }, [title, principleTag, concept, difficulty, questionType, completedQuestions, currentQuestion, editingIdx, vocabInput, step, embedded, isEditMode])
 
   const vocabTerms = vocabInput.split(',').map((t) => t.trim()).filter(Boolean)
 
   // When editing an existing question, substitute it in-place; otherwise append if started.
-  const questionsForAssembly = editingIdx !== null
-    ? completedQuestions.map((q, i) => i === editingIdx ? currentQuestion : q)
-    : completedQuestions
+  const questionsForAssembly =
+    editingIdx !== null
+      ? completedQuestions.map((q, i) => (i === editingIdx ? currentQuestion : q))
+      : completedQuestions
+
   const assembled = assembleLesson(
-    title, principleTag, concept, difficulty,
-    questionType,
+    title, principleTag, concept, difficulty, lessonId,
     questionsForAssembly,
     editingIdx !== null ? blankQuestion(questionType, 0) : currentQuestion,
     vocabTerms,
   )
 
-  // When question type changes, reset question drafts
   function handleSetQuestionType(t: 'multiple_choice' | 'hand_scenario'): void {
     setQuestionType(t)
-    setCompletedQuestions([])
-    setCurrentQuestion(blankQuestion(t, 0))
+    setCurrentQuestion(blankQuestion(t, completedQuestions.length))
     setEditingIdx(null)
   }
 
-  // Validate step 1
   function validateLesson(): Record<string, string> {
     const e: Record<string, string> = {}
     if (!title.trim()) e.title = 'Title is required'
@@ -877,28 +940,26 @@ export function AuthoringWizardPage({
     return e
   }
 
-  // Validate current question (step 4)
   function validateQuestion(): Record<string, string> {
     const e: Record<string, string> = {}
     if (!currentQuestion.prompt.trim()) e.prompt = 'Question prompt is required'
     currentQuestion.answers.forEach((a, i) => {
       if (!a.text.trim()) e[`answer_${i}_text`] = `Answer ${LETTERS[i]} text is required`
-      if (!a.explanation.trim()) e[`answer_${i}_explanation`] = `Answer ${LETTERS[i]} explanation is required`
+      if (!a.explanation.trim())
+        e[`answer_${i}_explanation`] = `Answer ${LETTERS[i]} explanation is required`
     })
     const correctCount = currentQuestion.answers.filter((a) => a.is_correct).length
     if (correctCount !== 1) e.answers = 'Exactly one answer must be marked correct'
     return e
   }
 
-  // Save currentQuestion into its slot (or append) and reset to a new blank question.
   function commitCurrent(questions: DraftQuestion[]): DraftQuestion[] {
     if (editingIdx !== null) {
-      return questions.map((q, i) => i === editingIdx ? currentQuestion : q)
+      return questions.map((q, i) => (i === editingIdx ? currentQuestion : q))
     }
     return [...questions, currentQuestion]
   }
 
-  // Commit current question and start a new one
   function commitAndAddAnother(): boolean {
     const e = validateQuestion()
     if (Object.keys(e).length > 0) {
@@ -908,40 +969,38 @@ export function AuthoringWizardPage({
     setErrors({})
     setCompletedQuestions((prev) => commitCurrent(prev))
     setEditingIdx(null)
-    setCurrentQuestion(blankQuestion(questionType, editingIdx !== null ? completedQuestions.length : completedQuestions.length + 1))
+    setCurrentQuestion(
+      blankQuestion(
+        questionType,
+        editingIdx !== null ? completedQuestions.length : completedQuestions.length + 1,
+      ),
+    )
     return true
   }
 
   function handleAddAnother(): void {
     if (!commitAndAddAnother()) return
-    // For hand_scenario go back to table config for the new question
-    if (questionType === 'hand_scenario') {
-      setStep('table')
-    }
-    // For multiple_choice stay in qa with fresh form
+    // Stay on questions step; form resets to a blank new question
   }
 
   function handleEditCompleted(idx: number): void {
-    // No-op if already editing this question - prevents confusing toggle
     if (editingIdx === idx) return
     setErrors({})
-    // Auto-save current form state back to its slot before switching
+    // Auto-save current form state before switching
     setCompletedQuestions((prev) => {
       if (editingIdx !== null) {
-        // Save current edits back in-place
-        return prev.map((q, i) => i === editingIdx ? currentQuestion : q)
+        return prev.map((q, i) => (i === editingIdx ? currentQuestion : q))
       }
-      // If writing a new question with content, append it first
       return currentQuestion.prompt.trim() ? [...prev, currentQuestion] : prev
     })
-    setCurrentQuestion(completedQuestions[idx])
+    const target = completedQuestions[idx]
+    setCurrentQuestion(target)
+    setQuestionType(target.type)
     setEditingIdx(idx)
-    if (questionType === 'hand_scenario') setStep('table')
   }
 
   function handleDeleteCompleted(idx: number): void {
     if (editingIdx === idx) {
-      // Deleting the question currently in the form - reset to new
       setEditingIdx(null)
       setCurrentQuestion(blankQuestion(questionType, completedQuestions.length - 1))
     } else if (editingIdx !== null && editingIdx > idx) {
@@ -956,35 +1015,27 @@ export function AuthoringWizardPage({
     if (step === 'lesson') {
       const e = validateLesson()
       if (Object.keys(e).length > 0) { setErrors(e); return }
-      setStep('type')
+      setStep('questions')
       return
     }
 
-    if (step === 'type') {
-      setStep(questionType === 'hand_scenario' ? 'table' : 'qa')
-      return
-    }
-
-    if (step === 'table') {
-      if (questionType === 'hand_scenario') {
-        const e = validateQuestion()
-        if (Object.keys(e).length > 0) { setErrors(e); return }
-        setCompletedQuestions((prev) => commitCurrent(prev))
-        setEditingIdx(null)
-        setCurrentQuestion(blankQuestion(questionType, 0))
-        setStep('vocab')
-      } else {
-        setStep('qa')
+    if (step === 'questions') {
+      // No questions at all: require at least one
+      if (!currentQuestion.prompt.trim() && completedQuestions.length === 0) {
+        setErrors({ prompt: 'Add at least one question before continuing.' })
+        return
       }
-      return
-    }
-
-    if (step === 'qa') {
+      // Blank form but existing questions: proceed
+      if (!currentQuestion.prompt.trim() && completedQuestions.length > 0 && editingIdx === null) {
+        setStep('vocab')
+        return
+      }
+      // Has content: validate and commit
       const e = validateQuestion()
       if (Object.keys(e).length > 0) { setErrors(e); return }
       setCompletedQuestions((prev) => commitCurrent(prev))
       setEditingIdx(null)
-      setCurrentQuestion(blankQuestion(questionType, 0))
+      setCurrentQuestion(blankQuestion(questionType, completedQuestions.length + 1))
       setStep('vocab')
       return
     }
@@ -997,20 +1048,14 @@ export function AuthoringWizardPage({
 
   function handleBack(): void {
     setErrors({})
-    if (step === 'review') { setStep('vocab'); return }
-    if (step === 'vocab') {
-      if (completedQuestions.length > 0) {
-        const lastIdx = completedQuestions.length - 1
-        setEditingIdx(lastIdx)
-        setCurrentQuestion(completedQuestions[lastIdx])
-      }
-      setStep(questionType === 'hand_scenario' ? 'table' : 'qa')
-      return
-    }
-    setStep(prevStep(step, questionType))
+    setStep(prevStep(step))
   }
 
-  // Zod validation errors for review step
+  function handleStepClick(s: WizardStep): void {
+    setErrors({})
+    setStep(s)
+  }
+
   const zodResult = LessonSchema.safeParse(assembled)
   const validationErrors = zodResult.success
     ? []
@@ -1026,13 +1071,15 @@ export function AuthoringWizardPage({
     if (error || !result?.ok) {
       setSaveState({ kind: 'error', message: result?.message ?? error?.message ?? 'Unknown error' })
     } else {
-      setSaveState({ kind: 'done', contentId: result.content_id ?? '(unknown)' })
-      // Draft is now saved to staging; drop the local copy so a new wizard starts clean.
-      try {
-        sessionStorage.removeItem(WIZARD_DRAFT_KEY)
-      } catch {
-        // ignore
-      }
+      try { sessionStorage.removeItem(WIZARD_DRAFT_KEY) } catch { /* ignore */ }
+      // Brief delay so the user sees the success state, then navigate to staging
+      setTimeout(() => {
+        if (onExit) {
+          onExit()
+        } else {
+          navigate('/admin/staging')
+        }
+      }, 1200)
     }
   }
 
@@ -1042,42 +1089,25 @@ export function AuthoringWizardPage({
   const stepIdx = ALL_STEPS.indexOf(step)
   const progressPct = Math.round(((stepIdx + 1) / ALL_STEPS.length) * 100)
 
-  // ── Shared step content ──────────────────────────────────────────────────────
   const stepContent = (
     <>
       {step === 'lesson' && (
         <StepLesson
-          title={title} principleTag={principleTag} concept={concept} difficulty={difficulty}
-          onTitle={setTitle} onPrincipleTag={setPrincipleTag} onConcept={setConcept} onDifficulty={setDifficulty}
+          title={title}
+          principleTag={principleTag}
+          concept={concept}
+          difficulty={difficulty}
+          onTitle={setTitle}
+          onPrincipleTag={setPrincipleTag}
+          onConcept={setConcept}
+          onDifficulty={setDifficulty}
           errors={errors}
         />
       )}
-      {step === 'type' && (
-        <StepType questionType={questionType} onQuestionType={handleSetQuestionType} />
-      )}
-      {step === 'table' && questionType === 'hand_scenario' && (
-        <StepTableAndQA
-          tableState={currentQuestion.table_state ?? { ...INITIAL_TABLE }}
-          onTableState={(s) => setCurrentQuestion({ ...currentQuestion, table_state: s })}
-          question={currentQuestion}
-          onQuestion={setCurrentQuestion}
-          completedQuestions={completedQuestions}
-          editingIdx={editingIdx}
-          onEditCompleted={handleEditCompleted}
-          onDeleteCompleted={handleDeleteCompleted}
-          errors={errors}
-          questionNumber={questionNumber}
-        />
-      )}
-      {step === 'table' && questionType !== 'hand_scenario' && (
-        <StepTable
-          tableState={currentQuestion.table_state ?? { ...INITIAL_TABLE }}
-          onTableState={(s) => setCurrentQuestion({ ...currentQuestion, table_state: s })}
-          questionNumber={questionNumber}
-        />
-      )}
-      {step === 'qa' && (
-        <StepQA
+      {step === 'questions' && (
+        <StepQuestions
+          questionType={questionType}
+          onQuestionType={handleSetQuestionType}
           question={currentQuestion}
           onQuestion={setCurrentQuestion}
           completedQuestions={completedQuestions}
@@ -1106,7 +1136,6 @@ export function AuthoringWizardPage({
     </>
   )
 
-  // ── Shared nav buttons ───────────────────────────────────────────────────────
   const navButtons = (
     <>
       {!isFirstStep && (
@@ -1119,7 +1148,7 @@ export function AuthoringWizardPage({
           ← Back
         </button>
       )}
-      {(step === 'qa' || (step === 'table' && questionType === 'hand_scenario')) && (
+      {step === 'questions' && (
         <button
           type="button"
           onClick={handleAddAnother}
@@ -1134,8 +1163,10 @@ export function AuthoringWizardPage({
           onClick={handleContinue}
           className="btn-primary min-h-11 ml-auto"
         >
-          {(step === 'qa' || (step === 'table' && questionType === 'hand_scenario'))
-            ? 'Done with questions →'
+          {step === 'questions'
+            ? completedQuestions.length > 0 || currentQuestion.prompt.trim()
+              ? 'Done with questions →'
+              : 'Continue →'
             : step === 'vocab'
               ? 'Review →'
               : 'Continue →'}
@@ -1148,7 +1179,6 @@ export function AuthoringWizardPage({
   if (fullscreen) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col bg-canvas text-ink">
-        {/* Thin gold progress bar */}
         <div className="h-0.5 bg-line shrink-0">
           <div
             className="h-full bg-gold transition-all duration-500"
@@ -1156,7 +1186,6 @@ export function AuthoringWizardPage({
           />
         </div>
 
-        {/* Header */}
         <div className="flex items-center px-6 py-4 border-b border-line shrink-0 relative">
           <button
             type="button"
@@ -1171,19 +1200,20 @@ export function AuthoringWizardPage({
           </p>
         </div>
 
-        {/* Step tabs */}
-        <FullscreenStepIndicator current={step} questionType={questionType} />
+        <FullscreenStepIndicator current={step} onStepClick={handleStepClick} />
 
-        {/* Scrollable content */}
         <div className="flex-1 overflow-y-auto">
-          <div className={`mx-auto px-6 py-8 space-y-6 ${step === 'table' ? 'max-w-3xl' : 'max-w-2xl'}`}>
+          <div
+            className={`mx-auto px-6 py-8 space-y-6 ${
+              step === 'questions' ? 'max-w-3xl' : 'max-w-2xl'
+            }`}
+          >
             <div className="bg-surface border border-line rounded-2xl px-4 py-6 sm:px-6">
               {stepContent}
             </div>
           </div>
         </div>
 
-        {/* Fixed footer */}
         <div className="border-t border-line px-6 py-4 flex items-center gap-3 shrink-0 bg-canvas">
           {navButtons}
         </div>
@@ -1194,7 +1224,6 @@ export function AuthoringWizardPage({
   // ── Regular (embedded or standalone) layout ──────────────────────────────────
   return (
     <div className={`${embedded ? '' : 'min-h-screen'} space-y-8 max-w-2xl text-ink`}>
-      {/* Header */}
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[11px] font-mono uppercase tracking-widest text-gold">
@@ -1211,17 +1240,14 @@ export function AuthoringWizardPage({
         </button>
       </div>
 
-      {/* Step indicator */}
       <div className="overflow-x-auto -mx-1 px-1">
-        <StepIndicator current={step} questionType={questionType} />
+        <StepIndicator current={step} onStepClick={handleStepClick} />
       </div>
 
-      {/* Step content */}
       <div className="bg-surface border border-line rounded-2xl p-6">
         {stepContent}
       </div>
 
-      {/* Navigation */}
       <div className="flex items-center gap-3">
         {navButtons}
       </div>
