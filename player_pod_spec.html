@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Poker Player Pod — Design Spec &amp; Handoff</title>
+<style>
+  :root{
+    /* ---- Canvas / table ---- */
+    --canvas:#132C40;            /* app background behind pods (used for pill carve-out rings) */
+    --felt:#2C7A54;
+    --felt-rail:#7A5433;
+    --felt-inner:#24694A;
+
+    /* ---- Identity block segments ---- */
+    --pos-bg:#22384C;   --pos-text:#CFE0EE;   /* position (BTN, BB, UTG+2...) */
+    --type-bg:#2456C6;  --type-text:#FFFFFF;  /* player type (Y2K) — royal blue */
+    --stack-bg:#0F2233; --stack-text:#7FD8A8; /* dollar stack ($452) — green */
+
+    /* ---- Action ---- */
+    --action-bg:#EF9430; --action-text:#3A2600;  /* orange action tag */
+
+    /* ---- Dealer button ---- */
+    --dealer-bg:#E8912A; --dealer-text:#3A2600;
+
+    /* ---- Card back ---- */
+    --cardback-bg:#1E3E8C; --cardback-border:#5B93D6; --cardback-pattern:rgba(255,255,255,.16);
+
+    /* ---- Empty seat ---- */
+    --seat-bg:#22384C; --seat-text:#8FA8BC;
+
+    /* ---- Face-up card ---- */
+    --card-face:#F7F5EF; --suit-red:#C0392B; --suit-black:#1A1A1A; --suit-green:#2E7D46;
+
+    --doc-bg:#0E1B26; --doc-panel:#16283A; --doc-text:#C4D4E2; --doc-muted:#7E97AB; --doc-line:#243B52;
+  }
+
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--doc-bg);color:var(--doc-text);
+       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;line-height:1.6;}
+  .wrap{max-width:900px;margin:0 auto;padding:32px 22px 60px;}
+  h1{font-size:24px;font-weight:600;margin:0 0 4px;color:#EAF2F9;}
+  h2{font-size:17px;font-weight:600;margin:34px 0 12px;color:#EAF2F9;border-bottom:1px solid var(--doc-line);padding-bottom:6px;}
+  h3{font-size:14px;font-weight:600;margin:20px 0 8px;color:#D6E4F0;}
+  p{margin:0 0 12px;color:var(--doc-text);}
+  .lead{color:var(--doc-muted);margin-bottom:6px;}
+  code{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;background:#0A141D;padding:1px 5px;border-radius:4px;color:#9FD1B6;}
+  pre{background:#0A141D;border:1px solid var(--doc-line);border-radius:8px;padding:14px 16px;overflow:auto;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:12.5px;color:#C9DCEA;}
+  table{width:100%;border-collapse:collapse;margin:8px 0 4px;font-size:13px;}
+  th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--doc-line);vertical-align:top;}
+  th{color:var(--doc-muted);font-weight:600;}
+  .sw{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:-2px;margin-right:7px;border:1px solid rgba(255,255,255,.15);}
+  .preview{display:flex;gap:20px;flex-wrap:wrap;background:var(--canvas);border-radius:16px;padding:26px;margin:14px 0;justify-content:center;}
+  .cap{color:var(--doc-muted);font-size:12px;text-align:center;margin-top:8px;}
+
+  /* ============ POD COMPONENT ============ */
+  .pod{position:relative;width:112px;padding-top:30px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;}
+  .pod--hero{width:132px;}
+
+  .pod__cards{position:absolute;left:50%;transform:translateX(-50%);top:2px;z-index:0;display:flex;}
+  .pod--hero .pod__cards{top:-16px;gap:4px;}
+
+  .cardback{width:22px;height:32px;border-radius:4px;border:2px solid var(--cardback-border);
+            background-color:var(--cardback-bg);
+            background-image:
+              repeating-linear-gradient(45deg,var(--cardback-pattern) 0 1px,transparent 1px 5px),
+              repeating-linear-gradient(-45deg,var(--cardback-pattern) 0 1px,transparent 1px 5px);}
+  .cardback + .cardback{margin-left:-8px;}   /* overlap */
+
+  .card{width:34px;height:46px;border-radius:5px;background:var(--card-face);
+        display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:500;}
+  .card small{font-size:10px;margin-top:-8px;}
+
+  .pod__id{position:relative;z-index:1;border-radius:11px;overflow:hidden;
+           font-size:12px;font-weight:500;line-height:1.15;}
+  .pod--hero .pod__id{border-radius:12px;font-size:13px;}
+
+  .pod__row{display:flex;}
+  .seg-pos {background:var(--pos-bg); color:var(--pos-text); padding:3px 0;flex:1;text-align:center;}
+  .seg-type{background:var(--type-bg);color:var(--type-text);padding:3px 0;flex:1;text-align:center;}
+  .seg-stack{background:var(--stack-bg);color:var(--stack-text);padding:3px 0 8px;text-align:center;}
+  .pod--hero .seg-pos,.pod--hero .seg-type{padding:4px 0;}
+  .pod--hero .seg-stack{padding:4px 0 9px;}
+
+  .pod__action{position:relative;z-index:2;margin-top:-11px;text-align:center;}  /* overlap onto block */
+  .pod--hero .pod__action{margin-top:-12px;}
+  .action-tag{display:inline-block;background:var(--action-bg);color:var(--action-text);
+              font-size:12px;font-weight:500;padding:3px 14px;border-radius:999px;line-height:1.15;
+              box-shadow:0 0 0 2px var(--canvas);}                     /* carve-out ring = canvas color */
+  .pod--hero .action-tag{font-size:13px;padding:4px 18px;}
+
+  .dealer{position:absolute;z-index:3;right:-14px;top:34px;width:22px;height:22px;border-radius:50%;
+          background:var(--dealer-bg);color:var(--dealer-text);font-size:11px;font-weight:500;
+          display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--canvas);}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Poker player pod — design spec &amp; developer handoff</h1>
+  <p class="lead">Two approved variants. Variant A is the base pod; Variant B adds the floating dealer button. All values below are exact.</p>
+
+  <!-- ===== LIVE PREVIEW ===== -->
+  <h2>Live preview</h2>
+  <div class="preview">
+
+    <div>
+      <div class="pod">
+        <div class="pod__cards"><span class="cardback"></span><span class="cardback"></span></div>
+        <div class="pod__id">
+          <div class="pod__row"><span class="seg-pos">BTN</span><span class="seg-type">Y2K</span></div>
+          <div class="seg-stack">$452</div>
+        </div>
+        <div class="pod__action"><span class="action-tag">3-Bet $48</span></div>
+      </div>
+      <div class="cap">Variant A — base pod</div>
+    </div>
+
+    <div>
+      <div class="pod">
+        <span class="dealer">D</span>
+        <div class="pod__cards"><span class="cardback"></span><span class="cardback"></span></div>
+        <div class="pod__id">
+          <div class="pod__row"><span class="seg-pos">BTN</span><span class="seg-type">Y2K</span></div>
+          <div class="seg-stack">$452</div>
+        </div>
+        <div class="pod__action"><span class="action-tag">3-Bet $48</span></div>
+      </div>
+      <div class="cap">Variant B — with dealer button</div>
+    </div>
+
+    <div>
+      <div class="pod pod--hero">
+        <span class="dealer">D</span>
+        <div class="pod__cards">
+          <span class="card" style="color:var(--suit-red)">3<small>&hearts;</small></span>
+          <span class="card" style="color:var(--suit-black)">8<small>&spades;</small></span>
+        </div>
+        <div class="pod__id">
+          <div class="pod__row"><span class="seg-pos">BTN</span><span class="seg-type">Y2K</span></div>
+          <div class="seg-stack">$1,233</div>
+        </div>
+        <div class="pod__action"><span class="action-tag">3-Bet $48</span></div>
+      </div>
+      <div class="cap">Hero seat — face-up cards, larger</div>
+    </div>
+
+  </div>
+
+  <!-- ===== STRUCTURE ===== -->
+  <h2>Anatomy &amp; layering</h2>
+  <p>The pod is a stack of three layers inside one <code>position:relative</code> wrapper:</p>
+  <table>
+    <tr><th>Layer</th><th>z-index</th><th>What it is</th></tr>
+    <tr><td>Cards</td><td>0</td><td>Two card backs (or face-up cards for hero) sitting <em>behind</em> the identity block, ~4/5 visible above its top edge.</td></tr>
+    <tr><td>Identity block</td><td>1</td><td>The connected pill: position + player-type on the top row, stack on the bottom row. Rounded, <code>overflow:hidden</code>.</td></tr>
+    <tr><td>Action tag</td><td>2</td><td>Orange pill pulled up with a negative margin so it straddles the bottom edge of the identity block.</td></tr>
+    <tr><td>Dealer button</td><td>3</td><td>Optional floating gold chip, top layer so it never gets clipped.</td></tr>
+  </table>
+  <p>The three identity attributes (position, type, stack) share the cool color family so they read as one unit. Only the action uses orange — it is the one thing that changes turn-to-turn, so it owns the accent color.</p>
+
+  <!-- ===== COLORS ===== -->
+  <h2>Color tokens</h2>
+  <table>
+    <tr><th>Token</th><th>Hex</th><th>Used for</th></tr>
+    <tr><td><span class="sw" style="background:#132C40"></span>canvas</td><td><code>#132C40</code></td><td>App bg behind pods; also the action/dealer carve-out ring color</td></tr>
+    <tr><td><span class="sw" style="background:#22384C"></span>pos-bg</td><td><code>#22384C</code></td><td>Position segment background</td></tr>
+    <tr><td><span class="sw" style="background:#CFE0EE"></span>pos-text</td><td><code>#CFE0EE</code></td><td>Position text</td></tr>
+    <tr><td><span class="sw" style="background:#2456C6"></span>type-bg</td><td><code>#2456C6</code></td><td>Player-type segment (royal blue)</td></tr>
+    <tr><td><span class="sw" style="background:#FFFFFF"></span>type-text</td><td><code>#FFFFFF</code></td><td>Player-type text</td></tr>
+    <tr><td><span class="sw" style="background:#0F2233"></span>stack-bg</td><td><code>#0F2233</code></td><td>Stack ($) segment background</td></tr>
+    <tr><td><span class="sw" style="background:#7FD8A8"></span>stack-text</td><td><code>#7FD8A8</code></td><td>Stack ($) text (green = money)</td></tr>
+    <tr><td><span class="sw" style="background:#EF9430"></span>action-bg</td><td><code>#EF9430</code></td><td>Action tag background (orange)</td></tr>
+    <tr><td><span class="sw" style="background:#3A2600"></span>action-text</td><td><code>#3A2600</code></td><td>Action &amp; dealer text (dark brown, high contrast on orange)</td></tr>
+    <tr><td><span class="sw" style="background:#E8912A"></span>dealer-bg</td><td><code>#E8912A</code></td><td>Dealer button</td></tr>
+    <tr><td><span class="sw" style="background:#1E3E8C"></span>cardback-bg</td><td><code>#1E3E8C</code></td><td>Card back fill</td></tr>
+    <tr><td><span class="sw" style="background:#5B93D6"></span>cardback-border</td><td><code>#5B93D6</code></td><td>Card back border</td></tr>
+    <tr><td><span class="sw" style="background:#22384C"></span>seat-bg</td><td><code>#22384C</code> / text <code>#8FA8BC</code></td><td>Empty seat pill (folded / no cards)</td></tr>
+    <tr><td><span class="sw" style="background:#F7F5EF"></span>card-face</td><td><code>#F7F5EF</code></td><td>Face-up card; suits red <code>#C0392B</code>, black <code>#1A1A1A</code>, club-green <code>#2E7D46</code></td></tr>
+  </table>
+
+  <!-- ===== DIMENSIONS ===== -->
+  <h2>Dimensions &amp; spacing</h2>
+  <table>
+    <tr><th>Element</th><th>Value</th></tr>
+    <tr><td>Pod width (opponent)</td><td>112px</td></tr>
+    <tr><td>Pod width (hero)</td><td>132px</td></tr>
+    <tr><td>Identity block radius</td><td>11px opponent / 12px hero</td></tr>
+    <tr><td>Segment font</td><td>12px opponent / 13px hero, weight 500, line-height 1.15</td></tr>
+    <tr><td>Top-row segment padding</td><td>3px 0 (opponent) / 4px 0 (hero)</td></tr>
+    <tr><td>Stack segment padding</td><td>3px 0 8px (opponent) / 4px 0 9px (hero) — extra bottom clears the overlap</td></tr>
+    <tr><td>Action tag</td><td>padding 3px 14px, font 12px/500, radius 999px, ring <code>0 0 0 2px canvas</code></td></tr>
+    <tr><td>Action overlap</td><td><code>margin-top:-11px</code> (opponent) / <code>-12px</code> (hero)</td></tr>
+    <tr><td>Card back</td><td>22×32px, radius 4px, 2px border; overlap <code>margin-left:-8px</code></td></tr>
+    <tr><td>Card back position</td><td>behind block, <code>top:2px</code> within a <code>padding-top:30px</code> wrapper (≈4/5 visible)</td></tr>
+    <tr><td>Hero face card</td><td>34×46px, gap 4px</td></tr>
+    <tr><td>Dealer button</td><td>22×22px circle, <code>right:-14px; top:34px</code>, ring <code>0 0 0 2px canvas</code></td></tr>
+  </table>
+
+  <h3>Card-back pattern</h3>
+  <p>Subtle woven crosshatch via two repeating gradients over the base fill:</p>
+  <pre>background-color:#1E3E8C;
+background-image:
+  repeating-linear-gradient( 45deg, rgba(255,255,255,.16) 0 1px, transparent 1px 5px),
+  repeating-linear-gradient(-45deg, rgba(255,255,255,.16) 0 1px, transparent 1px 5px);</pre>
+
+  <!-- ===== MARKUP ===== -->
+  <h2>Component markup</h2>
+  <p>Base pod (Variant A). Add <code>&lt;span class="dealer"&gt;D&lt;/span&gt;</code> as the first child for Variant B. Add class <code>pod--hero</code> and swap card backs for face-up <code>.card</code> elements for the hero seat. All CSS lives in the <code>&lt;style&gt;</code> block of this file.</p>
+  <pre>&lt;div class="pod"&gt;
+  &lt;div class="pod__cards"&gt;
+    &lt;span class="cardback"&gt;&lt;/span&gt;
+    &lt;span class="cardback"&gt;&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class="pod__id"&gt;
+    &lt;div class="pod__row"&gt;
+      &lt;span class="seg-pos"&gt;BTN&lt;/span&gt;
+      &lt;span class="seg-type"&gt;Y2K&lt;/span&gt;
+    &lt;/div&gt;
+    &lt;div class="seg-stack"&gt;$452&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="pod__action"&gt;
+    &lt;span class="action-tag"&gt;3-Bet $48&lt;/span&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+
+  <h3>Empty / folded seat</h3>
+  <p>A player with no cards is just a single faint pill — no block, no cards, no action:</p>
+  <pre>&lt;span style="background:#22384C;color:#8FA8BC;font:500 12px system-ui;
+             padding:4px 11px;border-radius:999px"&gt;LJ&lt;/span&gt;</pre>
+
+  <!-- ===== BEHAVIOR NOTES ===== -->
+  <h2>Behavior notes for build</h2>
+  <table>
+    <tr><th>Field</th><th>Rule</th></tr>
+    <tr><td>Cards present</td><td>Show the identity block + card backs only when the player is dealt in. Otherwise render the empty-seat pill.</td></tr>
+    <tr><td>Action tag</td><td>Show only when the player has acted this street. Text is dynamic: <code>Check</code>, <code>Call</code>, <code>Fold</code>, <code>3-Bet $48</code>, <code>All-in</code>, etc. Single orange treatment for all actions.</td></tr>
+    <tr><td>Player type</td><td>3-letter code, always uppercase. Reserve ~3 chars of width so codes like <code>NIT</code>/<code>LAG</code>/<code>STP</code> stay centered.</td></tr>
+    <tr><td>Stack</td><td>Currency-formatted with a thousands separator (<code>$1,233</code>).</td></tr>
+    <tr><td>Dealer button</td><td>Rendered on exactly one seat per hand.</td></tr>
+    <tr><td>Carve-out ring</td><td>The 2px ring on the action tag and dealer button must match whatever surface sits directly behind them (the canvas color). If a pod ever sits on the felt instead, set the ring to the felt color for that instance.</td></tr>
+  </table>
+
+</div>
+</body>
+</html>
