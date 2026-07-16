@@ -40,9 +40,9 @@ const SLOTS: Slot[] = [
   // 3 – top-right
   { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
   // 4 – top-center-right (pushed outward to avoid pill collision with slot 5)
-  { style: { left: '67%', top: '2%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '67%', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
   // 5 – top-center-left (pushed outward to avoid pill collision with slot 4)
-  { style: { left: '33%', top: '2%', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: '33%', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
   // 6 – top-left
   { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
   // 7 – left
@@ -128,7 +128,7 @@ function PodCardBacks(): JSX.Element {
     flexShrink: 0,
   };
   return (
-    <div style={{ position: 'absolute', left: '50%', top: 2, transform: 'translateX(-50%)', zIndex: 0, display: 'flex' }}>
+    <div style={{ position: 'absolute', left: '50%', top: 10, transform: 'translateX(-50%)', zIndex: 0, display: 'flex' }}>
       <div style={back} />
       <div style={{ ...back, marginLeft: -8 }} />
     </div>
@@ -390,7 +390,7 @@ export function PokerTable({ tableState, size = 'md' }: PokerTableProps): JSX.El
       style={{ userSelect: 'none', maxWidth: isSm ? 240 : 300 }}
     >
       {/* Oval table */}
-      <div className="relative w-full" style={{ height: isSm ? 360 : 450 }}>
+      <div className="relative w-full" style={{ height: isSm ? 380 : 470 }}>
         {/* Leather rail - decorative real-world color */}
         <div
           className="absolute inset-0 rounded-full"

@@ -1,10 +1,10 @@
 import type { JSX } from 'react';
 
-const SUITS: Record<string, { symbol: string; red: boolean }> = {
-  h: { symbol: '♥', red: true },
-  d: { symbol: '♦', red: true },
-  s: { symbol: '♠', red: false },
-  c: { symbol: '♣', red: false },
+const SUITS: Record<string, { symbol: string; color: string }> = {
+  h: { symbol: '♥', color: '#C0392B' },
+  d: { symbol: '♦', color: '#C0392B' },
+  s: { symbol: '♠', color: '#1A1A1A' },
+  c: { symbol: '♣', color: '#2E7D46' },
 };
 
 interface CardProps {
@@ -15,29 +15,24 @@ interface CardProps {
 export function Card({ card, size = 'md' }: CardProps): JSX.Element {
   const rank = card.slice(0, -1).toUpperCase();
   const suitChar = card.slice(-1).toLowerCase();
-  const suit = SUITS[suitChar] ?? { symbol: suitChar.toUpperCase(), red: false };
+  const suit = SUITS[suitChar] ?? { symbol: suitChar.toUpperCase(), color: '#1A1A1A' };
   const displayRank = rank === 'T' ? '10' : rank;
   const isSmall = size === 'sm';
 
   return (
     <div
-      className={`flex flex-col items-center justify-center bg-[#F2F4F8] border border-[#c9d2dd] rounded select-none ${
+      className={`flex items-center justify-center bg-[#F7F5EF] border border-[#c9d2dd] rounded select-none ${
         isSmall ? 'w-[22px] h-[30px]' : 'w-[30px] h-[42px]'
       }`}
+      style={{ color: suit.color }}
     >
       <span
-        className={`font-bold leading-none ${suit.red ? 'text-[#D6483B]' : 'text-[#1a2530]'} ${
-          isSmall ? 'text-[10px]' : 'text-[14px]'
-        }`}
+        className={`font-medium leading-none ${isSmall ? 'text-[10px]' : 'text-[14px]'}`}
       >
         {displayRank}
-      </span>
-      <span
-        className={`leading-none ${suit.red ? 'text-[#D6483B]' : 'text-[#1a2530]'} ${
-          isSmall ? 'text-[8px]' : 'text-[11px]'
-        }`}
-      >
-        {suit.symbol}
+        <small style={{ fontSize: isSmall ? '7px' : '9px', marginTop: '-4px', verticalAlign: 'top' }}>
+          {suit.symbol}
+        </small>
       </span>
     </div>
   );

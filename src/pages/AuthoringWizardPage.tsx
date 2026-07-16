@@ -1223,7 +1223,7 @@ export function AuthoringWizardPage({
 
   // ── Regular (embedded or standalone) layout ──────────────────────────────────
   return (
-    <div className={`${embedded ? '' : 'min-h-screen'} space-y-8 max-w-2xl text-ink`}>
+    <div className={`${embedded ? 'w-full' : 'min-h-screen max-w-2xl'} space-y-8 text-ink`}>
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-[11px] font-mono uppercase tracking-widest text-gold">
