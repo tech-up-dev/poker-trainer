@@ -437,8 +437,17 @@ export function PokerTable({ tableState, size = 'md' }: PokerTableProps): JSX.El
           const action = seat_actions?.[pos];
           const folded = action?.action === 'Fold';
 
+          // Top-two seats (slots 4 & 5) drift up when empty because the card
+          // backs that normally anchor them visually aren't shown. Nudge them
+          // down 20px until at least a player type or stack is configured.
+          const isTopSeat = slotIdx === 4 || slotIdx === 5;
+          const hasValue = Boolean(villain_player_types?.[pos] || stack_sizes?.[pos]);
+          const seatStyle = isTopSeat && !hasValue
+            ? { ...slot.style, top: `calc(${slot.style.top} + 20px)` }
+            : slot.style;
+
           return (
-            <div key={pos} className="absolute z-20" style={slot.style}>
+            <div key={pos} className="absolute z-20" style={seatStyle}>
               <SeatDisplay
                 position={pos}
                 role={role}
