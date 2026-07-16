@@ -1,5 +1,5 @@
-﻿import { useState } from 'react'
-import type { ChangeEvent, JSX } from 'react'
+﻿import { useRef, useState } from 'react'
+import type { ChangeEvent, DragEvent, JSX } from 'react'
 
 import { supabaseProd } from '../lib/supabase-prod'
 import { fetchStagingGlossaryTerms, fetchProdGlossaryTerms } from '../lib/glossary-terms'
@@ -61,6 +61,25 @@ export function BulkImport(): JSX.Element {
   const [parseState, setParseState] = useState<ParseState>({ kind: 'idle' })
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
   const [promoteState, setPromoteState] = useState<PromoteState>({ kind: 'idle' })
+  const [dragging, setDragging] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  function handleDragOver(e: DragEvent<HTMLDivElement>): void {
+    e.preventDefault()
+    setDragging(true)
+  }
+
+  function handleDragLeave(): void {
+    setDragging(false)
+  }
+
+  async function handleDrop(e: DragEvent<HTMLDivElement>): Promise<void> {
+    e.preventDefault()
+    setDragging(false)
+    const file = e.dataTransfer.files[0]
+    if (!file) return
+    await processFile(file)
+  }
 
   const validItems =
     parseState.kind === 'validated'
@@ -112,14 +131,9 @@ export function BulkImport(): JSX.Element {
     validateBatch(toBatch(parsed))
   }
 
-  // Import a file by extension: .json (array/object/wrapper), .csv (one row per
-  // item), or .md/.markdown (a single prose lesson). All converge on validateBatch.
-  async function handleFile(event: ChangeEvent<HTMLInputElement>): Promise<void> {
-    const file = event.target.files?.[0]
-    event.target.value = ''
-    if (!file) return
+  // Shared file processor used by both the file input and the drag-and-drop zone.
+  async function processFile(file: File): Promise<void> {
     setInputText('')
-
     let text: string
     try {
       text = await file.text()
@@ -127,7 +141,6 @@ export function BulkImport(): JSX.Element {
       setParseState({ kind: 'parseError', message: 'Could not read the file' })
       return
     }
-
     const ext = file.name.split('.').pop()?.toLowerCase()
     try {
       if (ext === 'json') {
@@ -143,6 +156,13 @@ export function BulkImport(): JSX.Element {
       const message = e instanceof Error ? e.message : 'Failed to parse file'
       setParseState({ kind: 'parseError', message })
     }
+  }
+
+  async function handleFile(event: ChangeEvent<HTMLInputElement>): Promise<void> {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+    await processFile(file)
   }
 
   async function handleSaveValid(): Promise<void> {
@@ -224,16 +244,31 @@ export function BulkImport(): JSX.Element {
         </p>
       </header>
 
-      <div>
-        <label className="inline-flex items-center gap-2 text-sm cursor-pointer px-3 py-1.5 rounded bg-surface-raised hover:bg-surface-overlay text-ink w-fit">
-          Import file (.json, .csv, .md)
-          <input
-            type="file"
-            accept=".json,.csv,.md,.markdown"
-            onChange={(e) => void handleFile(e)}
-            className="sr-only"
-          />
-        </label>
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={(e) => void handleDrop(e)}
+        onClick={() => fileInputRef.current?.click()}
+        className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl px-6 py-8 cursor-pointer transition-colors ${
+          dragging
+            ? 'border-gold bg-gold/10 text-gold'
+            : 'border-line hover:border-gold/50 hover:bg-surface-overlay text-ink-2'
+        }`}
+      >
+        <svg className="w-8 h-8 opacity-60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+        </svg>
+        <p className="text-sm font-medium">
+          {dragging ? 'Drop file here' : 'Drag & drop or click to import'}
+        </p>
+        <p className="text-xs opacity-60">.json · .csv · .md</p>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".json,.csv,.md,.markdown"
+          onChange={(e) => void handleFile(e)}
+          className="sr-only"
+        />
       </div>
 
       <div>
