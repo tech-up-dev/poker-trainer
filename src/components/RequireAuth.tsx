@@ -9,7 +9,10 @@ import { useAuth } from '../lib/auth-context'
 export function RequireAuth(): JSX.Element {
   const { session, isAdmin, loading } = useAuth()
 
-  if (loading && !session) {
+  // Show a spinner on first load (no session yet) or while entitlements are
+  // still resolving for an existing session — prevents a false redirect to /play
+  // before isAdmin has been confirmed.
+  if (loading) {
     return (
       <div className="min-h-screen bg-canvas text-ink-2 flex items-center justify-center">
         Loading…

@@ -61,6 +61,8 @@ function labelFor(item: StagedItem): string {
   }
 }
 
+const TAB_TYPES: ContentType[] = ['lesson', 'reference', 'tip', 'glossary']
+
 export function StagingBrowser(): JSX.Element {
   const navigate = useNavigate()
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
@@ -69,6 +71,7 @@ export function StagingBrowser(): JSX.Element {
   const [confirmItem, setConfirmItem] = useState<StagedItem | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [promotingAll, setPromotingAll] = useState(false)
+  const [activeTab, setActiveTab] = useState<ContentType>('lesson')
   // Bumped to trigger a reload of the staging list (mount + Refresh button).
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -165,6 +168,27 @@ export function StagingBrowser(): JSX.Element {
       : base
   }
 
+  // Build per-type item counts from loaded state (for tab badges).
+  const countByType: Partial<Record<ContentType, number>> =
+    state.kind === 'loaded'
+      ? state.items.reduce<Partial<Record<ContentType, number>>>((acc, item) => {
+          if (EDITOR_ROUTE[item.content_type]) {
+            acc[item.content_type] = (acc[item.content_type] ?? 0) + 1
+          }
+          return acc
+        }, {})
+      : {}
+
+  const tabItems =
+    state.kind === 'loaded'
+      ? state.items.filter((item) => item.content_type === activeTab && EDITOR_ROUTE[item.content_type])
+      : []
+
+  const allVisibleItems =
+    state.kind === 'loaded'
+      ? state.items.filter((item) => EDITOR_ROUTE[item.content_type])
+      : []
+
   return (
     <section className="space-y-6">
       <header className="flex items-end justify-between gap-4">
@@ -184,67 +208,61 @@ export function StagingBrowser(): JSX.Element {
         </button>
       </header>
 
-      {renderBody()}
+      {/* Tabs */}
+      <div className="flex border-b border-line">
+        {TAB_TYPES.map((type) => {
+          const count = countByType[type] ?? 0
+          return (
+            <button
+              key={type}
+              type="button"
+              onClick={() => setActiveTab(type)}
+              className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px capitalize flex items-center gap-1.5 ${
+                activeTab === type
+                  ? 'text-gold border-gold'
+                  : 'text-ink-3 border-transparent hover:text-ink'
+              }`}
+            >
+              {type}
+              {count > 0 && (
+                <span className={`text-xs px-1.5 py-0.5 rounded-full font-semibold ${
+                  activeTab === type ? 'bg-gold/20 text-gold' : 'bg-surface-raised text-ink-3'
+                }`}>
+                  {count}
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
 
-      <ConfirmDialog
-        open={confirmItem !== null}
-        title="Delete content?"
-        message={confirmItem ? deleteMessage(confirmItem) : ''}
-        confirmLabel="Delete everywhere"
-        cancelLabel="Cancel"
-        destructive
-        onConfirm={() => {
-          if (confirmItem) void deleteItem(confirmItem)
-        }}
-        onCancel={() => setConfirmItem(null)}
-      />
-    </section>
-  )
+      {/* Body */}
+      {state.kind === 'loading' && <p className="text-sm text-ink-2">Loading staged content…</p>}
+      {state.kind === 'error' && <p className="text-sm text-red-400">Failed to load staging: {state.message}</p>}
 
-  function renderBody(): JSX.Element {
-    if (state.kind === 'loading') {
-      return <p className="text-sm text-ink-2">Loading staged content…</p>
-    }
-    if (state.kind === 'error') {
-      return <p className="text-sm text-red-400">Failed to load staging: {state.message}</p>
-    }
-    // Only surface content types this build exposes (have an editor route). On
-    // M1 that's lesson + glossary, so tips/references staged by later builds stay
-    // hidden, the client shouldn't see types that aren't released yet.
-    const visibleItems = state.items.filter((item) => EDITOR_ROUTE[item.content_type])
+      {state.kind === 'loaded' && (
+        <div className="space-y-4">
+          {allVisibleItems.length > 0 && (
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => void promoteAll(allVisibleItems)}
+                disabled={promotingAll}
+                className="px-4 py-2 rounded bg-green-700 hover:bg-green-600 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {promotingAll ? 'Promoting all…' : `Promote all ${allVisibleItems.length} to Production`}
+              </button>
+              <span className="text-sm text-ink-3">
+                {TAB_TYPES.filter((t) => countByType[t]).map((t) => `${countByType[t]} ${t}`).join(' · ')}
+              </span>
+            </div>
+          )}
 
-    if (visibleItems.length === 0) {
-      return <p className="text-sm text-ink-2">Nothing in staging.</p>
-    }
-
-    const groups = new Map<ContentType, StagedItem[]>()
-    for (const item of visibleItems) {
-      const list = groups.get(item.content_type) ?? []
-      list.push(item)
-      groups.set(item.content_type, list)
-    }
-
-    return (
-      <div className="space-y-4">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => void promoteAll(visibleItems)}
-            disabled={promotingAll}
-            className="px-4 py-2 rounded bg-green-700 hover:bg-green-600 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            {promotingAll ? 'Promoting all…' : `Promote all ${visibleItems.length} to Production`}
-          </button>
-          <span className="text-sm text-ink-3">
-            {[...groups.entries()].map(([t, l]) => `${l.length} ${t}`).join(' · ')}
-          </span>
-        </div>
-
-        {[...groups.entries()].map(([type, items]) => (
-          <div key={type} className="space-y-2">
-            <h2 className="text-lg font-semibold capitalize">{type}</h2>
+          {tabItems.length === 0 ? (
+            <p className="text-sm text-ink-2">No {activeTab} items in staging.</p>
+          ) : (
             <ul className="rounded border border-line bg-canvas divide-y divide-line">
-              {items.map((item) => {
+              {tabItems.map((item) => {
                 const status = promote[key(item)] ?? 'idle'
                 const del = deleteState[key(item)]
                 const isOpen = expanded[key(item)] === true
@@ -325,11 +343,24 @@ export function StagingBrowser(): JSX.Element {
                 )
               })}
             </ul>
-          </div>
-        ))}
-      </div>
-    )
-  }
+          )}
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={confirmItem !== null}
+        title="Delete content?"
+        message={confirmItem ? deleteMessage(confirmItem) : ''}
+        confirmLabel="Delete everywhere"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={() => {
+          if (confirmItem) void deleteItem(confirmItem)
+        }}
+        onCancel={() => setConfirmItem(null)}
+      />
+    </section>
+  )
 }
 
 function formatRelative(iso: string): string {

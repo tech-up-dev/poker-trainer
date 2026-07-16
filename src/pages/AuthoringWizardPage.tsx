@@ -1189,7 +1189,7 @@ export function AuthoringWizardPage({
         <div className="flex items-center px-6 py-4 border-b border-line shrink-0 relative">
           <button
             type="button"
-            onClick={() => (onExit ? onExit() : navigate('/admin/dashboard'))}
+            onClick={() => (onExit ? onExit() : isEditMode ? navigate('/admin/staging') : navigate('/admin/dashboard'))}
             aria-label="Close wizard"
             className="p-2 rounded-lg text-ink-2 hover:text-ink hover:bg-surface-overlay transition-colors"
           >

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import type { Session } from '@supabase/supabase-js'
 
@@ -10,6 +10,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAdmin, setIsAdmin] = useState(false)
   const [hasAccess, setHasAccess] = useState(false)
   const [loading, setLoading] = useState(true)
+  // Ref so the auth state change closure can read the current session without
+  // being stale (useState values captured at subscription time don't update).
+  const sessionRef = useRef<Session | null>(null)
 
   useEffect(() => {
     let active = true
@@ -33,6 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     supabaseProd.auth.getSession().then(async ({ data }) => {
       if (!active) return
+      sessionRef.current = data.session
       setSession(data.session)
       await resolveEntitlements(data.session)
       if (active) setLoading(false)
@@ -42,17 +46,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       data: { subscription },
     } = supabaseProd.auth.onAuthStateChange((event, next) => {
       // INITIAL_SESSION is handled by the getSession() path above.
-      // TOKEN_REFRESHED only rotates the JWT — entitlements don't change, so
-      // we skip the loading flag and the entitlement re-fetch entirely. This
-      // prevents the lesson/page from unmounting mid-session when the browser
-      // fires a background token refresh after the user switches tabs.
-      if (event === 'TOKEN_REFRESHED') {
-        if (active) setSession(next)
+      //
+      // TOKEN_REFRESHED and SIGNED_IN while a session already exists both mean
+      // the user is still the same authenticated person — entitlements haven't
+      // changed. Skip loading and re-fetch entirely so the page/lesson/wizard
+      // stays mounted when the browser fires these events after the user
+      // switches browser tabs and comes back.
+      if (
+        event === 'TOKEN_REFRESHED' ||
+        (event === 'SIGNED_IN' && sessionRef.current !== null)
+      ) {
+        if (active) {
+          sessionRef.current = next
+          setSession(next)
+        }
         return
       }
-      // For real auth changes (sign-in, sign-out, user update) set loading so
-      // RequireAuth/RequireSession waits until entitlements are resolved.
+      // For real auth changes (fresh sign-in, sign-out, user update) set
+      // loading so RequireAuth/RequireSession waits for entitlements to resolve.
       if (event !== 'INITIAL_SESSION' && active) setLoading(true)
+      sessionRef.current = next
       setSession(next)
       void resolveEntitlements(next)
     })
