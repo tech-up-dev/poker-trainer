@@ -22,17 +22,17 @@ const BOARD_SLOTS: Record<Street, number> = { preflop: 0, flop: 3, turn: 4, rive
 
 type Align = 'center' | 'flex-start' | 'flex-end'
 
-// Identical to PokerTable SLOTS
+// Clockwise from hero (slot 0 = bottom-center): BTN → SB → BB → UTG → UTG+1 → UTG+2 → LJ → HJ → CO
 const SLOTS: { style: React.CSSProperties; align: Align }[] = [
-  { style: { left: '50%', top: '90%', transform: 'translate(-50%, -50%)' }, align: 'center' },
-  { style: { right: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'center' },
-  { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'center' },
-  { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
-  { style: { left: '67%', top: '2%', transform: 'translateX(-50%)' }, align: 'center' },
-  { style: { left: '33%', top: '2%', transform: 'translateX(-50%)' }, align: 'center' },
-  { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
-  { style: { left: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'center' },
-  { style: { left: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'center' },
+  { style: { left: '50%', top: '90%', transform: 'translate(-50%, -50%)' }, align: 'center' },   // 0 BTN
+  { style: { left: '2%',   top: '72%', transform: 'translateY(-50%)' }, align: 'center' },        // 1 SB
+  { style: { left: '2%',   top: '50%', transform: 'translateY(-50%)' }, align: 'center' },        // 2 BB
+  { style: { left: '2%',   top: '28%', transform: 'translateY(-50%)' }, align: 'center' },        // 3 UTG
+  { style: { left: '33%',  top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' }, // 4 UTG+1
+  { style: { left: '67%',  top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' }, // 5 UTG+2
+  { style: { right: '2%',  top: '28%', transform: 'translateY(-50%)' }, align: 'center' },        // 6 LJ
+  { style: { right: '2%',  top: '50%', transform: 'translateY(-50%)' }, align: 'center' },        // 7 HJ
+  { style: { right: '2%',  top: '72%', transform: 'translateY(-50%)' }, align: 'center' },        // 8 CO
 ]
 
 function normalisePos(pos: string): string {
