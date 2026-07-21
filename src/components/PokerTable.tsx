@@ -30,25 +30,27 @@ interface Slot {
   align: Align;
 }
 
+// Slots run clockwise from hero (slot 0 = bottom-center). In poker, action
+// flows clockwise: BTN → SB (left of BTN) → BB → UTG → … → CO (right of BTN).
 const SLOTS: Slot[] = [
-  // 0 – bottom-center (hero)
+  // 0 – bottom-center (hero / BTN)
   { style: { left: '50%', top: '90%', transform: 'translate(-50%, -50%)' }, align: 'center' },
-  // 1 – bottom-right
-  { style: { right: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'center' },
-  // 2 – right
-  { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'center' },
-  // 3 – top-right
-  { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
-  // 4 – top-center-right (pushed outward to avoid pill collision with slot 5)
-  { style: { left: '67%', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
-  // 5 – top-center-left (pushed outward to avoid pill collision with slot 4)
-  { style: { left: '33%', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
-  // 6 – top-left
-  { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
-  // 7 – left
-  { style: { left: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'center' },
-  // 8 – bottom-left
+  // 1 – bottom-left  (SB)
   { style: { left: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'center' },
+  // 2 – left         (BB)
+  { style: { left: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'center' },
+  // 3 – top-left     (UTG)
+  { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
+  // 4 – top-center-left  (UTG+1)
+  { style: { left: '33%', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
+  // 5 – top-center-right (UTG+2)
+  { style: { left: '67%', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
+  // 6 – top-right    (LJ)
+  { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
+  // 7 – right        (HJ)
+  { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'center' },
+  // 8 – bottom-right (CO)
+  { style: { right: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'center' },
 ];
 
 // ─── Player type encyclopedia ────────────────────────────────────────────────
