@@ -292,7 +292,7 @@ function SeatDisplay({
     );
   }
 
-  // ── Background / empty seat — single faint pill, no cards, no action ──────
+  // ── Background / empty seat - single faint pill, no cards, no action ──────
   return (
     <span style={{
       background: C.seatBg, color: C.seatText,

@@ -32,7 +32,7 @@ export function LoginPage(): JSX.Element {
     setError(null)
 
     // Read directly from the DOM so iOS Safari autofill (which skips React's
-    // onChange) is captured correctly — state values may still be empty strings
+    // onChange) is captured correctly - state values may still be empty strings
     // when the browser fills in credentials without firing synthetic events.
     const form = e.currentTarget
     const emailVal = (form.elements.namedItem('email') as HTMLInputElement).value

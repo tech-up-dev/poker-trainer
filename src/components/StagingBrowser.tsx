@@ -132,7 +132,7 @@ export function StagingBrowser(): JSX.Element {
   function editItem(item: StagedItem): void {
     const route = EDITOR_ROUTE[item.content_type]
     if (!route) return
-    // Discard any in-progress new-lesson draft — editing an existing item supersedes it
+    // Discard any in-progress new-lesson draft - editing an existing item supersedes it
     try { sessionStorage.removeItem('bss_wizard_draft') } catch { /* ignore */ }
     navigate(route, { state: { preloadContent: item.content } })
   }
