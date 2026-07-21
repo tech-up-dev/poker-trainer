@@ -25,15 +25,22 @@ export function LoginPage(): JSX.Element {
     }
   }, [pendingRedirect, loading, isAdmin, navigate])
 
-  async function handleSubmit(e: FormEvent): Promise<void> {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault()
     if (submitting) return
     setSubmitting(true)
     setError(null)
 
+    // Read directly from the DOM so iOS Safari autofill (which skips React's
+    // onChange) is captured correctly — state values may still be empty strings
+    // when the browser fills in credentials without firing synthetic events.
+    const form = e.currentTarget
+    const emailVal = (form.elements.namedItem('email') as HTMLInputElement).value
+    const passwordVal = (form.elements.namedItem('password') as HTMLInputElement).value
+
     const { error: signInError } = await supabaseProd.auth.signInWithPassword({
-      email,
-      password,
+      email: emailVal,
+      password: passwordVal,
     })
 
     if (signInError) {
