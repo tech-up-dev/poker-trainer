@@ -846,7 +846,7 @@ export function AuthoringWizardPage({
     preloadContent?: unknown
   } | null
 
-  // Don't persist sessionStorage drafts when editing from staging — so that
+  // Don't persist sessionStorage drafts when editing from staging - so that
   // navigating to /admin/wizard from the sidebar afterwards starts fresh.
   const isEditMode = Boolean(locState?.preloadContent)
 

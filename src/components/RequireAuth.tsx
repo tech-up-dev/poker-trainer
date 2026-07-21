@@ -10,7 +10,7 @@ export function RequireAuth(): JSX.Element {
   const { session, isAdmin, loading } = useAuth()
 
   // Show a spinner on first load (no session yet) or while entitlements are
-  // still resolving for an existing session — prevents a false redirect to /play
+  // still resolving for an existing session - prevents a false redirect to /play
   // before isAdmin has been confirmed.
   if (loading) {
     return (

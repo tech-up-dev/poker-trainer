@@ -48,7 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // INITIAL_SESSION is handled by the getSession() path above.
       //
       // TOKEN_REFRESHED and SIGNED_IN while a session already exists both mean
-      // the user is still the same authenticated person — entitlements haven't
+      // the user is still the same authenticated person - entitlements haven't
       // changed. Skip loading and re-fetch entirely so the page/lesson/wizard
       // stays mounted when the browser fires these events after the user
       // switches browser tabs and comes back.
