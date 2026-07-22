@@ -196,7 +196,7 @@ export function StagingBrowser(): JSX.Element {
     return base
   }
 
-  function deleteTitle(item: StagedItem): string {
+  function deleteTitle(_item: StagedItem): string {
     return `Delete from live app?`
   }
 
