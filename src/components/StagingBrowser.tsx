@@ -162,10 +162,18 @@ export function StagingBrowser(): JSX.Element {
   }
 
   function deleteMessage(item: StagedItem): string {
-    const base = `This permanently deletes "${labelFor(item)}" from BOTH staging and production. The version history is kept, but this cannot be undone.`
-    return item.content_type === 'glossary'
-      ? `${base} Lessons that reference this term will be updated to stop linking it.`
-      : base
+    const base = `WARNING: This immediately removes "${labelFor(item)}" from the live /play app. Players will no longer see it the moment you confirm. This cannot be undone.`
+    if (item.content_type === 'glossary') {
+      return `${base} Lessons that reference this term will be updated to stop linking it.`
+    }
+    if (item.content_type === 'tip') {
+      return `${base} If this is the only tip published, no Tip of the Day will appear for players until a new tip is added and promoted.`
+    }
+    return base
+  }
+
+  function deleteTitle(item: StagedItem): string {
+    return `Delete from live app?`
   }
 
   // Build per-type item counts from loaded state (for tab badges).
@@ -349,7 +357,7 @@ export function StagingBrowser(): JSX.Element {
 
       <ConfirmDialog
         open={confirmItem !== null}
-        title="Delete content?"
+        title={confirmItem ? deleteTitle(confirmItem) : 'Delete from live app?'}
         message={confirmItem ? deleteMessage(confirmItem) : ''}
         confirmLabel="Delete everywhere"
         cancelLabel="Cancel"
