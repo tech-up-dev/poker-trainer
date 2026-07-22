@@ -72,6 +72,8 @@ export function StagingBrowser(): JSX.Element {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [promotingAll, setPromotingAll] = useState(false)
   const [activeTab, setActiveTab] = useState<ContentType>('lesson')
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [promotingSelected, setPromotingSelected] = useState(false)
   // Bumped to trigger a reload of the staging list (mount + Refresh button).
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -129,6 +131,28 @@ export function StagingBrowser(): JSX.Element {
     setPromotingAll(false)
   }
 
+  async function promoteSelected(items: StagedItem[]): Promise<void> {
+    if (promotingSelected) return
+    setPromotingSelected(true)
+    for (const item of items.filter((i) => selected.has(key(i)))) {
+      await promoteItem(item)
+    }
+    setPromotingSelected(false)
+    setSelected(new Set())
+  }
+
+  function toggleItem(k: string): void {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      next.has(k) ? next.delete(k) : next.add(k)
+      return next
+    })
+  }
+
+  function toggleAll(items: StagedItem[], allChecked: boolean): void {
+    setSelected(allChecked ? new Set() : new Set(items.map(key)))
+  }
+
   function editItem(item: StagedItem): void {
     const route = EDITOR_ROUTE[item.content_type]
     if (!route) return
@@ -162,10 +186,18 @@ export function StagingBrowser(): JSX.Element {
   }
 
   function deleteMessage(item: StagedItem): string {
-    const base = `This permanently deletes "${labelFor(item)}" from BOTH staging and production. The version history is kept, but this cannot be undone.`
-    return item.content_type === 'glossary'
-      ? `${base} Lessons that reference this term will be updated to stop linking it.`
-      : base
+    const base = `WARNING: This immediately removes "${labelFor(item)}" from the live /play app. Players will no longer see it the moment you confirm. This cannot be undone.`
+    if (item.content_type === 'glossary') {
+      return `${base} Lessons that reference this term will be updated to stop linking it.`
+    }
+    if (item.content_type === 'tip') {
+      return `${base} If this is the only tip published, no Tip of the Day will appear for players until a new tip is added and promoted.`
+    }
+    return base
+  }
+
+  function deleteTitle(_item: StagedItem): string {
+    return `Delete from live app?`
   }
 
   // Build per-type item counts from loaded state (for tab badges).
@@ -216,7 +248,7 @@ export function StagingBrowser(): JSX.Element {
             <button
               key={type}
               type="button"
-              onClick={() => setActiveTab(type)}
+              onClick={() => { setActiveTab(type); setSelected(new Set()) }}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px capitalize flex items-center gap-1.5 ${
                 activeTab === type
                   ? 'text-gold border-gold'
@@ -243,12 +275,22 @@ export function StagingBrowser(): JSX.Element {
       {state.kind === 'loaded' && (
         <div className="space-y-4">
           {allVisibleItems.length > 0 && (
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              {selected.size > 0 && (
+                <button
+                  type="button"
+                  onClick={() => void promoteSelected(tabItems)}
+                  disabled={promotingSelected}
+                  className="px-4 py-2 rounded bg-green-700 hover:bg-green-600 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  {promotingSelected ? 'Promoting…' : `Promote selected (${selected.size})`}
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => void promoteAll(allVisibleItems)}
                 disabled={promotingAll}
-                className="px-4 py-2 rounded bg-green-700 hover:bg-green-600 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded bg-surface-raised hover:bg-surface-overlay text-ink font-medium disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {promotingAll ? 'Promoting all…' : `Promote all ${allVisibleItems.length} to Production`}
               </button>
@@ -262,18 +304,41 @@ export function StagingBrowser(): JSX.Element {
             <p className="text-sm text-ink-2">No {activeTab} items in staging.</p>
           ) : (
             <ul className="rounded border border-line bg-canvas divide-y divide-line">
+              {/* Category select-all row */}
+              <li className="px-4 py-2 bg-surface-raised flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="select-all-category"
+                  checked={tabItems.length > 0 && tabItems.every((i) => selected.has(key(i)))}
+                  onChange={() => toggleAll(tabItems, tabItems.every((i) => selected.has(key(i))))}
+                  className="w-4 h-4 accent-gold cursor-pointer"
+                />
+                <label htmlFor="select-all-category" className="text-xs text-ink-2 cursor-pointer select-none">
+                  Select all {activeTab}s ({tabItems.length})
+                </label>
+              </li>
               {tabItems.map((item) => {
                 const status = promote[key(item)] ?? 'idle'
                 const del = deleteState[key(item)]
                 const isOpen = expanded[key(item)] === true
+                const isSelected = selected.has(key(item))
                 return (
                   <li key={key(item)} className="px-4 py-3 space-y-2">
                     <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="text-sm text-ink truncate">{labelFor(item)}</div>
-                        <div className="text-xs text-ink-3">
-                          <span className="font-mono">{item.content_id}</span>
-                          <span> · {formatRelative(item.updated_at)}</span>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={() => toggleItem(key(item))}
+                          className="w-4 h-4 accent-gold cursor-pointer shrink-0"
+                          aria-label={`Select ${labelFor(item)}`}
+                        />
+                        <div className="min-w-0">
+                          <div className="text-sm text-ink truncate">{labelFor(item)}</div>
+                          <div className="text-xs text-ink-3">
+                            <span className="font-mono">{item.content_id}</span>
+                            <span> · {formatRelative(item.updated_at)}</span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
@@ -349,7 +414,7 @@ export function StagingBrowser(): JSX.Element {
 
       <ConfirmDialog
         open={confirmItem !== null}
-        title="Delete content?"
+        title={confirmItem ? deleteTitle(confirmItem) : 'Delete from live app?'}
         message={confirmItem ? deleteMessage(confirmItem) : ''}
         confirmLabel="Delete everywhere"
         cancelLabel="Cancel"
@@ -371,3 +436,4 @@ function formatRelative(iso: string): string {
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
   return `${Math.floor(diff / 86400)}d ago`
 }
+
