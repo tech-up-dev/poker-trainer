@@ -1,4 +1,4 @@
-import { z } from 'zod'
+﻿import { z } from 'zod'
 
 export const AnswerSchema = z.object({
   text: z.string({ error: 'Answer text is required' }).min(1, 'Answer text is required'),
@@ -12,7 +12,7 @@ const SeatActionSchema = z.object({
   action: z.enum(['Fold', 'Check', 'Limp', 'Call', 'Bet', 'Raise', '3-bet', '4-bet', 'All-in'], {
     error: () => 'action must be one of: Fold, Check, Limp, Call, Bet, Raise, 3-bet, 4-bet, All-in',
   }),
-  amount: z.number().nonnegative('amount must be zero or greater').optional(),
+  amount: z.number().nonnegative('amount must be zero or greater').nullish(),
 })
 
 export const HandScenarioStateSchema = z.object({
@@ -22,13 +22,13 @@ export const HandScenarioStateSchema = z.object({
   hero_position: z
     .string({ error: 'hero_position is required' })
     .min(1, 'hero_position is required'),
-  hero_hole_cards: z.array(z.string()).optional(),
-  board_cards: z.array(z.string()).optional(),
-  pot_size: z.number().nonnegative('pot_size must be zero or greater').optional(),
-  stack_sizes: z.record(z.string(), z.number()).optional(),
-  villain_player_types: z.record(z.string(), z.string()).optional(),
-  seat_actions: z.record(z.string(), SeatActionSchema).optional(),
-  notes: z.string().optional(),
+  hero_hole_cards: z.array(z.string()).nullish(),
+  board_cards: z.array(z.string()).nullish(),
+  pot_size: z.number().nonnegative('pot_size must be zero or greater').nullish(),
+  stack_sizes: z.record(z.string(), z.number()).nullish(),
+  villain_player_types: z.record(z.string(), z.string()).nullish(),
+  seat_actions: z.record(z.string(), SeatActionSchema).nullish(),
+  notes: z.string().nullish(),
 })
 
 export const QuestionSchema = z
@@ -46,8 +46,8 @@ export const QuestionSchema = z
       .refine((arr) => arr.filter((a) => a.is_correct).length === 1, {
         message: 'Exactly one answer must have is_correct=true',
       }),
-    table_state: HandScenarioStateSchema.optional(),
-    glossary_terms: z.array(z.string()).optional(),
+    table_state: HandScenarioStateSchema.nullish(),
+    glossary_terms: z.array(z.string()).nullish(),
   })
   .superRefine((data, ctx) => {
     if (data.type === 'hand_scenario' && data.table_state === undefined) {
@@ -62,7 +62,7 @@ export const QuestionSchema = z
 export const LessonSchema = z.object({
   // Optional: if the author omits it, the pipeline auto-generates a unique
   // slug from the title at save time. When provided it must be non-empty.
-  lesson_id: z.string().min(1, 'lesson_id cannot be empty').optional(),
+  lesson_id: z.string().min(1, 'lesson_id cannot be empty').nullish(),
   title: z.string({ error: 'title is required' }).min(1, 'title is required'),
   principle_tag: z
     .string({ error: 'principle_tag is required' })
@@ -72,7 +72,7 @@ export const LessonSchema = z.object({
     .enum(['beginner', 'intermediate', 'advanced'], {
       error: () => 'difficulty must be one of: beginner, intermediate, advanced',
     })
-    .optional(),
+    .nullish(),
   questions: z.array(QuestionSchema).min(1, 'A lesson must contain at least one question'),
 })
 

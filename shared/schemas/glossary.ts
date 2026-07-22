@@ -1,4 +1,4 @@
-import { z } from 'zod'
+﻿import { z } from 'zod'
 
 // A single glossary term. One managed glossary feeds both the in-drill
 // tap-to-define drawer (M1) and the browsable References Library (M2), so this
@@ -10,7 +10,7 @@ import { z } from 'zod'
 export const GlossaryEntrySchema = z.object({
   // Optional: if the author omits it, the pipeline auto-generates a unique
   // slug from the term at save time. When provided it must be non-empty.
-  term_id: z.string().min(1, 'term_id cannot be empty').optional(),
+  term_id: z.string().min(1, 'term_id cannot be empty').nullish(),
   term: z.string({ error: 'term is required' }).min(1, 'term is required'),
   definition: z.string({ error: 'definition is required' }).min(1, 'definition is required'),
   // How central the term is to the methodology. Drives the importance indicator
@@ -19,13 +19,13 @@ export const GlossaryEntrySchema = z.object({
     .enum(['core', 'useful', 'situational'], {
       error: () => 'importance must be one of: core, useful, situational',
     })
-    .optional(),
+    .nullish(),
   // A concrete spot the term shows up at the table.
-  example: z.string().optional(),
+  example: z.string().nullish(),
   // How it's used in a sentence / in practice.
-  usage: z.string().optional(),
+  usage: z.string().nullish(),
   // term_ids this definition links to (nested linking).
-  related_terms: z.array(z.string()).optional(),
+  related_terms: z.array(z.string()).nullish(),
 })
 
 export type GlossaryEntry = z.infer<typeof GlossaryEntrySchema>
