@@ -379,7 +379,7 @@ function renderBatchPanel(results: ItemValidation[]): JSX.Element {
     <div className="space-y-2">
       <div className={`rounded border px-4 py-3 ${allValid ? 'border-green-600 bg-green-600/10 text-green-300' : 'border-yellow-600 bg-yellow-600/10 text-yellow-300'}`}>
         <strong>{validCount} of {results.length} tips valid</strong>
-        {!allValid && <span className="ml-2 text-sm">— fix errors below before saving</span>}
+        {!allValid && <span className="ml-2 text-sm">- fix errors below before saving</span>}
       </div>
       {results.map((result, idx) => (
         <div key={idx} className={`rounded border px-4 py-2 ${result.ok ? 'border-green-800 bg-green-900/20 text-green-400' : 'border-red-700 bg-red-900/20 text-red-400'}`}>
