@@ -144,7 +144,7 @@ export function StagingBrowser(): JSX.Element {
   function toggleItem(k: string): void {
     setSelected((prev) => {
       const next = new Set(prev)
-      next.has(k) ? next.delete(k) : next.add(k)
+      if (next.has(k)) { next.delete(k) } else { next.add(k) }
       return next
     })
   }
@@ -196,7 +196,7 @@ export function StagingBrowser(): JSX.Element {
     return base
   }
 
-  function deleteTitle(_item: StagedItem): string {
+  function deleteTitle(): string {
     return `Delete from live app?`
   }
 
@@ -414,7 +414,7 @@ export function StagingBrowser(): JSX.Element {
 
       <ConfirmDialog
         open={confirmItem !== null}
-        title={confirmItem ? deleteTitle(confirmItem) : 'Delete from live app?'}
+        title={confirmItem ? deleteTitle() : 'Delete from live app?'}
         message={confirmItem ? deleteMessage(confirmItem) : ''}
         confirmLabel="Delete everywhere"
         cancelLabel="Cancel"
