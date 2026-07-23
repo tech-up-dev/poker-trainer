@@ -898,7 +898,7 @@ export function AuthoringWizardPage({
 
   const [vocabInput, setVocabInput] = useState(savedDraft?.vocabInput ?? '')
 
-  const [step, setStep] = useState<WizardStep>(savedDraft?.step ?? (initialTableState ? 'questions' : 'lesson'))
+  const [step, setStep] = useState<WizardStep>(savedDraft?.step ?? 'lesson')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
 
