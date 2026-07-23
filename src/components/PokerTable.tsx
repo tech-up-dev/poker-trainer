@@ -269,7 +269,7 @@ function SeatDisplay({
       <div style={{ position: 'relative', width: 132, paddingTop: 30, opacity: dimmed ? 0.4 : 1 }}>
         {isBtn && <PodDealerButton />}
         {hasCards && <PodHeroCards cards={holeCards} />}
-        <PodIdentityBlock position={position} stack={stack} hero />
+        <PodIdentityBlock position={position} typeCode="STP" stack={stack} hero />
         {action && <PodActionTag action={action.action} amount={action.amount} hero />}
       </div>
     );
