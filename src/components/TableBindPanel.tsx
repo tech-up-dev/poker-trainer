@@ -276,6 +276,7 @@ export function TableBindPanel({ tableState }: { tableState: HandScenarioState }
 
       {wizardOpen && (
         <WizardModal
+          initialTableState={tableState}
           onClose={() => {
             setWizardOpen(false)
             setLoading(true)

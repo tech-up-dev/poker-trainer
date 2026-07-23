@@ -1,5 +1,6 @@
 import type { JSX } from 'react'
 
+import type { HandScenarioState } from '../../shared/schemas/lesson'
 import { AuthoringWizardPage } from '../pages/AuthoringWizardPage'
 import { GlossaryDrawerProvider } from './GlossaryDrawer'
 
@@ -9,7 +10,7 @@ import { GlossaryDrawerProvider } from './GlossaryDrawer'
 // height + internal scroll (so it is always in view without scrolling the page),
 // and min-w-0 + overflow-x-hidden keep wide inner content from bleeding off-screen
 // on mobile. Closing refreshes the caller's lesson list.
-export function WizardModal({ onClose }: { onClose: () => void }): JSX.Element {
+export function WizardModal({ onClose, initialTableState }: { onClose: () => void; initialTableState?: HandScenarioState }): JSX.Element {
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center p-3 sm:p-4"
@@ -22,7 +23,7 @@ export function WizardModal({ onClose }: { onClose: () => void }): JSX.Element {
         onClick={(e) => e.stopPropagation()}
       >
         <GlossaryDrawerProvider>
-          <AuthoringWizardPage embedded onExit={onClose} />
+          <AuthoringWizardPage embedded onExit={onClose} initialTableState={initialTableState} />
         </GlossaryDrawerProvider>
       </div>
     </div>

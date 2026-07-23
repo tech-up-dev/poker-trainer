@@ -833,10 +833,12 @@ export function AuthoringWizardPage({
   embedded = false,
   fullscreen = false,
   onExit,
+  initialTableState,
 }: {
   embedded?: boolean
   fullscreen?: boolean
   onExit?: () => void
+  initialTableState?: HandScenarioState
 } = {}): JSX.Element {
   const navigate = useNavigate()
   const location = useLocation()
@@ -879,15 +881,19 @@ export function AuthoringWizardPage({
   const [lessonId] = useState(savedDraft?.lessonId ?? '')
 
   const [questionType, setQuestionType] = useState<'multiple_choice' | 'hand_scenario'>(
-    savedDraft?.questionType ?? 'multiple_choice',
+    savedDraft?.questionType ?? (initialTableState ? 'hand_scenario' : 'multiple_choice'),
   )
 
   const [completedQuestions, setCompletedQuestions] = useState<DraftQuestion[]>(
     savedDraft?.completedQuestions ?? [],
   )
-  const [currentQuestion, setCurrentQuestion] = useState<DraftQuestion>(
-    () => savedDraft?.currentQuestion ?? blankQuestion('multiple_choice', 0),
-  )
+  const [currentQuestion, setCurrentQuestion] = useState<DraftQuestion>(() => {
+    if (savedDraft?.currentQuestion) return savedDraft.currentQuestion
+    if (initialTableState) {
+      return { ...blankQuestion('hand_scenario', 0), table_state: initialTableState }
+    }
+    return blankQuestion('multiple_choice', 0)
+  })
   const [editingIdx, setEditingIdx] = useState<number | null>(savedDraft?.editingIdx ?? null)
 
   const [vocabInput, setVocabInput] = useState(savedDraft?.vocabInput ?? '')
