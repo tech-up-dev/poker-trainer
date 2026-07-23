@@ -154,8 +154,8 @@ function lessonToWizardDraft(lesson: unknown): WizardDraft {
     lessonId: String(l.lesson_id ?? ''),
     questionType: firstType,
     completedQuestions,
-    currentQuestion: blankQuestion(firstType, completedQuestions.length),
-    editingIdx: null,
+    currentQuestion: completedQuestions[0] ?? blankQuestion(firstType, 0),
+    editingIdx: completedQuestions.length > 0 ? 0 : null,
     vocabInput: vocabTerms.join(', '),
     step: 'lesson',
   }
@@ -242,7 +242,7 @@ function StepIndicator({
       {ALL_STEPS.map((step, i) => {
         const isActive = step === current
         const isDone = i < currentIdx
-        const isClickable = i < currentIdx
+        const isClickable = !isActive
         return (
           <div key={step} className="flex items-center flex-1 min-w-0">
             <button
@@ -297,7 +297,7 @@ function FullscreenStepIndicator({
       {ALL_STEPS.map((step, i) => {
         const isActive = step === current
         const isDone = i < currentIdx
-        const isClickable = i < currentIdx
+        const isClickable = !isActive
         const Icon = STEP_ICONS[step]
         return (
           <button
@@ -310,7 +310,7 @@ function FullscreenStepIndicator({
                 ? 'border-gold text-gold'
                 : isDone
                   ? 'border-transparent text-success hover:text-ink cursor-pointer'
-                  : 'border-transparent text-ink-3 cursor-default'
+                  : 'border-transparent text-ink-3 hover:text-ink-2 cursor-pointer'
             }`}
           >
             <Icon className="w-4 h-4 shrink-0" />

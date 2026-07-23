@@ -329,7 +329,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
   const selectedSeatStack = selectedSeat ? (value.stack_sizes?.[selectedSeat] ?? 500) : 500
 
   return (
-    <div className="space-y-4" style={{ userSelect: 'none' }}>
+    <div className="space-y-6" style={{ userSelect: 'none' }}>
 
       {/* -- Top controls ---------------------------------------------------- */}
       <div className={livePreviewSlot ? 'flex gap-6 items-start' : ''}>

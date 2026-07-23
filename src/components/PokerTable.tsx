@@ -36,21 +36,21 @@ const SLOTS: Slot[] = [
   // 0 – bottom-center (hero / BTN)
   { style: { left: '50%', top: '90%', transform: 'translate(-50%, -50%)' }, align: 'center' },
   // 1 – bottom-left  (SB)
-  { style: { left: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'center' },
+  { style: { left: '2%', top: '72%', transform: 'translate(-32px, -50%)' }, align: 'center' },
   // 2 – left         (BB)
-  { style: { left: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'center' },
+  { style: { left: '2%', top: '50%', transform: 'translate(-32px, -50%)' }, align: 'center' },
   // 3 – top-left     (UTG)
-  { style: { left: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
+  { style: { left: '2%', top: '28%', transform: 'translate(-32px, -50%)' }, align: 'center' },
   // 4 – top-center-left  (UTG+1)
   { style: { left: '33%', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
   // 5 – top-center-right (UTG+2)
   { style: { left: '67%', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
   // 6 – top-right    (LJ)
-  { style: { right: '2%', top: '28%', transform: 'translateY(-50%)' }, align: 'center' },
+  { style: { right: '2%', top: '28%', transform: 'translate(32px, -50%)' }, align: 'center' },
   // 7 – right        (HJ)
-  { style: { right: '2%', top: '50%', transform: 'translateY(-50%)' }, align: 'center' },
+  { style: { right: '2%', top: '50%', transform: 'translate(32px, -50%)' }, align: 'center' },
   // 8 – bottom-right (CO)
-  { style: { right: '2%', top: '72%', transform: 'translateY(-50%)' }, align: 'center' },
+  { style: { right: '2%', top: '72%', transform: 'translate(32px, -50%)' }, align: 'center' },
 ];
 
 // ─── Player type encyclopedia ────────────────────────────────────────────────
@@ -164,11 +164,11 @@ function PodIdentityBlock({
   return (
     <div style={{ position: 'relative', zIndex: 1, borderRadius, overflow: 'hidden', fontSize: 10, fontWeight: 500, lineHeight: 1.15 }}>
       <div style={{ display: 'flex' }}>
-        <span style={{ background: C.posBg, color: C.posText, padding: '3px 0', flex: 1, textAlign: 'center' }}>
+        <span style={{ background: C.posBg, color: C.posText, padding: '3px 6px', flex: 1, textAlign: 'center' }}>
           {position}
         </span>
         {typeCode && (
-          <span style={{ background: C.typeBg, color: C.typeText, padding: '3px 0', flex: 1, textAlign: 'center' }}>
+          <span style={{ background: C.typeBg, color: C.typeText, padding: '3px 6px', flex: 1, textAlign: 'center' }}>
             {typeCode}
           </span>
         )}
