@@ -153,31 +153,28 @@ function PodIdentityBlock({
   position,
   typeCode,
   stack,
-  hero = false,
+  squareBottom = false,
 }: {
   position: string;
   typeCode?: string;
   stack?: number;
-  hero?: boolean;
+  squareBottom?: boolean;
 }): JSX.Element {
-  const radius = hero ? 12 : 11;
-  const fontSize = hero ? 11 : 10;
-  const rowPad = hero ? '4px 0' : '3px 0';
-  const stackPad = hero ? '4px 0 9px' : '3px 0 8px';
+  const borderRadius = squareBottom ? '11px 11px 0 0' : 11;
   return (
-    <div style={{ position: 'relative', zIndex: 1, borderRadius: radius, overflow: 'hidden', fontSize, fontWeight: 500, lineHeight: 1.15 }}>
+    <div style={{ position: 'relative', zIndex: 1, borderRadius, overflow: 'hidden', fontSize: 10, fontWeight: 500, lineHeight: 1.15 }}>
       <div style={{ display: 'flex' }}>
-        <span style={{ background: C.posBg, color: C.posText, padding: rowPad, flex: 1, textAlign: 'center' }}>
+        <span style={{ background: C.posBg, color: C.posText, padding: '3px 0', flex: 1, textAlign: 'center' }}>
           {position}
         </span>
         {typeCode && (
-          <span style={{ background: C.typeBg, color: C.typeText, padding: rowPad, flex: 1, textAlign: 'center' }}>
+          <span style={{ background: C.typeBg, color: C.typeText, padding: '3px 0', flex: 1, textAlign: 'center' }}>
             {typeCode}
           </span>
         )}
       </div>
       {stack !== undefined && (
-        <div style={{ background: C.stackBg, color: C.stackText, padding: stackPad, textAlign: 'center' }}>
+        <div style={{ background: C.stackBg, color: C.stackText, padding: '3px 0 8px', textAlign: 'center' }}>
           ${stack.toLocaleString()}
         </div>
       )}
@@ -186,16 +183,17 @@ function PodIdentityBlock({
 }
 
 // Orange action tag that overlaps the bottom of the identity block.
-function PodActionTag({ action, amount, hero = false }: { action: string; amount?: number; hero?: boolean }): JSX.Element {
+// Pass flush=true to sit directly below (no overlap) when there is no stack row above.
+function PodActionTag({ action, amount, flush = false }: { action: string; amount?: number; flush?: boolean }): JSX.Element {
   return (
-    <div style={{ position: 'relative', zIndex: 2, marginTop: hero ? -12 : -11, textAlign: 'center' }}>
+    <div style={{ position: 'relative', zIndex: 2, marginTop: flush ? -6 : -11, textAlign: 'center' }}>
       <span style={{
         display: 'inline-block',
         background: C.actionBg,
         color: C.actionText,
-        fontSize: hero ? 11 : 10,
+        fontSize: 10,
         fontWeight: 500,
-        padding: hero ? '4px 18px' : '3px 14px',
+        padding: '3px 14px',
         borderRadius: 999,
         lineHeight: 1.15,
         boxShadow: `0 0 0 2px ${C.canvas}`,
@@ -266,11 +264,11 @@ function SeatDisplay({
   if (role === 'hero') {
     const hasCards = holeCards && holeCards.length > 0;
     return (
-      <div style={{ position: 'relative', width: 132, paddingTop: 30, opacity: dimmed ? 0.4 : 1 }}>
+      <div style={{ position: 'relative', paddingTop: 30, opacity: dimmed ? 0.4 : 1 }}>
         {isBtn && <PodDealerButton />}
         {hasCards && <PodHeroCards cards={holeCards} />}
-        <PodIdentityBlock position={position} typeCode="STP" stack={stack} />
-        {action && <PodActionTag action={action.action} amount={action.amount} />}
+        <PodIdentityBlock position={position} typeCode="STP" stack={stack} squareBottom={Boolean(action)} />
+        {action && <PodActionTag action={action.action} amount={action.amount} flush={stack === undefined} />}
       </div>
     );
   }
