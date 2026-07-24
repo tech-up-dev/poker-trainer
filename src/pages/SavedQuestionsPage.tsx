@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { JSX } from 'react'
 
-import type { Question } from '../../shared/schemas/lesson'
-import { fetchAllPublishedLessons } from '../lib/lessons'
+import type { Lesson, Question } from '../../shared/schemas/lesson'
+import { fetchPublishedLesson } from '../lib/lessons'
 import { fetchSavedQuestionRefs, unsaveQuestion } from '../lib/saved-questions'
 
 type SavedQuestion = {
@@ -20,15 +20,15 @@ export function SavedQuestionsPage(): JSX.Element {
 
   useEffect(() => {
     async function load(): Promise<void> {
-      const [refs, lessons] = await Promise.all([
-        fetchSavedQuestionRefs(),
-        fetchAllPublishedLessons(),
-      ])
+      const refs = await fetchSavedQuestionRefs()
       if (refs.length === 0) { setItems([]); return }
 
-      const lessonMap = new Map(lessons.map((l) => [l.lesson_id ?? '', l]))
-      const result: SavedQuestion[] = []
+      const uniqueIds = [...new Set(refs.map((r) => r.contentId))]
+      const lessonResults = await Promise.all(uniqueIds.map((id) => fetchPublishedLesson(id)))
+      const lessonMap = new Map<string, Lesson>()
+      uniqueIds.forEach((id, i) => { const l = lessonResults[i]; if (l) lessonMap.set(id, l) })
 
+      const result: SavedQuestion[] = []
       for (const ref of refs) {
         const lesson = lessonMap.get(ref.contentId)
         if (!lesson) continue
