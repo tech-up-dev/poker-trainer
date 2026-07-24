@@ -68,7 +68,7 @@ export const router = createBrowserRouter([
           { path: '/play',                  element: <MemberDashboardPage /> },
           { path: '/play/lessons',          element: <LessonsPage /> },
           { path: '/play/glossary',         element: <GlossaryPage /> },
-          { path: '/play/library',          element: <ReferencesLibraryPage /> },
+          { path: '/play/library',          element: <GlossaryDrawerProvider><ReferencesLibraryPage /></GlossaryDrawerProvider> },
           { path: '/play/stats',            element: <StatsPage /> },
           { path: '/play/profile',          element: <ProfilePage /> },
           { path: '/play/saved-questions',  element: <GlossaryDrawerProvider><SavedQuestionsPage /></GlossaryDrawerProvider> },
