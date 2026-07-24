@@ -1,6 +1,8 @@
-import { Menu, Sun, Moon } from 'lucide-react'
+import { Flame, Menu, Sun, Moon } from 'lucide-react'
 import type { JSX } from 'react'
+import { useEffect, useState } from 'react'
 
+import { fetchStreak } from '../../lib/streak'
 import { useTheme } from '../../lib/theme-context'
 
 interface TopBarProps {
@@ -8,7 +10,14 @@ interface TopBarProps {
 }
 
 export function TopBar({ onMenuClick }: TopBarProps): JSX.Element {
+  const [streak, setStreak] = useState(0)
   const { theme, toggleTheme } = useTheme()
+
+  useEffect(() => {
+    fetchStreak()
+      .then((s) => setStreak(s.current))
+      .catch(() => {})
+  }, [])
 
   return (
     <header className="sticky top-0 z-30 bg-canvas/95 backdrop-blur-sm border-b border-line">
@@ -31,6 +40,13 @@ export function TopBar({ onMenuClick }: TopBarProps): JSX.Element {
         </div>
 
         <div className="flex items-center gap-2">
+          {streak > 0 && (
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-gold/10 rounded-full">
+              <Flame className="w-5 h-5 text-gold" />
+              <span className="text-base font-semibold text-gold">{streak}</span>
+            </div>
+          )}
+
           <button
             type="button"
             onClick={toggleTheme}
