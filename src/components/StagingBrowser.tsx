@@ -477,7 +477,7 @@ export function StagingBrowser(): JSX.Element {
                       <p className="text-xs text-red-400">Delete failed: {del.error}</p>
                     ) : null}
                     {!isLive && demote === 'demoted' ? (
-                      <p className="text-xs text-amber-400">Demoted — removed from production, still in staging.</p>
+                      <p className="text-xs text-amber-400">Demoted - removed from production, still in staging.</p>
                     ) : null}
                     {typeof demote === 'object' && 'error' in demote ? (
                       <p className="text-xs text-red-400">Demote failed: {demote.error}</p>

@@ -153,11 +153,11 @@ export function ProTrainingPage(): JSX.Element {
           Take your game to the next level
         </h1>
         <p className="text-[14.5px] text-ink-2 leading-relaxed" style={{ maxWidth: 620, margin: 0 }}>
-          Advanced courses hand-picked to build on what you're learning here — each one goes deeper than the core trainer.
+          Advanced courses hand-picked to build on what you're learning here - each one goes deeper than the core trainer.
         </p>
       </div>
 
-      {/* Banner — amber for members, neutral for non-members */}
+      {/* Banner */}
       {hasAccess ? (
         <div
           className="flex items-center gap-3 text-[13.5px] text-ink-2"
@@ -167,7 +167,7 @@ export function ProTrainingPage(): JSX.Element {
           <span>
             Your active membership unlocks{' '}
             <strong className="text-ink">40% off every course below</strong>
-            {' '}— the member price is already applied, no code needed.
+            {' - the member price is already applied, no code needed.'}
           </span>
         </div>
       ) : (

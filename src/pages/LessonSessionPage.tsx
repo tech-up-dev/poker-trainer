@@ -348,7 +348,7 @@ export function LessonSessionPage(): JSX.Element {
           </div>
         </div>
 
-        {/* CTA buttons — shown above missed questions when there are some to scroll past */}
+        {/* CTA buttons - shown above missed questions when there are some to scroll past */}
         {missed.length > 0 && (
           <div className="space-y-3">
             <button

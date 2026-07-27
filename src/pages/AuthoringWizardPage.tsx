@@ -646,10 +646,9 @@ function StepVocab({
   previewQuestion: DraftQuestion | null
   completedQuestions: DraftQuestion[]
 }): JSX.Element {
-  const [detecting, setDetecting] = useState(false)
+  const [detecting, setDetecting] = useState(true)
 
   useEffect(() => {
-    setDetecting(true)
     fetchProdGlossaryTerms()
       .then((allTerms) => {
         if (allTerms.length === 0) return
@@ -671,7 +670,7 @@ function StepVocab({
       })
       .catch(() => {})
       .finally(() => setDetecting(false))
-  // Run once on mount — intentionally no deps so it re-scans if questions changed
+  // Run once on mount - intentionally no deps so it re-scans if questions changed
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

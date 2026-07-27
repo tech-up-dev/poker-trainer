@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import type { JSX } from 'react'
 import { Plus, Pencil, Trash2, GripVertical, Check, X } from 'lucide-react'
 import { supabaseProd } from '../lib/supabase-prod'
@@ -227,7 +227,7 @@ export function ProTrainingAdminPage(): JSX.Element {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
 
-  const load = useCallback(async () => {
+  async function load(): Promise<void> {
     setLoading(true)
     setError(null)
     const { data, error: err } = await supabaseProd
@@ -237,9 +237,22 @@ export function ProTrainingAdminPage(): JSX.Element {
     if (err) { setError(err.message); setLoading(false); return }
     setCourses((data ?? []) as Course[])
     setLoading(false)
-  }, [])
+  }
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    let cancelled = false
+    void (async () => {
+      const { data, error: err } = await supabaseProd
+        .from('pro_training_courses')
+        .select('*')
+        .order('sort_order', { ascending: true })
+      if (cancelled) return
+      if (err) { setError(err.message); setLoading(false); return }
+      setCourses((data ?? []) as Course[])
+      setLoading(false)
+    })()
+    return () => { cancelled = true }
+  }, [])
 
   async function handleSave(form: CourseForm): Promise<void> {
     if (editingCourse) {

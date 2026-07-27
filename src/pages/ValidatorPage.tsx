@@ -100,7 +100,7 @@ export function ValidatorPage(): JSX.Element {
       onCancel={() => setShowDeleteConfirm(false)}
     />
     <div className="space-y-6">
-      {/* Delete bar — shown when arriving from staging via Edit */}
+      {/* Delete bar - shown when arriving from staging via Edit */}
       {editingContentId && (
         <div className="flex items-center justify-between px-4 py-2.5 rounded-lg bg-surface border border-line">
           <p className="text-sm text-ink-2">

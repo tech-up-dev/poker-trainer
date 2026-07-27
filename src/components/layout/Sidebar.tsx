@@ -30,7 +30,7 @@ const NAV_ITEMS = [
 ]
 
 export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
-  const { session, hasAccess } = useAuth()
+  const { session } = useAuth()
   const navigate = useNavigate()
   const email = session?.user?.email ?? ''
   const initial = email.charAt(0).toUpperCase()
@@ -85,7 +85,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
           ))}
         </nav>
 
-        {/* Upsell — shown to all users; subtitle adapts to subscription status */}
+        {/* Upsell - shown to all users */}
         <div className="px-3 pb-3">
           <button
             type="button"
