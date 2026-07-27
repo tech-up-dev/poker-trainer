@@ -8,6 +8,7 @@ import type { HandScenarioState } from '../../shared/schemas/lesson'
 import { supabaseProd } from '../lib/supabase-prod'
 import { TableBuilder } from '../components/TableBuilder'
 import { linkifyGlossaryTerms } from '../lib/glossary-text'
+import { fetchProdGlossaryTerms } from '../lib/glossary-terms'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -637,11 +638,42 @@ function StepVocab({
   vocabInput,
   onVocabInput,
   previewQuestion,
+  completedQuestions,
 }: {
   vocabInput: string
   onVocabInput: (v: string) => void
   previewQuestion: DraftQuestion | null
+  completedQuestions: DraftQuestion[]
 }): JSX.Element {
+  const [detecting, setDetecting] = useState(false)
+
+  useEffect(() => {
+    setDetecting(true)
+    fetchProdGlossaryTerms()
+      .then((allTerms) => {
+        if (allTerms.length === 0) return
+        const allText = completedQuestions.map((q) => q.prompt).join(' ')
+        const sorted = [...allTerms].sort((a, b) => b.length - a.length)
+        const pattern = new RegExp(
+          `\\b(${sorted.map((t) => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\b`,
+          'gi',
+        )
+        const found = new Set<string>()
+        let match: RegExpExecArray | null
+        while ((match = pattern.exec(allText)) !== null) {
+          const canonical = allTerms.find(
+            (t) => t.toLowerCase() === match![1].toLowerCase(),
+          )
+          if (canonical) found.add(canonical)
+        }
+        onVocabInput([...found].join(', '))
+      })
+      .catch(() => {})
+      .finally(() => setDetecting(false))
+  // Run once on mount — intentionally no deps so it re-scans if questions changed
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const terms = vocabInput
     .split(',')
     .map((t) => t.trim())
@@ -652,12 +684,12 @@ function StepVocab({
       <div>
         <h2 className="text-lg font-bold text-ink">Vocabulary terms</h2>
         <p className="text-sm text-ink-2 mt-1">
-          Enter glossary terms that appear in your questions. Members tap them to open the
-          definition. Optional.
+          Glossary terms found in your questions are detected automatically. You can add or
+          remove terms manually below.
         </p>
       </div>
 
-      <Field label="Terms (comma-separated)">
+      <Field label={detecting ? 'Terms (detecting…)' : 'Terms (comma-separated)'}>
         <AdminInput
           value={vocabInput}
           onChange={onVocabInput}
@@ -1129,6 +1161,7 @@ export function AuthoringWizardPage({
           vocabInput={vocabInput}
           onVocabInput={setVocabInput}
           previewQuestion={completedQuestions[0] ?? null}
+          completedQuestions={completedQuestions}
         />
       )}
       {step === 'review' && (
