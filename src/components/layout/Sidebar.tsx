@@ -9,6 +9,8 @@ import {
   LogOut,
   X,
   User,
+  Lock,
+  ChevronRight,
 } from 'lucide-react'
 
 import { useAuth } from '../../lib/auth-context'
@@ -82,6 +84,39 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
             </NavLink>
           ))}
         </nav>
+
+        {/* Upsell - shown to all users */}
+        <div className="px-3 pb-3">
+          <button
+            type="button"
+            onClick={() => { onClose(); void navigate('/play/pro-training') }}
+            className="w-full flex items-center gap-3 rounded-xl p-[13px_14px] transition-colors"
+            style={{
+              background: 'rgba(245,166,35,0.12)',
+              border: '1px solid rgba(245,166,35,0.42)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(245,166,35,0.18)'
+              e.currentTarget.style.borderColor = 'rgba(245,166,35,0.6)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(245,166,35,0.12)'
+              e.currentTarget.style.borderColor = 'rgba(245,166,35,0.42)'
+            }}
+          >
+            <div
+              className="w-[34px] h-[34px] rounded-lg flex items-center justify-center shrink-0"
+              style={{ background: 'rgba(245,166,35,0.16)' }}
+            >
+              <Lock className="w-4 h-4 text-gold" />
+            </div>
+            <div className="flex-1 text-left">
+              <p className="text-[14.5px] font-bold text-ink leading-tight">Unlock Pro Training</p>
+              <p className="text-[12.5px] text-gold leading-tight">Members save 40%</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-gold shrink-0" />
+          </button>
+        </div>
 
         {/* User + sign out */}
         <div className="p-3 border-t border-line space-y-2">

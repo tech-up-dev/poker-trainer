@@ -7,6 +7,7 @@ import { LessonSchema } from '../../shared/schemas/lesson'
 import type { HandScenarioState } from '../../shared/schemas/lesson'
 import { supabaseProd } from '../lib/supabase-prod'
 import { TableBuilder } from '../components/TableBuilder'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 import { linkifyGlossaryTerms } from '../lib/glossary-text'
 import { fetchProdGlossaryTerms } from '../lib/glossary-terms'
 
@@ -645,10 +646,9 @@ function StepVocab({
   previewQuestion: DraftQuestion | null
   completedQuestions: DraftQuestion[]
 }): JSX.Element {
-  const [detecting, setDetecting] = useState(false)
+  const [detecting, setDetecting] = useState(true)
 
   useEffect(() => {
-    setDetecting(true)
     fetchProdGlossaryTerms()
       .then((allTerms) => {
         if (allTerms.length === 0) return
@@ -670,7 +670,7 @@ function StepVocab({
       })
       .catch(() => {})
       .finally(() => setDetecting(false))
-  // Run once on mount — intentionally no deps so it re-scans if questions changed
+  // Run once on mount - intentionally no deps so it re-scans if questions changed
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -933,6 +933,8 @@ export function AuthoringWizardPage({
   const [step, setStep] = useState<WizardStep>(savedDraft?.step ?? 'lesson')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   // Mirror the draft to sessionStorage on every change so a tab-return remount
   // restores it. Skip when in edit-from-staging mode so the sidebar always starts fresh.
@@ -1099,6 +1101,21 @@ export function AuthoringWizardPage({
     ? []
     : zodResult.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`)
 
+  async function handleDelete(): Promise<void> {
+    if (!lessonId) return
+    setShowDeleteConfirm(false)
+    setDeleting(true)
+    const { data, error } = await supabaseProd.functions.invoke('delete-content', {
+      body: { content_id: lessonId, content_type: 'lesson' },
+    })
+    const result = data as { ok: boolean; message?: string } | null
+    if (error || !result?.ok) {
+      setDeleting(false)
+      return
+    }
+    navigate('/admin/staging')
+  }
+
   async function handleSave(): Promise<void> {
     if (!zodResult.success) return
     setSaveState({ kind: 'saving' })
@@ -1214,9 +1231,20 @@ export function AuthoringWizardPage({
     </>
   )
 
-  // ── Fullscreen layout ────────────────────────────────────────────────────────
+  // ── Fullscreen layout ─────────────────────────────────────────────────────────
   if (fullscreen) {
     return (
+      <>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete lesson from live app?"
+        message="WARNING: This immediately removes the lesson from both staging and the live app. Players will no longer see it. This cannot be undone."
+        confirmLabel="Delete everywhere"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
       <div className="fixed inset-0 z-50 flex flex-col bg-canvas text-ink">
         <div className="h-0.5 bg-line shrink-0">
           <div
@@ -1237,6 +1265,16 @@ export function AuthoringWizardPage({
           <p className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-ink-2">
             Step {stepIdx + 1} of {ALL_STEPS.length}
           </p>
+          {isEditMode && lessonId && (
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={deleting}
+              className="ml-auto px-3 py-1.5 text-xs rounded bg-red-800 hover:bg-red-700 text-white disabled:opacity-40"
+            >
+              {deleting ? 'Deleting…' : 'Delete lesson'}
+            </button>
+          )}
         </div>
 
         <FullscreenStepIndicator current={step} onStepClick={handleStepClick} />
@@ -1257,11 +1295,23 @@ export function AuthoringWizardPage({
           {navButtons}
         </div>
       </div>
+      </>
     )
   }
 
   // ── Regular (embedded or standalone) layout ──────────────────────────────────
   return (
+    <>
+    <ConfirmDialog
+      open={showDeleteConfirm}
+      title="Delete lesson from live app?"
+      message="WARNING: This immediately removes the lesson from both staging and the live app. Players will no longer see it. This cannot be undone."
+      confirmLabel="Delete everywhere"
+      cancelLabel="Cancel"
+      destructive
+      onConfirm={() => void handleDelete()}
+      onCancel={() => setShowDeleteConfirm(false)}
+    />
     <div className={`${embedded ? 'w-full' : 'min-h-screen max-w-2xl'} space-y-8 text-ink`}>
       <div className="flex items-start justify-between gap-4">
         <div>
@@ -1270,13 +1320,25 @@ export function AuthoringWizardPage({
           </p>
           <h1 className="text-2xl font-bold mt-1 text-ink">New Lesson Wizard</h1>
         </div>
-        <button
-          type="button"
-          onClick={() => (embedded && onExit ? onExit() : navigate('/admin'))}
-          className="text-sm text-ink-2 hover:text-ink shrink-0 mt-1 transition-colors"
-        >
-          {embedded ? '✕ Close' : '← Back to admin'}
-        </button>
+        <div className="flex items-center gap-3 shrink-0 mt-1">
+          {isEditMode && lessonId && (
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              disabled={deleting}
+              className="text-sm text-error hover:text-red-400 transition-colors disabled:opacity-40"
+            >
+              {deleting ? 'Deleting…' : 'Delete lesson'}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => (embedded && onExit ? onExit() : navigate('/admin'))}
+            className="text-sm text-ink-2 hover:text-ink transition-colors"
+          >
+            {embedded ? '✕ Close' : '← Back to admin'}
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto -mx-1 px-1">
@@ -1291,5 +1353,6 @@ export function AuthoringWizardPage({
         {navButtons}
       </div>
     </div>
+    </>
   )
 }
