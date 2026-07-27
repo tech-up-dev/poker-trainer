@@ -314,11 +314,24 @@ export function LessonSessionPage(): JSX.Element {
   // ── Complete screen ───────────────────────────────────────────────────────
   const { correct, total, missed } = phase
   const pct = total > 0 ? Math.round((correct / total) * 100) : 0
-  const passed = pct >= 70
+
+  // Tiered result based on score. Adjust thresholds/copy here when the client
+  // confirms their preferred values.
+  const result =
+    pct >= 90 ? { message: 'Outstanding performance!', confetti: true,  color: 'text-gold',    icon: 'star'  } :
+    pct >= 70 ? { message: 'Lesson complete!',          confetti: true,  color: 'text-success', icon: 'check' } :
+    pct >= 50 ? { message: 'Good effort, keep going!',  confetti: false, color: 'text-warning', icon: 'check' } :
+                { message: 'Keep practicing',           confetti: false, color: 'text-error',   icon: 'x'    }
+
+  const barColor =
+    pct >= 90 ? 'bg-gold' :
+    pct >= 70 ? 'bg-success' :
+    pct >= 50 ? 'bg-warning' :
+                'bg-error'
 
   return (
     <div className="min-h-screen bg-canvas text-ink px-4 py-10">
-      {passed && (
+      {result.confetti && (
         <div className="fixed inset-0 pointer-events-none z-10">
           <ConfettiCanvas />
         </div>
@@ -327,27 +340,27 @@ export function LessonSessionPage(): JSX.Element {
         {/* Score card */}
         <div className="card text-center space-y-5">
           <div
-            className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${passed ? 'bg-success/20 animate-pop-bounce' : 'bg-error/20'}`}
+            className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center ${result.icon !== 'x' ? 'bg-success/20 animate-pop-bounce' : 'bg-error/20'}`}
           >
-            {passed
-              ? <CheckCircle2 className="w-8 h-8 text-success" />
+            {result.icon !== 'x'
+              ? <CheckCircle2 className={`w-8 h-8 ${result.color}`} />
               : <span className="text-2xl font-bold text-error">✕</span>
             }
           </div>
           <div className="space-y-1">
-            <h2 className="text-xl font-bold text-ink">
-              {passed ? 'Lesson complete!' : 'Keep practising'}
+            <h2 className={`text-xl font-bold ${result.color}`}>
+              {result.message}
             </h2>
             <p className="text-ink-3 text-sm">{lesson.title}</p>
           </div>
           <div className="bg-canvas rounded-xl p-4 space-y-3 animate-score-reveal">
-            <div className={`text-4xl font-bold ${passed ? 'text-gold' : 'text-error'}`}>{displayPct}%</div>
+            <div className={`text-4xl font-bold ${result.color}`}>{displayPct}%</div>
             <p className="text-sm text-ink-2">
               {correct} correct out of {total} question{total !== 1 ? 's' : ''}
             </p>
             <div className="h-2 rounded-full bg-elevated overflow-hidden">
               <div
-                className={`h-full rounded-full transition-all duration-700 ${passed ? 'bg-gold' : 'bg-error'}`}
+                className={`h-full rounded-full transition-all duration-700 ${barColor}`}
                 style={{ width: `${displayPct}%` }}
               />
             </div>
