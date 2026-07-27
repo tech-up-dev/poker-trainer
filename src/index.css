@@ -158,6 +158,14 @@
     outline: none;
     box-shadow: 0 0 0 2px var(--color-gold);
   }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled),
+  a[href],
+  label[for],
+  select {
+    cursor: pointer;
+  }
 }
 
 /* ─── COMPONENT CLASSES ──────────────────────────────────────────────────────
