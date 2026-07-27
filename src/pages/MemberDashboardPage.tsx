@@ -134,7 +134,7 @@ export function MemberDashboardPage(): JSX.Element {
         <div className="card text-center space-y-3">
           <p className="text-2xl">🎉</p>
           <p className="text-base font-semibold text-ink">All lessons complete!</p>
-          <p className="text-sm text-ink-2">You've finished every lesson. Keep practising to sharpen your edge.</p>
+          <p className="text-sm text-ink-2">You've finished every lesson. Keep practicing to sharpen your edge.</p>
           <button
             type="button"
             onClick={() => navigate('/play/lessons')}

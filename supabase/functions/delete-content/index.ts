@@ -69,14 +69,15 @@ Deno.serve(async (req) => {
     throw err;
   }
 
-  let body: { content_id?: unknown; content_type?: unknown };
+  let body: { content_id?: unknown; content_type?: unknown; prod_only?: unknown };
   try {
     body = await req.json();
   } catch {
     return jsonResponse(req, { ok: false, message: "Invalid JSON body" }, 400);
   }
 
-  const { content_id, content_type } = body;
+  const { content_id, content_type, prod_only } = body;
+  const prodOnly = prod_only === true;
   if (typeof content_id !== "string" || content_id.length === 0) {
     return jsonResponse(req, { ok: false, message: "content_id is required" }, 400);
   }
@@ -86,14 +87,17 @@ Deno.serve(async (req) => {
 
   const staging = createClient(stagingUrl, stagingKey);
 
-  // Delete from staging then production. content_versions is deliberately kept.
-  const { error: stagingErr } = await staging
-    .from("content_staging")
-    .delete()
-    .eq("content_id", content_id)
-    .eq("content_type", content_type);
-  if (stagingErr) {
-    return jsonResponse(req, { ok: false, message: `Staging delete failed: ${stagingErr.message}` }, 500);
+  // When prod_only=true we only remove from production (demote), leaving the
+  // staging copy intact so the author can re-promote later.
+  if (!prodOnly) {
+    const { error: stagingErr } = await staging
+      .from("content_staging")
+      .delete()
+      .eq("content_id", content_id)
+      .eq("content_type", content_type);
+    if (stagingErr) {
+      return jsonResponse(req, { ok: false, message: `Staging delete failed: ${stagingErr.message}` }, 500);
+    }
   }
 
   const { error: prodErr } = await prod
@@ -105,11 +109,12 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { ok: false, message: `Production delete failed: ${prodErr.message}` }, 500);
   }
 
-  // Deleting a glossary term re-links every lesson so it stops appearing.
+  // Removing a glossary term from production re-links published lessons so the
+  // term stops appearing as a link in the live app.
   let relinkedStaging = 0;
   let relinkedPublished = 0;
   if (content_type === "glossary") {
-    relinkedStaging = await relinkLessons(staging, "content_staging");
+    if (!prodOnly) relinkedStaging = await relinkLessons(staging, "content_staging");
     relinkedPublished = await relinkLessons(prod, "content_published");
   }
 
@@ -117,6 +122,7 @@ Deno.serve(async (req) => {
     ok: true,
     content_id,
     content_type,
+    prod_only: prodOnly,
     relinkedStaging,
     relinkedPublished,
   });

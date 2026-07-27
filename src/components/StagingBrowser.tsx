@@ -21,6 +21,8 @@ type LoadState =
 type PromoteStatus = 'idle' | 'promoting' | { version: number } | { error: string }
 // Per-item delete status, keyed the same way.
 type DeleteStatus = 'deleting' | { error: string }
+// Per-item demote status (prod-only removal).
+type DemoteStatus = 'idle' | 'demoting' | 'demoted' | { error: string }
 
 // Content types this build exposes, mapped to their editor route. The Staging
 // list only shows these types (others stay hidden, e.g. unreleased types on M1),
@@ -66,9 +68,12 @@ const TAB_TYPES: ContentType[] = ['lesson', 'reference', 'tip', 'glossary']
 export function StagingBrowser(): JSX.Element {
   const navigate = useNavigate()
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
+  const [publishedKeys, setPublishedKeys] = useState<Set<string>>(new Set())
   const [promote, setPromote] = useState<Record<string, PromoteStatus>>({})
   const [deleteState, setDeleteState] = useState<Record<string, DeleteStatus>>({})
   const [confirmItem, setConfirmItem] = useState<StagedItem | null>(null)
+  const [confirmDemoteItem, setConfirmDemoteItem] = useState<StagedItem | null>(null)
+  const [demoteState, setDemoteState] = useState<Record<string, DemoteStatus>>({})
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [promotingAll, setPromotingAll] = useState(false)
   const [activeTab, setActiveTab] = useState<ContentType>('lesson')
@@ -82,19 +87,26 @@ export function StagingBrowser(): JSX.Element {
 
     async function fetchStaged(): Promise<void> {
       setState({ kind: 'loading' })
-      const { data, error } = await supabaseProd.functions.invoke('list-from-staging', {
-        body: {},
-      })
+      const [stagingResult, publishedResult] = await Promise.all([
+        supabaseProd.functions.invoke('list-from-staging', { body: {} }),
+        supabaseProd.from('content_published').select('content_id, content_type'),
+      ])
       if (cancelled) return
-      if (error) {
-        setState({ kind: 'error', message: error.message })
+      if (stagingResult.error) {
+        setState({ kind: 'error', message: stagingResult.error.message })
         return
       }
-      const result = data as { ok: boolean; items?: StagedItem[]; message?: string }
+      const result = stagingResult.data as { ok: boolean; items?: StagedItem[]; message?: string }
       if (!result.ok) {
         setState({ kind: 'error', message: result.message ?? 'Unknown error' })
         return
       }
+      // Build a set of keys for items currently live in production.
+      const live = new Set<string>(
+        ((publishedResult.data ?? []) as { content_id: string; content_type: string }[])
+          .map((r) => `${r.content_type}:${r.content_id}`),
+      )
+      setPublishedKeys(live)
       setState({ kind: 'loaded', items: result.items ?? [] })
     }
 
@@ -118,6 +130,7 @@ export function StagingBrowser(): JSX.Element {
       setPromote((p) => ({ ...p, [key(item)]: { error: result.message } }))
       return false
     }
+    setPublishedKeys((prev) => new Set([...prev, key(item)]))
     setPromote((p) => ({ ...p, [key(item)]: { version: result.version_number } }))
     return true
   }
@@ -183,6 +196,26 @@ export function StagingBrowser(): JSX.Element {
         ? { kind: 'loaded', items: prev.items.filter((i) => key(i) !== key(item)) }
         : prev,
     )
+  }
+
+  // Demote: removes from production only, staging copy is kept intact.
+  async function demoteItem(item: StagedItem): Promise<void> {
+    setConfirmDemoteItem(null)
+    setDemoteState((s) => ({ ...s, [key(item)]: 'demoting' }))
+    const { data, error } = await supabaseProd.functions.invoke('delete-content', {
+      body: { content_id: item.content_id, content_type: item.content_type, prod_only: true },
+    })
+    if (error) {
+      setDemoteState((s) => ({ ...s, [key(item)]: { error: error.message } }))
+      return
+    }
+    const result = data as { ok: boolean; message?: string }
+    if (!result.ok) {
+      setDemoteState((s) => ({ ...s, [key(item)]: { error: result.message ?? 'Demote failed' } }))
+      return
+    }
+    setPublishedKeys((prev) => { const next = new Set(prev); next.delete(key(item)); return next })
+    setDemoteState((s) => ({ ...s, [key(item)]: 'demoted' }))
   }
 
   function deleteMessage(item: StagedItem): string {
@@ -320,6 +353,8 @@ export function StagingBrowser(): JSX.Element {
               {tabItems.map((item) => {
                 const status = promote[key(item)] ?? 'idle'
                 const del = deleteState[key(item)]
+                const demote = demoteState[key(item)] ?? 'idle'
+                const isLive = publishedKeys.has(key(item))
                 const isOpen = expanded[key(item)] === true
                 const isSelected = selected.has(key(item))
                 return (
@@ -380,6 +415,15 @@ export function StagingBrowser(): JSX.Element {
                         </button>
                         <button
                           type="button"
+                          onClick={() => setConfirmDemoteItem(item)}
+                          disabled={!isLive || demote === 'demoting'}
+                          className="text-xs px-2 py-1 rounded bg-amber-700 hover:bg-amber-600 text-white disabled:opacity-40 disabled:cursor-not-allowed"
+                          title={!isLive ? 'Not in production' : 'Remove from production, keep in staging'}
+                        >
+                          {demote === 'demoting' ? 'Demoting…' : 'Demote'}
+                        </button>
+                        <button
+                          type="button"
                           onClick={() => setConfirmItem(item)}
                           disabled={deleteState[key(item)] === 'deleting'}
                           className="text-xs px-2 py-1 rounded bg-red-800 hover:bg-red-700 text-white disabled:opacity-40 disabled:cursor-not-allowed"
@@ -397,6 +441,12 @@ export function StagingBrowser(): JSX.Element {
                     ) : null}
                     {typeof del === 'object' && 'error' in del ? (
                       <p className="text-xs text-red-400">Delete failed: {del.error}</p>
+                    ) : null}
+                    {!isLive && demote === 'demoted' ? (
+                      <p className="text-xs text-amber-400">Demoted — removed from production, still in staging.</p>
+                    ) : null}
+                    {typeof demote === 'object' && 'error' in demote ? (
+                      <p className="text-xs text-red-400">Demote failed: {demote.error}</p>
                     ) : null}
 
                     {isOpen ? (
@@ -423,6 +473,18 @@ export function StagingBrowser(): JSX.Element {
           if (confirmItem) void deleteItem(confirmItem)
         }}
         onCancel={() => setConfirmItem(null)}
+      />
+      <ConfirmDialog
+        open={confirmDemoteItem !== null}
+        title="Demote from production?"
+        message={`"${confirmDemoteItem ? labelFor(confirmDemoteItem) : ''}" will be removed from the live /play app immediately. It stays in staging so you can re-promote it at any time.`}
+        confirmLabel="Demote"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={() => {
+          if (confirmDemoteItem) void demoteItem(confirmDemoteItem)
+        }}
+        onCancel={() => setConfirmDemoteItem(null)}
       />
     </section>
   )
