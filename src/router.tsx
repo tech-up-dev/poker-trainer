@@ -27,6 +27,8 @@ import { SavedTipsPage } from './pages/SavedTipsPage'
 import { ReferencesLibraryPage } from './pages/ReferencesLibraryPage'
 import { CheckoutSuccessPage } from './pages/CheckoutSuccessPage'
 import { OnboardingPage } from './pages/OnboardingPage'
+import { ProTrainingPage } from './pages/ProTrainingPage'
+import { ProTrainingAdminPage } from './pages/ProTrainingAdminPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -54,6 +56,7 @@ export const router = createBrowserRouter([
           { path: 'admin/staging', element: <StagingBrowser /> },
           { path: 'admin/table-builder', element: <TableBuilderPage /> },
           { path: 'admin/wizard', element: <GlossaryDrawerProvider><AuthoringWizardPage fullscreen /></GlossaryDrawerProvider> },
+          { path: 'admin/pro-training', element: <ProTrainingAdminPage /> },
           { path: '*', element: <Navigate to="/admin/dashboard" replace /> },
         ],
       },
@@ -74,6 +77,7 @@ export const router = createBrowserRouter([
           { path: '/play/saved-questions',  element: <GlossaryDrawerProvider><SavedQuestionsPage /></GlossaryDrawerProvider> },
           { path: '/play/saved-tips',       element: <SavedTipsPage /> },
           { path: '/play/references',       element: <ReferencesLibraryPage /> },
+          { path: '/play/pro-training',      element: <ProTrainingPage /> },
           { path: '/play/checkout/success', element: <CheckoutSuccessPage /> },
         ],
       },

@@ -48,7 +48,6 @@ export function LessonSessionPage(): JSX.Element {
   const [phase, setPhase] = useState<SessionPhase>(() =>
     lessonId ? { kind: 'loading' } : { kind: 'error', message: 'No lesson ID provided.' },
   )
-  const [randomise, setRandomise] = useState(false)
   const [correctMap, setCorrectMap] = useState<Record<number, boolean>>({})
   const [answeredMap, setAnsweredMap] = useState<Record<number, number>>({})
   const [displayPct, setDisplayPct] = useState(0)
@@ -91,8 +90,8 @@ export function LessonSessionPage(): JSX.Element {
 
   const orderedQuestions = useMemo<Question[]>(() => {
     if (!lesson) return []
-    return randomise ? shuffled(lesson.questions) : [...lesson.questions]
-  }, [lesson, randomise])
+    return shuffled(lesson.questions)
+  }, [lesson])
 
   function startQuiz(): void {
     setDisplayPct(0)
@@ -222,24 +221,6 @@ export function LessonSessionPage(): JSX.Element {
             )}
           </div>
 
-          <label className="flex items-center gap-3 cursor-pointer select-none">
-            <div className="relative">
-              <input
-                type="checkbox"
-                className="sr-only"
-                checked={randomise}
-                onChange={(e) => setRandomise(e.target.checked)}
-              />
-              <div
-                className={`w-10 h-6 rounded-full transition-colors ${randomise ? 'bg-gold' : 'bg-elevated'}`}
-              />
-              <div
-                className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${randomise ? 'translate-x-5' : 'translate-x-1'}`}
-              />
-            </div>
-            <span className="text-sm text-ink-2">Randomize question order</span>
-          </label>
-
           <button
             type="button"
             onClick={startQuiz}
@@ -366,6 +347,26 @@ export function LessonSessionPage(): JSX.Element {
             </div>
           </div>
         </div>
+
+        {/* CTA buttons — shown above missed questions when there are some to scroll past */}
+        {missed.length > 0 && (
+          <div className="space-y-3">
+            <button
+              type="button"
+              onClick={startQuiz}
+              className="btn-secondary w-full"
+            >
+              Try again
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/play')}
+              className="btn-primary w-full"
+            >
+              Back to lessons
+            </button>
+          </div>
+        )}
 
         {/* Missed questions review */}
         {missed.length > 0 && (

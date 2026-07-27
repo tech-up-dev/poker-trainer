@@ -8,6 +8,7 @@ import {
   GitBranch,
   Table2,
   Wand2,
+  ShoppingBag,
   LogOut,
   Sun,
   Moon,
@@ -26,7 +27,8 @@ const NAV_ITEMS = [
   { to: '/admin',               icon: PenTool,   label: 'Editor',  end: true },
   { to: '/admin/staging',       icon: GitBranch, label: 'Staging'       },
   { to: '/admin/table-builder', icon: Table2,    label: 'Table Builder' },
-  { to: '/admin/wizard',        icon: Wand2,     label: 'Wizard'        },
+  { to: '/admin/wizard',        icon: Wand2,       label: 'Wizard'        },
+  { to: '/admin/pro-training', icon: ShoppingBag, label: 'Pro Training'  },
 ]
 
 function navClass({ isActive }: { isActive: boolean }): string {

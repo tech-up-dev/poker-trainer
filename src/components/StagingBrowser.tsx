@@ -79,6 +79,7 @@ export function StagingBrowser(): JSX.Element {
   const [activeTab, setActiveTab] = useState<ContentType>('lesson')
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [promotingSelected, setPromotingSelected] = useState(false)
+  const [search, setSearch] = useState('')
   // Bumped to trigger a reload of the staging list (mount + Refresh button).
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -171,7 +172,7 @@ export function StagingBrowser(): JSX.Element {
     if (!route) return
     // Discard any in-progress new-lesson draft - editing an existing item supersedes it
     try { sessionStorage.removeItem('bss_wizard_draft') } catch { /* ignore */ }
-    navigate(route, { state: { preloadContent: item.content } })
+    navigate(route, { state: { preloadContent: item.content, contentId: item.content_id, contentType: item.content_type } })
   }
 
   // Full delete (staging + production) after the user confirms in the dialog.
@@ -249,6 +250,14 @@ export function StagingBrowser(): JSX.Element {
       ? state.items.filter((item) => item.content_type === activeTab && EDITOR_ROUTE[item.content_type])
       : []
 
+  const query = search.trim().toLowerCase()
+  const filteredItems = query
+    ? tabItems.filter((item) =>
+        labelFor(item).toLowerCase().includes(query) ||
+        item.content_id.toLowerCase().includes(query),
+      )
+    : tabItems
+
   const allVisibleItems =
     state.kind === 'loaded'
       ? state.items.filter((item) => EDITOR_ROUTE[item.content_type])
@@ -281,7 +290,7 @@ export function StagingBrowser(): JSX.Element {
             <button
               key={type}
               type="button"
-              onClick={() => { setActiveTab(type); setSelected(new Set()) }}
+              onClick={() => { setActiveTab(type); setSelected(new Set()); setSearch('') }}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors -mb-px capitalize flex items-center gap-1.5 ${
                 activeTab === type
                   ? 'text-gold border-gold'
@@ -301,6 +310,29 @@ export function StagingBrowser(): JSX.Element {
         })}
       </div>
 
+      {/* Search */}
+      {state.kind === 'loaded' && tabItems.length > 0 && (
+        <div className="relative">
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setSelected(new Set()) }}
+            placeholder={`Search ${activeTab}s…`}
+            className="w-full sm:w-72 px-3 py-1.5 pr-8 text-sm rounded border border-line bg-canvas text-ink placeholder:text-ink-3 focus:outline-none focus:border-gold"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => { setSearch(''); setSelected(new Set()) }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink text-xs"
+              aria-label="Clear search"
+            >
+              ✕
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Body */}
       {state.kind === 'loading' && <p className="text-sm text-ink-2">Loading staged content…</p>}
       {state.kind === 'error' && <p className="text-sm text-red-400">Failed to load staging: {state.message}</p>}
@@ -312,7 +344,7 @@ export function StagingBrowser(): JSX.Element {
               {selected.size > 0 && (
                 <button
                   type="button"
-                  onClick={() => void promoteSelected(tabItems)}
+                  onClick={() => void promoteSelected(filteredItems)}
                   disabled={promotingSelected}
                   className="px-4 py-2 rounded bg-green-700 hover:bg-green-600 text-white font-medium disabled:opacity-40 disabled:cursor-not-allowed"
                 >
@@ -333,8 +365,10 @@ export function StagingBrowser(): JSX.Element {
             </div>
           )}
 
-          {tabItems.length === 0 ? (
-            <p className="text-sm text-ink-2">No {activeTab} items in staging.</p>
+          {filteredItems.length === 0 ? (
+            <p className="text-sm text-ink-2">
+              {query ? `No ${activeTab}s match "${search}".` : `No ${activeTab} items in staging.`}
+            </p>
           ) : (
             <ul className="rounded border border-line bg-canvas divide-y divide-line">
               {/* Category select-all row */}
@@ -342,15 +376,15 @@ export function StagingBrowser(): JSX.Element {
                 <input
                   type="checkbox"
                   id="select-all-category"
-                  checked={tabItems.length > 0 && tabItems.every((i) => selected.has(key(i)))}
-                  onChange={() => toggleAll(tabItems, tabItems.every((i) => selected.has(key(i))))}
+                  checked={filteredItems.length > 0 && filteredItems.every((i) => selected.has(key(i)))}
+                  onChange={() => toggleAll(filteredItems, filteredItems.every((i) => selected.has(key(i))))}
                   className="w-4 h-4 accent-gold cursor-pointer"
                 />
                 <label htmlFor="select-all-category" className="text-xs text-ink-2 cursor-pointer select-none">
-                  Select all {activeTab}s ({tabItems.length})
+                  Select all {activeTab}s ({filteredItems.length}{query ? ` of ${tabItems.length}` : ''})
                 </label>
               </li>
-              {tabItems.map((item) => {
+              {filteredItems.map((item) => {
                 const status = promote[key(item)] ?? 'idle'
                 const del = deleteState[key(item)]
                 const demote = demoteState[key(item)] ?? 'idle'
