@@ -76,7 +76,7 @@ export const router = createBrowserRouter([
           { path: '/play/profile',          element: <ProfilePage /> },
           { path: '/play/saved-questions',  element: <GlossaryDrawerProvider><SavedQuestionsPage /></GlossaryDrawerProvider> },
           { path: '/play/saved-tips',       element: <SavedTipsPage /> },
-          { path: '/play/references',       element: <ReferencesLibraryPage /> },
+          { path: '/play/references',       element: <GlossaryDrawerProvider><ReferencesLibraryPage /></GlossaryDrawerProvider> },
           { path: '/play/pro-training',      element: <ProTrainingPage /> },
           { path: '/play/checkout/success', element: <CheckoutSuccessPage /> },
         ],
