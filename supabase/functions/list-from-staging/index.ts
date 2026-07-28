@@ -38,7 +38,7 @@ Deno.serve(async (req) => {
 
   const { data, error } = await staging
     .from("content_staging")
-    .select("content_id, content_type, content, updated_at")
+    .select("content_id, content_type, content, updated_at, created_at")
     .order("updated_at", { ascending: false });
 
   if (error) {
