@@ -32,25 +32,30 @@ interface Slot {
 
 // Slots run clockwise from hero (slot 0 = bottom-center). In poker, action
 // flows clockwise: BTN → SB (left of BTN) → BB → UTG → … → CO (right of BTN).
+//
+// Left-side slots use translate(calc(-100% + 45px), -50%) so the pod's right
+// edge is always anchored at left:2% + 58px, regardless of pod width.
+// Right-side slots use translate(calc(100% - 45px), -50%) so the pod's left
+// edge is always anchored at right:2% + 58px from the right, regardless of width.
 const SLOTS: Slot[] = [
   // 0 – bottom-center (hero / BTN)
   { style: { left: '50%', top: '90%', transform: 'translate(-50%, -50%)' }, align: 'center' },
   // 1 – bottom-left  (SB)
-  { style: { left: '2%', top: '72%', transform: 'translate(-32px, -50%)' }, align: 'center' },
+  { style: { left: '2%', top: '72%', transform: 'translate(calc(-100% + 45px), -50%)' }, align: 'flex-end' },
   // 2 – left         (BB)
-  { style: { left: '2%', top: '50%', transform: 'translate(-32px, -50%)' }, align: 'center' },
+  { style: { left: '2%', top: '50%', transform: 'translate(calc(-100% + 45px), -50%)' }, align: 'flex-end' },
   // 3 – top-left     (UTG)
-  { style: { left: '2%', top: '28%', transform: 'translate(-32px, -50%)' }, align: 'center' },
+  { style: { left: '2%', top: '28%', transform: 'translate(calc(-100% + 45px), -50%)' }, align: 'flex-end' },
   // 4 – top-center-left  (UTG+1)
-  { style: { left: '33%', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: 'calc(33% - 5px)', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
   // 5 – top-center-right (UTG+2)
-  { style: { left: '67%', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
+  { style: { left: 'calc(67% + 5px)', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
   // 6 – top-right    (LJ)
-  { style: { right: '2%', top: '28%', transform: 'translate(32px, -50%)' }, align: 'center' },
+  { style: { right: '2%', top: '28%', transform: 'translate(calc(100% - 45px), -50%)' }, align: 'flex-start' },
   // 7 – right        (HJ)
-  { style: { right: '2%', top: '50%', transform: 'translate(32px, -50%)' }, align: 'center' },
+  { style: { right: '2%', top: '50%', transform: 'translate(calc(100% - 45px), -50%)' }, align: 'flex-start' },
   // 8 – bottom-right (CO)
-  { style: { right: '2%', top: '72%', transform: 'translate(32px, -50%)' }, align: 'center' },
+  { style: { right: '2%', top: '72%', transform: 'translate(calc(100% - 45px), -50%)' }, align: 'flex-start' },
 ];
 
 // ─── Player type encyclopedia ────────────────────────────────────────────────
@@ -267,7 +272,7 @@ function SeatDisplay({
       <div style={{ position: 'relative', paddingTop: 30, opacity: dimmed ? 0.4 : 1 }}>
         {isBtn && <PodDealerButton />}
         {hasCards && <PodHeroCards cards={holeCards} />}
-        <PodIdentityBlock position={position} typeCode="STP" stack={stack} squareBottom={Boolean(action)} />
+        <PodIdentityBlock position={position} typeCode="HERO" stack={stack} squareBottom={Boolean(action)} />
         {action && <PodActionTag action={action.action} amount={action.amount} flush={stack === undefined} />}
       </div>
     );

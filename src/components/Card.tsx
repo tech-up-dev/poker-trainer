@@ -21,18 +21,16 @@ export function Card({ card, size = 'md' }: CardProps): JSX.Element {
 
   return (
     <div
-      className={`flex items-center justify-center bg-[#F7F5EF] border border-[#c9d2dd] rounded select-none ${
-        isSmall ? 'w-[22px] h-[30px]' : 'w-[30px] h-[42px]'
+      className={`flex flex-col items-center justify-between bg-[#F7F5EF] border border-[#c9d2dd] rounded select-none ${
+        isSmall ? 'w-[22px] h-[30px] py-[2px]' : 'w-[30px] h-[42px] py-[3px]'
       }`}
       style={{ color: suit.color }}
     >
-      <span
-        className={`font-medium leading-none ${isSmall ? 'text-[10px]' : 'text-[14px]'}`}
-      >
+      <span className={`font-bold leading-none ${isSmall ? 'text-[10px]' : 'text-[14px]'}`}>
         {displayRank}
-        <small style={{ fontSize: isSmall ? '7px' : '9px', marginTop: '-4px', verticalAlign: 'top' }}>
-          {suit.symbol}
-        </small>
+      </span>
+      <span className={`leading-none ${isSmall ? 'text-[12px]' : 'text-[17px]'}`}>
+        {suit.symbol}
       </span>
     </div>
   );

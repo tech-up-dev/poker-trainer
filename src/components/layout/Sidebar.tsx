@@ -90,7 +90,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
           <button
             type="button"
             onClick={() => { onClose(); void navigate('/play/pro-training') }}
-            className="w-full flex items-center gap-3 rounded-xl p-[13px_14px] transition-colors"
+            className="w-full flex items-center gap-3 rounded-xl p-[13px_14px] transition-colors cursor-pointer"
             style={{
               background: 'rgba(245,166,35,0.12)',
               border: '1px solid rgba(245,166,35,0.42)',

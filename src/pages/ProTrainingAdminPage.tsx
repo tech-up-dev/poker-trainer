@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { JSX } from 'react'
 import { Plus, Pencil, Trash2, GripVertical, Check, X } from 'lucide-react'
 import { supabaseProd } from '../lib/supabase-prod'
@@ -226,6 +226,9 @@ export function ProTrainingAdminPage(): JSX.Element {
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [savingOrder, setSavingOrder] = useState(false)
+  const [dragOverId, setDragOverId] = useState<string | null>(null)
+  const dragIndexRef = useRef<number | null>(null)
 
   async function load(): Promise<void> {
     setLoading(true)
@@ -287,6 +290,22 @@ export function ProTrainingAdminPage(): JSX.Element {
     await supabaseProd.from('pro_training_courses').delete().eq('id', id)
     setDeletingId(null)
     await load()
+  }
+
+  async function handleReorder(fromIndex: number, toIndex: number): Promise<void> {
+    if (fromIndex === toIndex) return
+    const reordered = [...courses]
+    const [moved] = reordered.splice(fromIndex, 1)
+    reordered.splice(toIndex, 0, moved)
+    const withOrder = reordered.map((c, i) => ({ ...c, sort_order: i + 1 }))
+    setCourses(withOrder)
+    setSavingOrder(true)
+    await Promise.all(
+      withOrder.map((c) =>
+        supabaseProd.from('pro_training_courses').update({ sort_order: c.sort_order }).eq('id', c.id)
+      )
+    )
+    setSavingOrder(false)
   }
 
   function openAdd(): void {
@@ -355,16 +374,32 @@ export function ProTrainingAdminPage(): JSX.Element {
 
         {!loading && courses.length > 0 && (
           <div className="space-y-3">
-            {courses.map((course) => {
+            {savingOrder && <p className="text-xs text-ink-3">Saving order…</p>}
+            {courses.map((course, index) => {
               const accent = TONE_COLORS[course.tone]
               const discount = Math.round((1 - course.member_price / course.list_price) * 100)
+              const isDragOver = dragOverId === course.id
               return (
                 <div
                   key={course.id}
-                  className="flex items-center gap-4 bg-surface border border-line rounded-xl px-4 py-3"
-                  style={{ opacity: course.enabled ? 1 : 0.5 }}
+                  draggable
+                  onDragStart={() => { dragIndexRef.current = index }}
+                  onDragOver={(e) => { e.preventDefault(); setDragOverId(course.id) }}
+                  onDragLeave={() => setDragOverId(null)}
+                  onDrop={() => {
+                    setDragOverId(null)
+                    if (dragIndexRef.current !== null) void handleReorder(dragIndexRef.current, index)
+                    dragIndexRef.current = null
+                  }}
+                  onDragEnd={() => { setDragOverId(null); dragIndexRef.current = null }}
+                  className="flex items-center gap-4 bg-surface border rounded-xl px-4 py-3 transition-colors"
+                  style={{
+                    opacity: course.enabled ? 1 : 0.5,
+                    borderColor: isDragOver ? 'var(--color-gold)' : 'var(--color-line)',
+                    cursor: 'grab',
+                  }}
                 >
-                  {/* Drag handle (visual only) */}
+                  {/* Drag handle */}
                   <GripVertical className="w-4 h-4 text-ink-3 shrink-0 cursor-grab" />
 
                   {/* Tone dot */}
