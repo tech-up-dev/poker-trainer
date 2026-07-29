@@ -29,6 +29,7 @@ import { CheckoutSuccessPage } from './pages/CheckoutSuccessPage'
 import { OnboardingPage } from './pages/OnboardingPage'
 import { ProTrainingPage } from './pages/ProTrainingPage'
 import { ProTrainingAdminPage } from './pages/ProTrainingAdminPage'
+import { AppSettingsAdminPage } from './pages/AppSettingsAdminPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -57,6 +58,7 @@ export const router = createBrowserRouter([
           { path: 'admin/table-builder', element: <TableBuilderPage /> },
           { path: 'admin/wizard', element: <GlossaryDrawerProvider><AuthoringWizardPage fullscreen /></GlossaryDrawerProvider> },
           { path: 'admin/pro-training', element: <ProTrainingAdminPage /> },
+          { path: 'admin/settings',     element: <AppSettingsAdminPage /> },
           { path: '*', element: <Navigate to="/admin/dashboard" replace /> },
         ],
       },
@@ -83,7 +85,7 @@ export const router = createBrowserRouter([
       },
       // Onboarding is full-screen - outside MemberLayout
       { path: '/onboarding', element: <OnboardingPage /> },
-      // Lesson session is full-screen - outside MemberLayout so the nav doesn't show
+      // Lesson session: header-only layout so theme toggle is accessible
       {
         path: '/play/lessons/:lessonId',
         element: (

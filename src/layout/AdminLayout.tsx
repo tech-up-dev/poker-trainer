@@ -9,6 +9,7 @@ import {
   Table2,
   Wand2,
   ShoppingBag,
+  Settings,
   LogOut,
   Sun,
   Moon,
@@ -29,6 +30,7 @@ const NAV_ITEMS = [
   { to: '/admin/table-builder', icon: Table2,    label: 'Table Builder' },
   { to: '/admin/wizard',        icon: Wand2,       label: 'Wizard'        },
   { to: '/admin/pro-training', icon: ShoppingBag, label: 'Pro Training'  },
+  { to: '/admin/settings',     icon: Settings,    label: 'Settings'      },
 ]
 
 function navClass({ isActive }: { isActive: boolean }): string {

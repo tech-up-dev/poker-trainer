@@ -6,7 +6,7 @@ import { fetchStreak } from '../../lib/streak'
 import { useTheme } from '../../lib/theme-context'
 
 interface TopBarProps {
-  onMenuClick: () => void
+  onMenuClick?: () => void
 }
 
 export function TopBar({ onMenuClick }: TopBarProps): JSX.Element {
@@ -23,14 +23,16 @@ export function TopBar({ onMenuClick }: TopBarProps): JSX.Element {
     <header className="sticky top-0 z-30 bg-canvas/95 backdrop-blur-sm border-b border-line">
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={onMenuClick}
-            className="lg:hidden p-2 rounded-lg hover:bg-surface-raised text-ink-2 transition-colors"
-            aria-label="Open menu"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
+          {onMenuClick && (
+            <button
+              type="button"
+              onClick={onMenuClick}
+              className="lg:hidden p-2 rounded-lg hover:bg-surface-raised text-ink-2 transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          )}
 
           <div className="flex items-center gap-2 lg:hidden">
             <div className="w-8 h-8 rounded-lg bg-gold flex items-center justify-center">
