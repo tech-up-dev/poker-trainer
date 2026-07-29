@@ -69,7 +69,7 @@ function UpsellButtonSection(): JSX.Element {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-3xl">
-        {/* Left — sidebar button fields */}
+        {/* Left - sidebar button fields */}
         <div className="space-y-3">
           <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Sidebar button</p>
           <div className="flex flex-col gap-1">
@@ -101,7 +101,7 @@ function UpsellButtonSection(): JSX.Element {
           </label>
         </div>
 
-        {/* Right — non-member banner fields */}
+        {/* Right - non-member banner fields */}
         <div className="space-y-3">
           <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Non-member banner</p>
           <div className="flex flex-col gap-1">
@@ -122,7 +122,7 @@ function UpsellButtonSection(): JSX.Element {
               onChange={(e) => update('non_member_cta', e.target.value)}
               className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
             />
-            <p className="text-xs text-ink-3">The clickable link that follows the banner — always links to the subscribe page.</p>
+            <p className="text-xs text-ink-3">The clickable link that follows the banner - always links to the subscribe page.</p>
           </div>
         </div>
       </div>

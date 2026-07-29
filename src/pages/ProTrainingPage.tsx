@@ -148,7 +148,7 @@ export function ProTrainingPage(): JSX.Element {
         </p>
       </div>
 
-      {/* Banner — suppressed until config loads to avoid flash of default text */}
+      {/* Banner - suppressed until config loads to avoid flash of default text */}
       {(hasAccess || upsell) && (
         <div
           className="flex items-center gap-3 text-[13.5px]"
@@ -159,11 +159,11 @@ export function ProTrainingPage(): JSX.Element {
             <span>
               Your active membership unlocks{' '}
               <strong className="text-ink">40% off every course below</strong>
-              {' — the member price is already applied, no code needed.'}
+              {' - the member price is already applied, no code needed.'}
             </span>
           ) : (
             <span>
-              {upsell!.non_member_banner} —{' '}
+              {upsell!.non_member_banner} -{' '}
               <button
                 type="button"
                 onClick={() => navigate('/play/profile')}
