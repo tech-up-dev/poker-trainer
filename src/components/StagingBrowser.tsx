@@ -275,14 +275,12 @@ export function StagingBrowser(): JSX.Element {
     : tabItems
 
   const filteredItems = [...matchedItems].sort((a, b) => {
-    let cmp = 0
-    if (sortField === 'name') {
-      cmp = labelFor(a).localeCompare(labelFor(b))
-    } else if (sortField === 'created_at') {
-      cmp = (a.created_at ?? a.updated_at).localeCompare(b.created_at ?? b.updated_at)
-    } else {
-      cmp = a.updated_at.localeCompare(b.updated_at)
-    }
+    const cmp =
+      sortField === 'name'
+        ? labelFor(a).localeCompare(labelFor(b))
+        : sortField === 'created_at'
+          ? (a.created_at ?? a.updated_at).localeCompare(b.created_at ?? b.updated_at)
+          : a.updated_at.localeCompare(b.updated_at)
     return sortDir === 'asc' ? cmp : -cmp
   })
 

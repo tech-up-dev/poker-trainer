@@ -16,8 +16,8 @@ import {
 
 import { useAuth } from '../../lib/auth-context'
 import { supabaseProd } from '../../lib/supabase-prod'
-import { fetchUpsellButtonConfig } from '../../pages/ProTrainingAdminPage'
-import type { UpsellButtonConfig } from '../../pages/ProTrainingAdminPage'
+import { fetchUpsellButtonConfig } from '../../lib/upsell-config'
+import type { UpsellButtonConfig } from '../../lib/upsell-config'
 
 
 interface SidebarProps {

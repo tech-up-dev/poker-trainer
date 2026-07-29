@@ -3,8 +3,8 @@ import type { JSX } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
 import { supabaseProd } from '../lib/supabase-prod'
-import { fetchUpsellButtonConfig } from './ProTrainingAdminPage'
-import type { UpsellButtonConfig } from './ProTrainingAdminPage'
+import { fetchUpsellButtonConfig } from '../lib/upsell-config'
+import type { UpsellButtonConfig } from '../lib/upsell-config'
 
 type Tone = 'amber' | 'teal' | 'violet' | 'blue'
 

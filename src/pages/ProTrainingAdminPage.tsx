@@ -2,37 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import type { JSX } from 'react'
 import { Plus, Pencil, Trash2, GripVertical, Check, X } from 'lucide-react'
 import { supabaseProd } from '../lib/supabase-prod'
-
-export type UpsellButtonConfig = {
-  title: string
-  subtitle: string
-  enabled: boolean
-  non_member_banner: string
-  non_member_cta: string
-}
-
-const DEFAULT_UPSELL: UpsellButtonConfig = {
-  title: 'Unlock Pro Training',
-  subtitle: 'Members save 40%',
-  enabled: true,
-  non_member_banner: 'Members save 40% on every course below',
-  non_member_cta: 'subscribe to unlock member pricing',
-}
-
-export async function fetchUpsellButtonConfig(): Promise<UpsellButtonConfig> {
-  const { data } = await supabaseProd
-    .from('app_settings')
-    .select('value')
-    .eq('key', 'unlock_pro_training_button')
-    .single()
-  if (data?.value && typeof data.value === 'object') {
-    return { ...DEFAULT_UPSELL, ...(data.value as Partial<UpsellButtonConfig>) }
-  }
-  return DEFAULT_UPSELL
-}
+import { fetchUpsellButtonConfig, DEFAULT_UPSELL_CONFIG } from '../lib/upsell-config'
+import type { UpsellButtonConfig } from '../lib/upsell-config'
 
 function UpsellButtonSection(): JSX.Element {
-  const [config, setConfig] = useState<UpsellButtonConfig>(DEFAULT_UPSELL)
+  const [config, setConfig] = useState<UpsellButtonConfig>(DEFAULT_UPSELL_CONFIG)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)

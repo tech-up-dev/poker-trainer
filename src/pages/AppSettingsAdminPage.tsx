@@ -155,7 +155,7 @@ export function AppSettingsAdminPage(): JSX.Element {
       </button>
 
       <p className="text-xs text-ink-3">
-        The bottom tier threshold is always 0% and cannot be changed. Tiers are evaluated highest-first — a score qualifies for the first tier whose minimum it meets.
+        The bottom tier threshold is always 0% and cannot be changed. Tiers are evaluated highest-first - a score qualifies for the first tier whose minimum it meets.
       </p>
 
       {error && (
