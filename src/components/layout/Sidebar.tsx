@@ -19,7 +19,6 @@ import { supabaseProd } from '../../lib/supabase-prod'
 import { fetchUpsellButtonConfig } from '../../pages/ProTrainingAdminPage'
 import type { UpsellButtonConfig } from '../../pages/ProTrainingAdminPage'
 
-const DEFAULT_UPSELL: UpsellButtonConfig = { title: 'Unlock Pro Training', subtitle: 'Members save 40%', enabled: true, non_member_banner: 'Members save 40% on every course below', non_member_cta: 'subscribe to unlock member pricing' }
 
 interface SidebarProps {
   isOpen: boolean

@@ -112,7 +112,6 @@ function CourseCard({ course, isMember, onSubscribe }: { course: Course; isMembe
   )
 }
 
-const DEFAULT_UPSELL: UpsellButtonConfig = { title: 'Unlock Pro Training', subtitle: 'Members save 40%', enabled: true, non_member_banner: 'Members save 40% on every course below', non_member_cta: 'subscribe to unlock member pricing' }
 
 export function ProTrainingPage(): JSX.Element {
   const { hasAccess } = useAuth()
