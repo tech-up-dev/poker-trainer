@@ -12,7 +12,11 @@ type StagedItem = {
   content_type: ContentType
   content: unknown
   updated_at: string
+  created_at?: string
 }
+
+type SortField = 'name' | 'created_at' | 'updated_at'
+type SortDir = 'asc' | 'desc'
 
 type LoadState =
   { kind: 'loading' } | { kind: 'error'; message: string } | { kind: 'loaded'; items: StagedItem[] }
@@ -69,6 +73,8 @@ export function StagingBrowser(): JSX.Element {
   const navigate = useNavigate()
   const [state, setState] = useState<LoadState>({ kind: 'loading' })
   const [publishedKeys, setPublishedKeys] = useState<Set<string>>(new Set())
+  // Maps key → updated_at of the currently-promoted version, for staleness check.
+  const [publishedAt, setPublishedAt] = useState<Map<string, string>>(new Map())
   const [promote, setPromote] = useState<Record<string, PromoteStatus>>({})
   const [deleteState, setDeleteState] = useState<Record<string, DeleteStatus>>({})
   const [confirmItem, setConfirmItem] = useState<StagedItem | null>(null)
@@ -80,6 +86,8 @@ export function StagingBrowser(): JSX.Element {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [promotingSelected, setPromotingSelected] = useState(false)
   const [search, setSearch] = useState('')
+  const [sortField, setSortField] = useState<SortField>('updated_at')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
   // Bumped to trigger a reload of the staging list (mount + Refresh button).
   const [reloadKey, setReloadKey] = useState(0)
 
@@ -90,7 +98,7 @@ export function StagingBrowser(): JSX.Element {
       setState({ kind: 'loading' })
       const [stagingResult, publishedResult] = await Promise.all([
         supabaseProd.functions.invoke('list-from-staging', { body: {} }),
-        supabaseProd.from('content_published').select('content_id, content_type'),
+        supabaseProd.from('content_published').select('content_id, content_type, updated_at'),
       ])
       if (cancelled) return
       if (stagingResult.error) {
@@ -102,12 +110,16 @@ export function StagingBrowser(): JSX.Element {
         setState({ kind: 'error', message: result.message ?? 'Unknown error' })
         return
       }
-      // Build a set of keys for items currently live in production.
-      const live = new Set<string>(
-        ((publishedResult.data ?? []) as { content_id: string; content_type: string }[])
-          .map((r) => `${r.content_type}:${r.content_id}`),
-      )
+      // Build a set of live keys and a map of key → published updated_at.
+      const live = new Set<string>()
+      const atMap = new Map<string, string>()
+      for (const r of (publishedResult.data ?? []) as { content_id: string; content_type: string; updated_at: string }[]) {
+        const k = `${r.content_type}:${r.content_id}`
+        live.add(k)
+        atMap.set(k, r.updated_at)
+      }
       setPublishedKeys(live)
+      setPublishedAt(atMap)
       setState({ kind: 'loaded', items: result.items ?? [] })
     }
 
@@ -132,6 +144,7 @@ export function StagingBrowser(): JSX.Element {
       return false
     }
     setPublishedKeys((prev) => new Set([...prev, key(item)]))
+    setPublishedAt((prev) => new Map([...prev, [key(item), item.updated_at]]))
     setPromote((p) => ({ ...p, [key(item)]: { version: result.version_number } }))
     return true
   }
@@ -140,6 +153,8 @@ export function StagingBrowser(): JSX.Element {
     if (promotingAll) return
     setPromotingAll(true)
     for (const item of items) {
+      const at = publishedAt.get(key(item))
+      if (publishedKeys.has(key(item)) && at !== undefined && item.updated_at <= at) continue
       await promoteItem(item)
     }
     setPromotingAll(false)
@@ -216,6 +231,7 @@ export function StagingBrowser(): JSX.Element {
       return
     }
     setPublishedKeys((prev) => { const next = new Set(prev); next.delete(key(item)); return next })
+    setPublishedAt((prev) => { const next = new Map(prev); next.delete(key(item)); return next })
     setDemoteState((s) => ({ ...s, [key(item)]: 'demoted' }))
   }
 
@@ -251,12 +267,24 @@ export function StagingBrowser(): JSX.Element {
       : []
 
   const query = search.trim().toLowerCase()
-  const filteredItems = query
+  const matchedItems = query
     ? tabItems.filter((item) =>
         labelFor(item).toLowerCase().includes(query) ||
         item.content_id.toLowerCase().includes(query),
       )
     : tabItems
+
+  const filteredItems = [...matchedItems].sort((a, b) => {
+    let cmp = 0
+    if (sortField === 'name') {
+      cmp = labelFor(a).localeCompare(labelFor(b))
+    } else if (sortField === 'created_at') {
+      cmp = (a.created_at ?? a.updated_at).localeCompare(b.created_at ?? b.updated_at)
+    } else {
+      cmp = a.updated_at.localeCompare(b.updated_at)
+    }
+    return sortDir === 'asc' ? cmp : -cmp
+  })
 
   const allVisibleItems =
     state.kind === 'loaded'
@@ -310,26 +338,48 @@ export function StagingBrowser(): JSX.Element {
         })}
       </div>
 
-      {/* Search */}
+      {/* Search + Sort */}
       {state.kind === 'loaded' && tabItems.length > 0 && (
-        <div className="relative">
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setSelected(new Set()) }}
-            placeholder={`Search ${activeTab}s…`}
-            className="w-full sm:w-72 px-3 py-1.5 pr-8 text-sm rounded border border-line bg-canvas text-ink placeholder:text-ink-3 focus:outline-none focus:border-gold"
-          />
-          {search && (
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative">
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setSelected(new Set()) }}
+              placeholder={`Search ${activeTab}s…`}
+              className="w-full sm:w-72 px-3 py-1.5 pr-8 text-sm rounded border border-line bg-canvas text-ink placeholder:text-ink-3 focus:outline-none focus:border-gold"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => { setSearch(''); setSelected(new Set()) }}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink text-xs"
+                aria-label="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-ink-3">Sort by</span>
+            <select
+              value={sortField}
+              onChange={(e) => setSortField(e.target.value as SortField)}
+              className="text-xs px-2 py-1.5 rounded border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
+            >
+              <option value="updated_at">Last modified</option>
+              <option value="created_at">Creation date</option>
+              <option value="name">Name</option>
+            </select>
             <button
               type="button"
-              onClick={() => { setSearch(''); setSelected(new Set()) }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-ink-3 hover:text-ink text-xs"
-              aria-label="Clear search"
+              onClick={() => setSortDir((d) => d === 'asc' ? 'desc' : 'asc')}
+              className="text-xs px-2 py-1.5 rounded border border-line bg-canvas text-ink hover:bg-surface-raised"
+              title={sortDir === 'asc' ? 'Ascending' : 'Descending'}
             >
-              ✕
+              {sortDir === 'asc' ? '↑ Asc' : '↓ Desc'}
             </button>
-          )}
+          </div>
         </div>
       )}
 
@@ -391,6 +441,8 @@ export function StagingBrowser(): JSX.Element {
                 const isLive = publishedKeys.has(key(item))
                 const isOpen = expanded[key(item)] === true
                 const isSelected = selected.has(key(item))
+                const promotedAt = publishedAt.get(key(item))
+                const alreadyPromoted = isLive && promotedAt !== undefined && item.updated_at <= promotedAt
                 return (
                   <li key={key(item)} className="px-4 py-3 space-y-2">
                     <div className="flex items-center justify-between gap-3">
@@ -442,10 +494,11 @@ export function StagingBrowser(): JSX.Element {
                         <button
                           type="button"
                           onClick={() => void promoteItem(item)}
-                          disabled={status === 'promoting' || promotingAll}
+                          disabled={alreadyPromoted || status === 'promoting' || promotingAll}
+                          title={alreadyPromoted ? 'Already live - edit to re-enable' : undefined}
                           className="text-xs px-2 py-1 rounded bg-green-700 hover:bg-green-600 text-white disabled:opacity-40 disabled:cursor-not-allowed"
                         >
-                          {status === 'promoting' ? 'Promoting…' : 'Promote'}
+                          {status === 'promoting' ? 'Promoting…' : alreadyPromoted ? 'Live ✓' : 'Promote'}
                         </button>
                         <button
                           type="button"

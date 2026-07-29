@@ -878,6 +878,8 @@ export function AuthoringWizardPage({
   const locState = location.state as {
     newLesson?: boolean
     preloadContent?: unknown
+    contentId?: string
+    contentType?: string
   } | null
 
   // Don't persist sessionStorage drafts when editing from staging - so that
@@ -935,6 +937,7 @@ export function AuthoringWizardPage({
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [deleteError, setDeleteError] = useState<string | null>(null)
 
   // Mirror the draft to sessionStorage on every change so a tab-return remount
   // restores it. Skip when in edit-from-staging mode so the sidebar always starts fresh.
@@ -1102,14 +1105,17 @@ export function AuthoringWizardPage({
     : zodResult.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`)
 
   async function handleDelete(): Promise<void> {
-    if (!lessonId) return
+    const contentId = locState?.contentId ?? lessonId
+    if (!contentId) return
     setShowDeleteConfirm(false)
     setDeleting(true)
+    setDeleteError(null)
     const { data, error } = await supabaseProd.functions.invoke('delete-content', {
-      body: { content_id: lessonId, content_type: 'lesson' },
+      body: { content_id: contentId, content_type: 'lesson' },
     })
     const result = data as { ok: boolean; message?: string } | null
     if (error || !result?.ok) {
+      setDeleteError(result?.message ?? error?.message ?? 'Delete failed')
       setDeleting(false)
       return
     }
@@ -1235,16 +1241,6 @@ export function AuthoringWizardPage({
   if (fullscreen) {
     return (
       <>
-      <ConfirmDialog
-        open={showDeleteConfirm}
-        title="Delete lesson from live app?"
-        message="WARNING: This immediately removes the lesson from both staging and the live app. Players will no longer see it. This cannot be undone."
-        confirmLabel="Delete everywhere"
-        cancelLabel="Cancel"
-        destructive
-        onConfirm={() => void handleDelete()}
-        onCancel={() => setShowDeleteConfirm(false)}
-      />
       <div className="fixed inset-0 z-50 flex flex-col bg-canvas text-ink">
         <div className="h-0.5 bg-line shrink-0">
           <div
@@ -1265,7 +1261,7 @@ export function AuthoringWizardPage({
           <p className="absolute left-1/2 -translate-x-1/2 text-sm font-medium text-ink-2">
             Step {stepIdx + 1} of {ALL_STEPS.length}
           </p>
-          {isEditMode && lessonId && (
+          {isEditMode && (locState?.contentId || lessonId) && (
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
@@ -1277,6 +1273,9 @@ export function AuthoringWizardPage({
           )}
         </div>
 
+        {deleteError && (
+          <p className="px-6 py-2 text-xs text-error bg-error/10 border-b border-error/20">{deleteError}</p>
+        )}
         <FullscreenStepIndicator current={step} onStepClick={handleStepClick} />
 
         <div className="flex-1 overflow-y-auto">
@@ -1295,6 +1294,16 @@ export function AuthoringWizardPage({
           {navButtons}
         </div>
       </div>
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete lesson from live app?"
+        message="WARNING: This immediately removes the lesson from both staging and the live app. Players will no longer see it. This cannot be undone."
+        confirmLabel="Delete everywhere"
+        cancelLabel="Cancel"
+        destructive
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
       </>
     )
   }

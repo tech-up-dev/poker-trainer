@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { JSX } from 'react'
-import { X, CheckCircle2 } from 'lucide-react'
+import { X, CheckCircle2, Sun, Moon, Flame } from 'lucide-react'
 
 import type { Lesson, Question } from '../../shared/schemas/lesson'
 import { ConfettiCanvas } from '../components/ConfettiCanvas'
@@ -10,6 +10,73 @@ import { linkifyGlossaryTerms } from '../lib/glossary-text'
 import { fetchPublishedLesson } from '../lib/lessons'
 import { upsertProgress } from '../lib/progress'
 import { logAnswerEvent } from '../lib/answer-events'
+import { supabaseProd } from '../lib/supabase-prod'
+import { useTheme } from '../lib/theme-context'
+import { fetchStreak } from '../lib/streak'
+
+function LessonTopControls(): JSX.Element {
+  const { theme, toggleTheme } = useTheme()
+  const [streak, setStreak] = useState(0)
+
+  useEffect(() => {
+    fetchStreak().then((s) => setStreak(s.current)).catch(() => {})
+  }, [])
+
+  return (
+    <div className="fixed top-3 right-4 z-30 flex items-center gap-2">
+      {streak > 0 && (
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gold/10 rounded-full">
+          <Flame className="w-4 h-4 text-gold" />
+          <span className="text-sm font-semibold text-gold">{streak}</span>
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        aria-label={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+        className="p-2 rounded-lg hover:bg-surface-raised text-ink-2 hover:text-ink transition-colors"
+      >
+        {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+      </button>
+    </div>
+  )
+}
+
+type ResultTier = { min_pct: number; message: string; confetti: boolean }
+
+// Visual styles derived from tier rank (0 = top, last = bottom).
+const TIER_STYLES = [
+  { color: 'text-gold',    barColor: 'bg-gold',    icon: 'star'  as const },
+  { color: 'text-success', barColor: 'bg-success', icon: 'check' as const },
+  { color: 'text-warning', barColor: 'bg-warning', icon: 'check' as const },
+  { color: 'text-error',   barColor: 'bg-error',   icon: 'x'     as const },
+]
+
+const DEFAULT_TIERS: ResultTier[] = [
+  { min_pct: 90, message: 'Outstanding performance!',  confetti: true  },
+  { min_pct: 70, message: 'Lesson complete!',           confetti: true  },
+  { min_pct: 50, message: 'Good effort, keep going!',   confetti: false },
+  { min_pct: 0,  message: 'Keep practicing',            confetti: false },
+]
+
+async function fetchResultTiers(): Promise<ResultTier[]> {
+  const { data, error } = await supabaseProd
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'lesson_result_tiers')
+    .single()
+  if (error || !data) return DEFAULT_TIERS
+  const tiers = data.value as ResultTier[]
+  if (!Array.isArray(tiers) || tiers.length === 0) return DEFAULT_TIERS
+  return [...tiers].sort((a, b) => b.min_pct - a.min_pct)
+}
+
+function resolveTier(pct: number, tiers: ResultTier[]): ResultTier & { color: string; barColor: string; icon: 'star' | 'check' | 'x' } {
+  const idx = tiers.findIndex((t) => pct >= t.min_pct)
+  const tier = tiers[idx === -1 ? tiers.length - 1 : idx]
+  const style = TIER_STYLES[Math.min(idx === -1 ? tiers.length - 1 : idx, TIER_STYLES.length - 1)]
+  return { ...tier, ...style }
+}
 
 type MissedQuestion = {
   question: Question
@@ -51,7 +118,12 @@ export function LessonSessionPage(): JSX.Element {
   const [correctMap, setCorrectMap] = useState<Record<number, boolean>>({})
   const [answeredMap, setAnsweredMap] = useState<Record<number, number>>({})
   const [displayPct, setDisplayPct] = useState(0)
+  const [resultTiers, setResultTiers] = useState<ResultTier[]>(DEFAULT_TIERS)
   const questionStartedAt = useRef<number>(0)
+
+  useEffect(() => {
+    void fetchResultTiers().then(setResultTiers)
+  }, [])
 
   useEffect(() => {
     if (!lessonId) return
@@ -185,6 +257,7 @@ export function LessonSessionPage(): JSX.Element {
   if (phase.kind === 'intro') {
     return (
       <div className="min-h-screen bg-canvas text-ink px-4 py-10">
+        <LessonTopControls />
         <div className="max-w-md mx-auto space-y-6">
           <button
             type="button"
@@ -241,6 +314,7 @@ export function LessonSessionPage(): JSX.Element {
 
     return (
       <div className="min-h-screen bg-canvas flex flex-col">
+        <LessonTopControls />
         {/* Sticky header */}
         <div className="sticky top-0 z-20 bg-canvas/95 backdrop-blur-sm border-b border-line px-4 py-3">
           <div className="max-w-md mx-auto flex items-center gap-3">
@@ -296,22 +370,12 @@ export function LessonSessionPage(): JSX.Element {
   const { correct, total, missed } = phase
   const pct = total > 0 ? Math.round((correct / total) * 100) : 0
 
-  // Tiered result based on score. Adjust thresholds/copy here when the client
-  // confirms their preferred values.
-  const result =
-    pct >= 90 ? { message: 'Outstanding performance!', confetti: true,  color: 'text-gold',    icon: 'star'  } :
-    pct >= 70 ? { message: 'Lesson complete!',          confetti: true,  color: 'text-success', icon: 'check' } :
-    pct >= 50 ? { message: 'Good effort, keep going!',  confetti: false, color: 'text-warning', icon: 'check' } :
-                { message: 'Keep practicing',           confetti: false, color: 'text-error',   icon: 'x'    }
-
-  const barColor =
-    pct >= 90 ? 'bg-gold' :
-    pct >= 70 ? 'bg-success' :
-    pct >= 50 ? 'bg-warning' :
-                'bg-error'
+  const result = resolveTier(pct, resultTiers)
+  const barColor = result.barColor
 
   return (
     <div className="min-h-screen bg-canvas text-ink px-4 py-10">
+      <LessonTopControls />
       {result.confetti && (
         <div className="fixed inset-0 pointer-events-none z-10">
           <ConfettiCanvas />

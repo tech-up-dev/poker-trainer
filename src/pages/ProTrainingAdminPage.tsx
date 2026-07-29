@@ -3,6 +3,151 @@ import type { JSX } from 'react'
 import { Plus, Pencil, Trash2, GripVertical, Check, X } from 'lucide-react'
 import { supabaseProd } from '../lib/supabase-prod'
 
+export type UpsellButtonConfig = {
+  title: string
+  subtitle: string
+  enabled: boolean
+  non_member_banner: string
+  non_member_cta: string
+}
+
+const DEFAULT_UPSELL: UpsellButtonConfig = {
+  title: 'Unlock Pro Training',
+  subtitle: 'Members save 40%',
+  enabled: true,
+  non_member_banner: 'Members save 40% on every course below',
+  non_member_cta: 'subscribe to unlock member pricing',
+}
+
+export async function fetchUpsellButtonConfig(): Promise<UpsellButtonConfig> {
+  const { data } = await supabaseProd
+    .from('app_settings')
+    .select('value')
+    .eq('key', 'unlock_pro_training_button')
+    .single()
+  if (data?.value && typeof data.value === 'object') {
+    return { ...DEFAULT_UPSELL, ...(data.value as Partial<UpsellButtonConfig>) }
+  }
+  return DEFAULT_UPSELL
+}
+
+function UpsellButtonSection(): JSX.Element {
+  const [config, setConfig] = useState<UpsellButtonConfig>(DEFAULT_UPSELL)
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    void fetchUpsellButtonConfig().then((cfg) => { setConfig(cfg); setLoading(false) })
+  }, [])
+
+  function update<K extends keyof UpsellButtonConfig>(key: K, value: UpsellButtonConfig[K]): void {
+    setConfig((prev) => ({ ...prev, [key]: value }))
+    setSaved(false)
+  }
+
+  async function handleSave(): Promise<void> {
+    setSaving(true)
+    setError(null)
+    const { error: err } = await supabaseProd
+      .from('app_settings')
+      .update({ value: config })
+      .eq('key', 'unlock_pro_training_button')
+    if (err) { setError(err.message); setSaving(false); return }
+    setSaved(true)
+    setSaving(false)
+  }
+
+  if (loading) return <p className="text-sm text-ink-2">Loading…</p>
+
+  return (
+    <section className="space-y-4 pt-6 border-t border-line">
+      <div>
+        <h2 className="text-lg font-semibold text-ink">Upsell Button</h2>
+        <p className="text-sm text-ink-3 mt-0.5">Configure the "Unlock Pro Training" button shown to members in the sidebar.</p>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-3xl">
+        {/* Left — sidebar button fields */}
+        <div className="space-y-3">
+          <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Sidebar button</p>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Button title</label>
+            <input
+              type="text"
+              value={config.title}
+              onChange={(e) => update('title', e.target.value)}
+              className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
+            />
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Subtitle</label>
+            <input
+              type="text"
+              value={config.subtitle}
+              onChange={(e) => update('subtitle', e.target.value)}
+              className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
+            />
+          </div>
+          <label className="flex items-center gap-3 cursor-pointer select-none pt-1">
+            <input
+              type="checkbox"
+              checked={config.enabled}
+              onChange={(e) => update('enabled', e.target.checked)}
+              className="w-4 h-4 accent-gold cursor-pointer"
+            />
+            <span className="text-sm text-ink">Show button to members</span>
+          </label>
+        </div>
+
+        {/* Right — non-member banner fields */}
+        <div className="space-y-3">
+          <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Non-member banner</p>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Banner text</label>
+            <input
+              type="text"
+              value={config.non_member_banner}
+              onChange={(e) => update('non_member_banner', e.target.value)}
+              className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
+            />
+            <p className="text-xs text-ink-3">Shown in the banner to non-members on the Pro Training page.</p>
+          </div>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">CTA link text</label>
+            <input
+              type="text"
+              value={config.non_member_cta}
+              onChange={(e) => update('non_member_cta', e.target.value)}
+              className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
+            />
+            <p className="text-xs text-ink-3">The clickable link that follows the banner — always links to the subscribe page.</p>
+          </div>
+        </div>
+      </div>
+
+      {error && (
+        <p className="text-sm text-error">
+          Save failed: {error}. Ask the back-end developer to add a write policy for admin users on the <code>app_settings</code> table.
+        </p>
+      )}
+
+      <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => void handleSave()}
+          disabled={saving}
+          className="px-5 py-2 rounded-lg bg-gold text-on-gold font-semibold text-sm hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {saving ? 'Saving…' : 'Save changes'}
+        </button>
+        {saved && <span className="text-sm text-success">Saved successfully.</span>}
+      </div>
+    </section>
+  )
+}
+
 type Tone = 'amber' | 'teal' | 'violet' | 'blue'
 
 type Course = {
@@ -342,10 +487,14 @@ export function ProTrainingAdminPage(): JSX.Element {
       )}
 
       <div className="space-y-6">
+        <div>
+          <h1 className="text-2xl font-bold text-ink">Pro Training</h1>
+          <p className="text-sm text-ink-3 mt-0.5">Manage courses and upsell button shown on the Pro Training page</p>
+        </div>
+
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-ink">Pro Training</h1>
-            <p className="text-sm text-ink-3 mt-0.5">Manage courses shown on the Pro Training page</p>
+            <h2 className="text-lg font-semibold text-ink">Courses</h2>
           </div>
           <button
             type="button"
@@ -454,6 +603,8 @@ export function ProTrainingAdminPage(): JSX.Element {
             })}
           </div>
         )}
+
+        <UpsellButtonSection />
       </div>
     </>
   )

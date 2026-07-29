@@ -41,21 +41,21 @@ const SLOTS: Slot[] = [
   // 0 – bottom-center (hero / BTN)
   { style: { left: '50%', top: '90%', transform: 'translate(-50%, -50%)' }, align: 'center' },
   // 1 – bottom-left  (SB)
-  { style: { left: '2%', top: '72%', transform: 'translate(calc(-100% + 45px), -50%)' }, align: 'flex-end' },
+  { style: { left: '2%', top: '72%', transform: 'translate(calc(-100% + 35px), -50%)' }, align: 'flex-end' },
   // 2 – left         (BB)
-  { style: { left: '2%', top: '50%', transform: 'translate(calc(-100% + 45px), -50%)' }, align: 'flex-end' },
+  { style: { left: '2%', top: '50%', transform: 'translate(calc(-100% + 35px), -50%)' }, align: 'flex-end' },
   // 3 – top-left     (UTG)
-  { style: { left: '2%', top: '28%', transform: 'translate(calc(-100% + 45px), -50%)' }, align: 'flex-end' },
+  { style: { left: '2%', top: '28%', transform: 'translate(calc(-100% + 35px), -50%)' }, align: 'flex-end' },
   // 4 – top-center-left  (UTG+1)
   { style: { left: 'calc(33% - 5px)', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
   // 5 – top-center-right (UTG+2)
   { style: { left: 'calc(67% + 5px)', top: 'calc(2% - 20px)', transform: 'translateX(-50%)' }, align: 'center' },
   // 6 – top-right    (LJ)
-  { style: { right: '2%', top: '28%', transform: 'translate(calc(100% - 45px), -50%)' }, align: 'flex-start' },
+  { style: { right: '2%', top: '28%', transform: 'translate(calc(100% - 35px), -50%)' }, align: 'flex-start' },
   // 7 – right        (HJ)
-  { style: { right: '2%', top: '50%', transform: 'translate(calc(100% - 45px), -50%)' }, align: 'flex-start' },
+  { style: { right: '2%', top: '50%', transform: 'translate(calc(100% - 35px), -50%)' }, align: 'flex-start' },
   // 8 – bottom-right (CO)
-  { style: { right: '2%', top: '72%', transform: 'translate(calc(100% - 45px), -50%)' }, align: 'flex-start' },
+  { style: { right: '2%', top: '72%', transform: 'translate(calc(100% - 35px), -50%)' }, align: 'flex-start' },
 ];
 
 // ─── Player type encyclopedia ────────────────────────────────────────────────
@@ -215,7 +215,7 @@ function PodDealerButton(): JSX.Element {
   return (
     <div style={{
       position: 'absolute', zIndex: 3,
-      right: -14, top: 34,
+      right: -14, top: 42,
       width: 22, height: 22, borderRadius: '50%',
       background: C.dealerBg, color: C.actionText,
       fontSize: 11, fontWeight: 500,

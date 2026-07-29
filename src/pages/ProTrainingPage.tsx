@@ -3,6 +3,8 @@ import type { JSX } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth-context'
 import { supabaseProd } from '../lib/supabase-prod'
+import { fetchUpsellButtonConfig } from './ProTrainingAdminPage'
+import type { UpsellButtonConfig } from './ProTrainingAdminPage'
 
 type Tone = 'amber' | 'teal' | 'violet' | 'blue'
 
@@ -42,27 +44,24 @@ function ExternalIcon(): JSX.Element {
   )
 }
 
-function CourseCard({ course, isMember }: { course: Course; isMember: boolean }): JSX.Element {
+function CourseCard({ course, isMember, onSubscribe }: { course: Course; isMember: boolean; onSubscribe: () => void }): JSX.Element {
   const t = TONE[course.tone]
   const discount = Math.round((1 - course.member_price / course.list_price) * 100)
 
   return (
-    <div
-      className="flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-6 rounded-2xl"
-      style={{ padding: '22px 24px', background: t.bg, border: `1px solid ${t.border}` }}
-    >
-      {/* Body */}
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <p className="text-[11px] font-bold tracking-[0.8px] uppercase" style={{ color: t.accent }}>
-          {course.eyebrow}
-        </p>
-        <h3 className="text-[19px] font-bold text-ink" style={{ margin: '6px 0 8px' }}>
-          {course.title}
-        </h3>
-        <p className="text-[13.5px] leading-[1.55] text-ink-2" style={{ margin: '0 0 12px' }}>
-          {course.description}
-        </p>
-        {isMember && (
+    <div className="rounded-2xl" style={{ padding: '22px 24px', background: t.bg, border: `1px solid ${t.border}` }}>
+      <div className="flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-6">
+        {/* Body */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p className="text-[11px] font-bold tracking-[0.8px] uppercase" style={{ color: t.accent }}>
+            {course.eyebrow}
+          </p>
+          <h3 className="text-[19px] font-bold text-ink" style={{ margin: '6px 0 8px' }}>
+            {course.title}
+          </h3>
+          <p className="text-[13.5px] leading-[1.55] text-ink-2" style={{ margin: '0 0 12px' }}>
+            {course.description}
+          </p>
           <span
             className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold rounded-full"
             style={{ color: t.accent, background: t.chip, padding: '4px 10px' }}
@@ -70,76 +69,69 @@ function CourseCard({ course, isMember }: { course: Course; isMember: boolean })
             <LockIcon size={13} />
             Member exclusive
           </span>
-        )}
-      </div>
+        </div>
 
-      {/* Buy column */}
-      {isMember ? (
-        <div
-          className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start sm:text-right shrink-0 sm:w-[210px]"
-          style={{ gap: 4 }}
-        >
-          <div>
-            <p className="text-[14px] text-ink-3 line-through">${course.list_price}</p>
-            <p className="text-[26px] font-extrabold leading-none" style={{ color: t.accent }}>
-              ${course.member_price}
-              <span
-                className="text-[11px] font-bold align-middle"
-                style={{ background: t.accent, color: '#04121e', padding: '2px 7px', marginLeft: 8, borderRadius: 6 }}
-              >
-                {discount}% OFF
-              </span>
-            </p>
-            <p className="text-[11px] text-ink-3" style={{ letterSpacing: '.3px', marginBottom: 8 }}>
-              member price
-            </p>
-          </div>
-          <a
-            href={course.sales_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 font-bold text-[14px] whitespace-nowrap transition-opacity hover:opacity-90"
-            style={{ background: t.accent, color: '#04121e', borderRadius: 10, padding: '11px 18px', textDecoration: 'none' }}
-          >
-            Order Now <ExternalIcon />
-          </a>
+        {/* Buy column */}
+        <div className="flex flex-col items-start sm:items-end shrink-0 sm:w-[210px] sm:text-right" style={{ gap: 4 }}>
+          <p className="text-[14px] text-ink-3 line-through">${course.list_price}</p>
+          <p className="text-[26px] font-extrabold leading-none" style={{ color: t.accent }}>
+            ${course.member_price}
+            <span
+              className="text-[11px] font-bold align-middle"
+              style={{ background: t.accent, color: '#04121e', padding: '2px 7px', marginLeft: 8, borderRadius: 6 }}
+            >
+              {discount}% OFF
+            </span>
+          </p>
+          <p className="text-[11px] text-ink-3" style={{ letterSpacing: '.3px', marginBottom: 8 }}>
+            member price
+          </p>
+          {isMember ? (
+            <a
+              href={course.sales_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 font-bold text-[14px] whitespace-nowrap transition-opacity hover:opacity-90 w-full sm:w-auto"
+              style={{ background: t.accent, color: '#04121e', borderRadius: 10, padding: '11px 18px', textDecoration: 'none' }}
+            >
+              Order Now <ExternalIcon />
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={onSubscribe}
+              className="inline-flex items-center justify-center gap-2 font-bold text-[14px] whitespace-nowrap transition-opacity hover:opacity-90 w-full sm:w-auto"
+              style={{ background: t.accent, color: '#04121e', borderRadius: 10, padding: '11px 18px', border: 'none', cursor: 'pointer' }}
+            >
+              Subscribe & Save {discount}%
+            </button>
+          )}
         </div>
-      ) : (
-        <div
-          className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start sm:text-right shrink-0 sm:w-[210px]"
-          style={{ gap: 4 }}
-        >
-          <div>
-            <p className="text-[17px] font-bold text-ink">${course.list_price}</p>
-            <p className="text-[11px] text-ink-3" style={{ marginBottom: 8 }}>list price</p>
-          </div>
-          <button
-            type="button"
-            className="text-[13px] font-semibold text-ink-2 border border-line rounded-[10px] whitespace-nowrap hover:text-ink hover:border-ink-2 transition-colors"
-            style={{ padding: '9px 14px' }}
-          >
-            Unlock member price
-          </button>
-        </div>
-      )}
+      </div>
     </div>
   )
 }
+
+const DEFAULT_UPSELL: UpsellButtonConfig = { title: 'Unlock Pro Training', subtitle: 'Members save 40%', enabled: true, non_member_banner: 'Members save 40% on every course below', non_member_cta: 'subscribe to unlock member pricing' }
 
 export function ProTrainingPage(): JSX.Element {
   const { hasAccess } = useAuth()
   const navigate = useNavigate()
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
+  const [upsell, setUpsell] = useState<UpsellButtonConfig | null>(null)
 
   useEffect(() => {
     void (async () => {
-      const { data } = await supabaseProd
-        .from('pro_training_courses')
-        .select('id, eyebrow, title, description, list_price, member_price, tone, sales_url, sort_order')
-        .eq('enabled', true)
-        .order('sort_order', { ascending: true })
-      setCourses((data ?? []) as Course[])
+      const [coursesResult] = await Promise.all([
+        supabaseProd
+          .from('pro_training_courses')
+          .select('id, eyebrow, title, description, list_price, member_price, tone, sales_url, sort_order')
+          .eq('enabled', true)
+          .order('sort_order', { ascending: true }),
+        fetchUpsellButtonConfig().then(setUpsell),
+      ])
+      setCourses((coursesResult.data ?? []) as Course[])
       setLoading(false)
     })()
   }, [])
@@ -157,35 +149,31 @@ export function ProTrainingPage(): JSX.Element {
         </p>
       </div>
 
-      {/* Banner */}
-      {hasAccess ? (
+      {/* Banner — suppressed until config loads to avoid flash of default text */}
+      {(hasAccess || upsell) && (
         <div
-          className="flex items-center gap-3 text-[13.5px] text-ink-2"
-          style={{ margin: '0 0 26px', padding: '14px 18px', borderRadius: 12, background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.42)' }}
+          className="flex items-center gap-3 text-[13.5px]"
+          style={{ margin: '0 0 26px', padding: '14px 18px', borderRadius: 12, background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.42)', color: '#f3d9a6' }}
         >
           <span className="shrink-0 text-gold"><LockIcon size={20} /></span>
-          <span>
-            Your active membership unlocks{' '}
-            <strong className="text-ink">40% off every course below</strong>
-            {' - the member price is already applied, no code needed.'}
-          </span>
-        </div>
-      ) : (
-        <div
-          className="flex items-center gap-3 text-sm text-ink-2 bg-surface border border-line"
-          style={{ margin: '0 0 26px', padding: '14px 18px', borderRadius: 12 }}
-        >
-          <span className="shrink-0 text-ink-3"><LockIcon size={18} /></span>
-          <span>
-            <strong className="text-ink">Members save 40%</strong> on every course.{' '}
-            <button
-              type="button"
-              onClick={() => navigate('/play/profile')}
-              className="text-gold underline underline-offset-2 hover:opacity-80 transition-opacity"
-            >
-              Subscribe to unlock member pricing →
-            </button>
-          </span>
+          {hasAccess ? (
+            <span>
+              Your active membership unlocks{' '}
+              <strong className="text-ink">40% off every course below</strong>
+              {' — the member price is already applied, no code needed.'}
+            </span>
+          ) : (
+            <span>
+              {upsell!.non_member_banner} —{' '}
+              <button
+                type="button"
+                onClick={() => navigate('/play/profile')}
+                className="text-gold underline underline-offset-2 hover:opacity-80 transition-opacity font-semibold"
+              >
+                {upsell!.non_member_cta} →
+              </button>
+            </span>
+          )}
         </div>
       )}
 
@@ -195,7 +183,7 @@ export function ProTrainingPage(): JSX.Element {
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
           {courses.map((course) => (
-            <CourseCard key={course.id} course={course} isMember={hasAccess} />
+            <CourseCard key={course.id} course={course} isMember={hasAccess} onSubscribe={() => navigate('/play/profile')} />
           ))}
         </div>
       )}

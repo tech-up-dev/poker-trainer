@@ -15,9 +15,11 @@ const FILTERS = ['All', 'Core', 'Useful', 'Situational']
 
 function TermDrawer({ term, onClose }: { term: GlossaryEntry; onClose: () => void }): JSX.Element {
   return (
-    <>
-      <div className="overlay" onClick={onClose} />
-      <div className="drawer">
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center px-3 lg:items-center lg:px-4 bg-black/60 backdrop-blur-sm animate-fade-in"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
+    >
+      <div className="relative w-full bg-surface-overlay rounded-3xl shadow-overlay animate-slide-up lg:max-w-lg lg:bg-surface lg:border lg:border-line lg:max-h-[90vh] lg:overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             {term.importance ? (
@@ -56,7 +58,7 @@ function TermDrawer({ term, onClose }: { term: GlossaryEntry; onClose: () => voi
           </button>
         </div>
       </div>
-    </>
+    </div>
   )
 }
 
