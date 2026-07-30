@@ -156,11 +156,7 @@ export function ProTrainingPage(): JSX.Element {
         >
           <span className="shrink-0 text-gold"><LockIcon size={20} /></span>
           {hasAccess ? (
-            <span>
-              Your active membership unlocks{' '}
-              <strong className="text-ink">40% off every course below</strong>
-              {' - the member price is already applied, no code needed.'}
-            </span>
+            <span>{upsell!.member_banner}</span>
           ) : (
             <span>
               {upsell!.non_member_banner} -{' '}

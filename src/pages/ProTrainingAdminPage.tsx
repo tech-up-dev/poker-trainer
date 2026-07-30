@@ -75,9 +75,20 @@ function UpsellButtonSection(): JSX.Element {
           </label>
         </div>
 
-        {/* Right - non-member banner fields */}
+        {/* Right - banner fields */}
         <div className="space-y-3">
-          <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Non-member banner</p>
+          <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Member banner</p>
+          <div className="flex flex-col gap-1">
+            <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Banner text</label>
+            <input
+              type="text"
+              value={config.member_banner}
+              onChange={(e) => update('member_banner', e.target.value)}
+              className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
+            />
+            <p className="text-xs text-ink-3">Shown in the banner to logged-in members on the Pro Training page.</p>
+          </div>
+          <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide pt-2">Non-member banner</p>
           <div className="flex flex-col gap-1">
             <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Banner text</label>
             <input
