@@ -23,7 +23,7 @@ function LessonTopControls(): JSX.Element {
   }, [])
 
   return (
-    <div className="fixed top-3 right-4 z-30 flex items-center gap-2">
+    <div className="hidden lg:flex fixed top-3 right-4 z-30 items-center gap-2">
       {streak > 0 && (
         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gold/10 rounded-full">
           <Flame className="w-4 h-4 text-gold" />
@@ -120,6 +120,7 @@ export function LessonSessionPage(): JSX.Element {
   const [displayPct, setDisplayPct] = useState(0)
   const [resultTiers, setResultTiers] = useState<ResultTier[]>(DEFAULT_TIERS)
   const questionStartedAt = useRef<number>(0)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     void fetchResultTiers().then(setResultTiers)
@@ -144,6 +145,11 @@ export function LessonSessionPage(): JSX.Element {
       },
     )
   }, [lessonId])
+
+  useEffect(() => {
+    window.scrollTo({ top: 0 })
+    scrollContainerRef.current?.scrollTo({ top: 0 })
+  }, [phase])
 
   useEffect(() => {
     if (phase.kind !== 'complete') return
@@ -347,7 +353,7 @@ export function LessonSessionPage(): JSX.Element {
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div ref={scrollContainerRef} className="flex-1 overflow-y-auto">
           <div className="max-w-md mx-auto px-4 py-3 pb-6">
             <div className="card-elevated !p-4 md:!p-6 space-y-2">
               <p className="text-xs font-semibold uppercase tracking-widest text-ink-3">Scenario</p>

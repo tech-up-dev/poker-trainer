@@ -26,3 +26,16 @@ jobs:
       - run: npm run lint
 
       - run: npm run build
+
+  migrate:
+    name: Run Supabase migrations
+    runs-on: ubuntu-latest
+    # Only push migrations on merges to master, not on PRs or dev pushes.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push migrations to production
+        run: npx supabase db push --linked --yes
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
