@@ -1,5 +1,5 @@
-﻿import { useEffect, useState } from 'react'
-import type { JSX } from 'react'
+﻿import { useEffect, useRef, useState } from 'react'
+import type { JSX, ChangeEvent } from 'react'
 
 import type { Reference } from '../../shared/schemas/reference'
 import { supabaseProd } from '../lib/supabase-prod'
@@ -39,6 +39,9 @@ export function ReferenceEditor({
   // The id assigned by the server when the author omits reference_id. Versions
   // and promotion key off this once a save has happened.
   const [savedId, setSavedId] = useState<string | null>(null)
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | { error: string }>('idle')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const explicitId =
     validationResult?.ok === true ? (validationResult.data.reference_id ?? null) : null
@@ -137,6 +140,38 @@ export function ReferenceEditor({
     setVersionsRefresh((s) => s + 1)
   }
 
+  async function handleImageUpload(e: ChangeEvent<HTMLInputElement>): Promise<void> {
+    const file = e.target.files?.[0]
+    if (!fileInputRef.current) return
+    fileInputRef.current.value = ''
+    if (!file) return
+    setUploadStatus('uploading')
+    const path = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`
+    const { error } = await supabaseProd.storage.from('reference-images').upload(path, file)
+    if (error) {
+      setUploadStatus({ error: error.message })
+      return
+    }
+    const { data } = supabaseProd.storage.from('reference-images').getPublicUrl(path)
+    const markdown = `![Image](${data.publicUrl})`
+    const ta = textareaRef.current
+    if (ta) {
+      const start = ta.selectionStart ?? inputText.length
+      const end = ta.selectionEnd ?? inputText.length
+      const next = inputText.slice(0, start) + markdown + inputText.slice(end)
+      handleTextChange(next)
+      // Restore cursor after the inserted text on next tick
+      setTimeout(() => {
+        ta.selectionStart = start + markdown.length
+        ta.selectionEnd = start + markdown.length
+        ta.focus()
+      }, 0)
+    } else {
+      handleTextChange(inputText + '\n' + markdown)
+    }
+    setUploadStatus('idle')
+  }
+
   return (
     <section className="space-y-6">
       <header className="space-y-1">
@@ -168,6 +203,7 @@ export function ReferenceEditor({
           Reference JSON
         </label>
         <textarea
+          ref={textareaRef}
           id="reference-json"
           rows={20}
           value={inputText}
@@ -176,6 +212,28 @@ export function ReferenceEditor({
           className="w-full font-mono text-sm bg-canvas text-ink placeholder-ink-3 border border-line rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           spellCheck={false}
         />
+      </div>
+
+      {/* Image upload - insertes ![Image](url) at cursor position */}
+      <div className="flex items-center gap-3">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => void handleImageUpload(e)}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploadStatus === 'uploading'}
+          className="px-3 py-1.5 text-sm rounded bg-surface-raised hover:bg-surface-overlay text-ink disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          {uploadStatus === 'uploading' ? 'Uploading…' : 'Upload image'}
+        </button>
+        {typeof uploadStatus === 'object' && (
+          <p className="text-sm text-red-400">Upload failed: {uploadStatus.error}</p>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-3">
