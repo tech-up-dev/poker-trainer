@@ -147,10 +147,8 @@ export function LessonSessionPage(): JSX.Element {
   }, [lessonId])
 
   useEffect(() => {
-    if (phase.kind === 'quiz') {
-      window.scrollTo({ top: 0 })
-      scrollContainerRef.current?.scrollTo({ top: 0 })
-    }
+    window.scrollTo({ top: 0 })
+    scrollContainerRef.current?.scrollTo({ top: 0 })
   }, [phase])
 
   useEffect(() => {
