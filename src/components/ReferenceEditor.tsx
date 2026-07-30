@@ -1,5 +1,6 @@
 ﻿import { useEffect, useRef, useState } from 'react'
 import type { JSX, ChangeEvent } from 'react'
+import { ImagePlus } from 'lucide-react'
 
 import type { Reference } from '../../shared/schemas/reference'
 import { supabaseProd } from '../lib/supabase-prod'
@@ -153,21 +154,18 @@ export function ReferenceEditor({
       return
     }
     const { data } = supabaseProd.storage.from('reference-images').getPublicUrl(path)
-    const markdown = `![Image](${data.publicUrl})`
-    const ta = textareaRef.current
-    if (ta) {
-      const start = ta.selectionStart ?? inputText.length
-      const end = ta.selectionEnd ?? inputText.length
-      const next = inputText.slice(0, start) + markdown + inputText.slice(end)
-      handleTextChange(next)
-      // Restore cursor after the inserted text on next tick
-      setTimeout(() => {
-        ta.selectionStart = start + markdown.length
-        ta.selectionEnd = start + markdown.length
-        ta.focus()
-      }, 0)
-    } else {
-      handleTextChange(inputText + '\n' + markdown)
+    const markdown = `\n\n![Image](${data.publicUrl})`
+    // Always append into body_markdown inside the JSON so the result stays
+    // valid JSON. Cursor-based insertion would break JSON if the cursor sits
+    // outside the body_markdown string value.
+    try {
+      const parsed = JSON.parse(inputText) as Record<string, unknown>
+      const existing = typeof parsed.body_markdown === 'string' ? parsed.body_markdown : ''
+      parsed.body_markdown = existing + markdown
+      handleTextChange(JSON.stringify(parsed, null, 2))
+    } catch {
+      // Fallback: JSON not yet valid, append raw so the user can see the URL
+      handleTextChange(inputText + markdown)
     }
     setUploadStatus('idle')
   }
@@ -214,7 +212,7 @@ export function ReferenceEditor({
         />
       </div>
 
-      {/* Image upload - insertes ![Image](url) at cursor position */}
+      {/* Image upload - appends ![Image](url) into body_markdown in the JSON */}
       <div className="flex items-center gap-3">
         <input
           ref={fileInputRef}
@@ -227,8 +225,9 @@ export function ReferenceEditor({
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploadStatus === 'uploading'}
-          className="px-3 py-1.5 text-sm rounded bg-surface-raised hover:bg-surface-overlay text-ink disabled:opacity-40 disabled:cursor-not-allowed"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded bg-surface-raised hover:bg-surface-overlay text-ink disabled:opacity-40 disabled:cursor-not-allowed"
         >
+          <ImagePlus size={15} />
           {uploadStatus === 'uploading' ? 'Uploading…' : 'Upload image'}
         </button>
         {typeof uploadStatus === 'object' && (
