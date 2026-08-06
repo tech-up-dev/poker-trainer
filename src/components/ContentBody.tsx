@@ -18,7 +18,7 @@ export function ContentBody({
       <div className="space-y-3">
         <div className="text-sm text-ink-2">
           <span className="text-ink">{lesson.title}</span> · {lesson.questions.length}{' '}
-          questions
+          question{lesson.questions.length !== 1 ? 's' : ''}
           {lesson.difficulty !== undefined ? ` · ${lesson.difficulty}` : ''}
         </div>
         <ul className="space-y-3">

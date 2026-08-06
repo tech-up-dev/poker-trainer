@@ -209,7 +209,7 @@ export function StatsPage(): JSX.Element {
                     <div>
                       <p className="font-medium text-ink">{lesson.title}</p>
                       <p className="text-sm text-ink-3">
-                        {lesson.difficulty ?? 'General'} · {lesson.questions.length} questions
+                        {lesson.difficulty ?? 'General'} · {lesson.questions.length} question{lesson.questions.length !== 1 ? 's' : ''}
                       </p>
                     </div>
                   </div>

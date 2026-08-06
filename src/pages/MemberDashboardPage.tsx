@@ -175,7 +175,7 @@ export function MemberDashboardPage(): JSX.Element {
                   <div className="flex-1 min-w-0">
                     <p className="text-base font-medium text-ink truncate">{lesson.title}</p>
                     <p className="text-sm text-ink-3">
-                      {lesson.difficulty ?? 'General'} · {lesson.questions.length} questions
+                      {lesson.difficulty ?? 'General'} · {lesson.questions.length} question{lesson.questions.length !== 1 ? 's' : ''}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">

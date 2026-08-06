@@ -267,7 +267,7 @@ function renderValidationPanel(state: ValidationState): JSX.Element {
       <div className="rounded border border-green-600 bg-green-600/10 text-green-300 px-4 py-3">
         <strong className="text-green-200">✓ Valid lesson</strong>
         {' · '}
-        {state.data.title} · {state.data.questions.length} questions
+        {state.data.title} · {state.data.questions.length} question{state.data.questions.length !== 1 ? 's' : ''}
       </div>
     )
   }
