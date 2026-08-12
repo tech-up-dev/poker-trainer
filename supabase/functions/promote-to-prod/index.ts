@@ -9,7 +9,9 @@ import { jsonResponse, preflight } from "../_shared/responses.ts";
 import { assertAdmin, AdminError } from "../_shared/admin.ts";
 import { revalidateContent } from "../_shared/validate-content.ts";
 import { applyGlossaryLinks } from "../../../shared/utils/glossary-linking.ts";
+import { unknownConceptIssues } from "../../../shared/utils/concept-validation.ts";
 import { relinkChangedLessons } from "../_shared/glossary-backfill.ts";
+import { fetchValidConcepts } from "../_shared/concepts.ts";
 import type { Lesson } from "../../../shared/schemas/lesson.ts";
 
 type ProdClient = ReturnType<typeof createClient>;
@@ -135,6 +137,22 @@ Deno.serve(async (req) => {
       message: "Staged content failed server-side validation",
       errors: revalidation.errors,
     }, 422);
+  }
+
+  // Reject unknown concept tags (M3-09) against the production vocabulary before
+  // publishing — the closed tag sets are covered by revalidateContent above.
+  if (content_type === "lesson") {
+    const conceptIssues = unknownConceptIssues(
+      contentToPublish as Lesson,
+      await fetchValidConcepts(prod),
+    );
+    if (conceptIssues.length > 0) {
+      return jsonResponse(req, {
+        ok: false,
+        message: "Staged content failed server-side validation",
+        errors: conceptIssues,
+      }, 422);
+    }
   }
 
   // 3. Compute next version_number for this content item in prod.

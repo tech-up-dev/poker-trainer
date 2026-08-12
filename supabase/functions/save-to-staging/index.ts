@@ -22,7 +22,9 @@ import {
 } from "../../../shared/schemas/content.ts";
 import { slugify, stableStringify } from "../../../shared/utils/slug.ts";
 import { applyGlossaryLinks } from "../../../shared/utils/glossary-linking.ts";
+import { unknownConceptIssues } from "../../../shared/utils/concept-validation.ts";
 import { relinkChangedLessons } from "../_shared/glossary-backfill.ts";
+import { fetchValidConcepts } from "../_shared/concepts.ts";
 import type { Lesson } from "../../../shared/schemas/lesson.ts";
 
 type StagingRow = { content_id: string; content: unknown };
@@ -221,6 +223,17 @@ Deno.serve(async (req) => {
       unknown
     >;
     toStore[def.idField] = finalId;
+
+    // Reject unknown concept tags (M3-09) against the managed vocabulary before
+    // anything reaches staging. The closed tag sets are already enforced by the
+    // Zod schema on the client; concept is the one open, DB-backed vocabulary.
+    const conceptIssues = unknownConceptIssues(
+      toStore as unknown as Lesson,
+      await fetchValidConcepts(prod),
+    );
+    if (conceptIssues.length > 0) {
+      return jsonResponse(req, { ok: false, message: "Unknown concept tag(s)", errors: conceptIssues }, 422);
+    }
   }
 
   // Sequence number (M3-15): assigned once, then permanent. Preserve the number

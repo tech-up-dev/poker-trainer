@@ -94,6 +94,10 @@ type MarkdownQuestion = {
   answers: MarkdownAnswer[]
   glossary_terms?: string[]
   difficulty?: string
+  concept?: string
+  principle?: string
+  player_type?: string
+  street?: string
 }
 
 // Parse a prose-authored Markdown lesson into a Lesson object. Structure:
@@ -111,7 +115,16 @@ export function parseMarkdownLesson(text: string): Record<string, unknown> {
   const lesson: Record<string, unknown> = {}
   const questions: MarkdownQuestion[] = []
   let current:
-    | { prompt: string; answers: MarkdownAnswer[]; glossary_terms: string[]; difficulty?: string }
+    | {
+        prompt: string
+        answers: MarkdownAnswer[]
+        glossary_terms: string[]
+        difficulty?: string
+        concept?: string
+        principle?: string
+        player_type?: string
+        street?: string
+      }
     | null = null
 
   const flush = (): void => {
@@ -124,6 +137,10 @@ export function parseMarkdownLesson(text: string): Record<string, unknown> {
     }
     if (current.glossary_terms.length > 0) q.glossary_terms = current.glossary_terms
     if (current.difficulty) q.difficulty = current.difficulty
+    if (current.concept) q.concept = current.concept
+    if (current.principle) q.principle = current.principle
+    if (current.player_type) q.player_type = current.player_type
+    if (current.street) q.street = current.street
     questions.push(q)
   }
 
@@ -173,6 +190,30 @@ export function parseMarkdownLesson(text: string): Record<string, unknown> {
     const qDifficulty = current !== null ? t.match(/^>\s*difficulty:\s*(.+)$/i) : null
     if (current !== null && qDifficulty) {
       current.difficulty = qDifficulty[1].trim()
+      continue
+    }
+
+    // Per-question diagnostic tags (M3-09), e.g. "> concept: pot_odds",
+    // "> principle: simple_math_for_big_stacks", "> player_type: GTO",
+    // "> street: flop". Values are validated by the schema / pipeline.
+    const qTag =
+      current !== null ? t.match(/^>\s*(concept|principle|player_type|street):\s*(.+)$/i) : null
+    if (current !== null && qTag) {
+      const value = qTag[2].trim()
+      switch (qTag[1].toLowerCase()) {
+        case 'concept':
+          current.concept = value
+          break
+        case 'principle':
+          current.principle = value
+          break
+        case 'player_type':
+          current.player_type = value
+          break
+        case 'street':
+          current.street = value
+          break
+      }
       continue
     }
   }

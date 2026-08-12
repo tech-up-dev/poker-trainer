@@ -1,5 +1,19 @@
 import { z } from 'zod'
 
+// Closed tag vocabularies, shared by the schema and the authoring-UI dropdowns
+// (M3-09). `concept` is the one OPEN, admin-managed taxonomy — the `concepts`
+// table — and is validated against the DB in the content pipeline, not here.
+export const PRINCIPLES = [
+  'character_mapping',
+  'strategic_3_betting',
+  'simple_math_for_big_stacks',
+  'floating_and_equity_flow',
+  'building_and_winning_huge_pots',
+] as const
+export const PLAYER_TYPE_CODES = ['OMC', 'PLF', 'Y2K', 'GTO', 'DWM', 'STP'] as const
+export const STREETS = ['preflop', 'flop', 'turn', 'river'] as const
+export const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const
+
 export const AnswerSchema = z.object({
   text: z.string({ error: 'Answer text is required' }).min(1, 'Answer text is required'),
   is_correct: z.boolean(),
@@ -48,14 +62,26 @@ export const QuestionSchema = z
       }),
     table_state: HandScenarioStateSchema.optional(),
     glossary_terms: z.array(z.string()).optional(),
-    // Per-question difficulty (M3-11). Independent of the lesson's difficulty,
-    // which still exists; a question inherits the lesson's value at migration
-    // time (M3-12) but can then be tuned on its own. Optional so existing
-    // content stays valid until backfilled.
-    difficulty: z
-      .enum(['beginner', 'intermediate', 'advanced'], {
-        error: () => 'difficulty must be one of: beginner, intermediate, advanced',
+    // Question-level diagnostic tags (M3-09). All optional so existing content
+    // stays valid until backfilled (M3-12); the wizard offers them as dropdowns
+    // and the pipeline rejects unknown values. `concept` is the single open,
+    // admin-managed vocabulary (checked against the `concepts` table in the
+    // pipeline); the rest are closed sets enforced here by Zod. Exactly one
+    // concept per question by construction — it is one value, not a list.
+    concept: z.string().min(1).optional(),
+    principle: z
+      .enum(PRINCIPLES, { error: () => `principle must be one of: ${PRINCIPLES.join(', ')}` })
+      .optional(),
+    player_type: z
+      .enum(PLAYER_TYPE_CODES, {
+        error: () => `player_type must be one of: ${PLAYER_TYPE_CODES.join(', ')}`,
       })
+      .optional(),
+    street: z
+      .enum(STREETS, { error: () => `street must be one of: ${STREETS.join(', ')}` })
+      .optional(),
+    difficulty: z
+      .enum(DIFFICULTIES, { error: () => `difficulty must be one of: ${DIFFICULTIES.join(', ')}` })
       .optional(),
   })
   .superRefine((data, ctx) => {
