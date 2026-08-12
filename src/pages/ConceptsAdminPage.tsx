@@ -29,7 +29,18 @@ export function ConceptsAdminPage(): JSX.Element {
     setLoading(false)
   }
 
-  useEffect(() => { void load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    supabaseProd
+      .from('concepts')
+      .select('slug,name,sort_order')
+      .order('sort_order')
+      .then(({ data, error: err }) => {
+        if (err) { setError(err.message); setLoading(false); return }
+        setConcepts((data ?? []) as Concept[])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
 
   async function handleAdd(): Promise<void> {
     if (!draft.slug.trim() || !draft.name.trim()) return
