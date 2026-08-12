@@ -10,7 +10,7 @@ alter table app_settings enable row level security;
 
 -- Authenticated users (members + admins) may read settings; the app fetches these
 -- with the member's session. Writes are intentionally NOT granted to any API role
--- here — settings are managed via migrations / the dashboard / a service-role edge
+-- here: settings are managed via migrations / the dashboard / a service-role edge
 -- function, so members can never mutate app behavior.
 create policy "app_settings_select"
   on app_settings for select

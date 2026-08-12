@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
   }
 
   // Reject unknown concept tags (M3-09) against the production vocabulary before
-  // publishing — the closed tag sets are covered by revalidateContent above.
+  // publishing; the closed tag sets are covered by revalidateContent above.
   if (content_type === "lesson") {
     const conceptIssues = unknownConceptIssues(
       contentToPublish as Lesson,

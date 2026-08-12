@@ -1,8 +1,8 @@
 import { z } from 'zod'
 
 // Closed tag vocabularies, shared by the schema and the authoring-UI dropdowns
-// (M3-09). `concept` is the one OPEN, admin-managed taxonomy — the `concepts`
-// table — and is validated against the DB in the content pipeline, not here.
+// (M3-09). `concept` is the one OPEN, admin-managed taxonomy, the `concepts`
+// table, and is validated against the DB in the content pipeline, not here.
 export const PRINCIPLES = [
   'character_mapping',
   'strategic_3_betting',
@@ -67,7 +67,7 @@ export const QuestionSchema = z
     // and the pipeline rejects unknown values. `concept` is the single open,
     // admin-managed vocabulary (checked against the `concepts` table in the
     // pipeline); the rest are closed sets enforced here by Zod. Exactly one
-    // concept per question by construction — it is one value, not a list.
+    // concept per question by construction: it is one value, not a list.
     concept: z.string().min(1).optional(),
     principle: z
       .enum(PRINCIPLES, { error: () => `principle must be one of: ${PRINCIPLES.join(', ')}` })

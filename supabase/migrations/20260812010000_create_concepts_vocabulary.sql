@@ -21,7 +21,7 @@ create policy "concepts_select"
   on concepts for select
   using (auth.role() = 'authenticated');
 
--- Only signed-in admins (active admin_access entitlement) may manage it — same
+-- Only signed-in admins (active admin_access entitlement) may manage it, same
 -- gate as content_staging / app_settings. Service role bypasses RLS as usual.
 create policy "concepts_admin_insert"
   on concepts for insert
