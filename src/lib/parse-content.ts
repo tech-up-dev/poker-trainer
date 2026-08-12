@@ -93,6 +93,7 @@ type MarkdownQuestion = {
   prompt: string
   answers: MarkdownAnswer[]
   glossary_terms?: string[]
+  difficulty?: string
 }
 
 // Parse a prose-authored Markdown lesson into a Lesson object. Structure:
@@ -109,7 +110,9 @@ export function parseMarkdownLesson(text: string): Record<string, unknown> {
   const lines = text.split(/\r?\n/)
   const lesson: Record<string, unknown> = {}
   const questions: MarkdownQuestion[] = []
-  let current: { prompt: string; answers: MarkdownAnswer[]; glossary_terms: string[] } | null = null
+  let current:
+    | { prompt: string; answers: MarkdownAnswer[]; glossary_terms: string[]; difficulty?: string }
+    | null = null
 
   const flush = (): void => {
     if (current === null) return
@@ -120,6 +123,7 @@ export function parseMarkdownLesson(text: string): Record<string, unknown> {
       answers: current.answers,
     }
     if (current.glossary_terms.length > 0) q.glossary_terms = current.glossary_terms
+    if (current.difficulty) q.difficulty = current.difficulty
     questions.push(q)
   }
 
@@ -162,6 +166,13 @@ export function parseMarkdownLesson(text: string): Record<string, unknown> {
         .split(',')
         .map((s) => s.trim())
         .filter((s) => s.length > 0)
+      continue
+    }
+
+    // Per-question difficulty, e.g. "> difficulty: intermediate" (M3-11).
+    const qDifficulty = current !== null ? t.match(/^>\s*difficulty:\s*(.+)$/i) : null
+    if (current !== null && qDifficulty) {
+      current.difficulty = qDifficulty[1].trim()
       continue
     }
   }

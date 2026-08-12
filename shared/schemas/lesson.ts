@@ -48,6 +48,15 @@ export const QuestionSchema = z
       }),
     table_state: HandScenarioStateSchema.optional(),
     glossary_terms: z.array(z.string()).optional(),
+    // Per-question difficulty (M3-11). Independent of the lesson's difficulty,
+    // which still exists; a question inherits the lesson's value at migration
+    // time (M3-12) but can then be tuned on its own. Optional so existing
+    // content stays valid until backfilled.
+    difficulty: z
+      .enum(['beginner', 'intermediate', 'advanced'], {
+        error: () => 'difficulty must be one of: beginner, intermediate, advanced',
+      })
+      .optional(),
   })
   .superRefine((data, ctx) => {
     if (data.type === 'hand_scenario' && data.table_state === undefined) {
