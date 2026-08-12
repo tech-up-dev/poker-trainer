@@ -98,6 +98,7 @@ export const LessonSchema = z.object({
   // Optional: if the author omits it, the pipeline auto-generates a unique
   // slug from the title at save time. When provided it must be non-empty.
   lesson_id: z.string().min(1, 'lesson_id cannot be empty').optional(),
+  seq: z.number().int().positive().optional(),
   title: z.string({ error: 'title is required' }).min(1, 'title is required'),
   principle_tag: z
     .string({ error: 'principle_tag is required' })

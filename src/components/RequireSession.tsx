@@ -28,11 +28,7 @@ export function RequireSession(): JSX.Element {
     return <Navigate to="/login" replace />
   }
 
-  // DEMO BYPASS - remove before Stripe credentials are wired up. The `true ||`
-  // intentionally short-circuits the entitlement check so /play/* is open during
-  // the demo; the eslint-disable keeps the branch lint-clean until it is reverted.
-  // eslint-disable-next-line no-constant-binary-expression
-  const isExempt = true || EXEMPT_PATHS.some((p) => location.pathname.startsWith(p))
+  const isExempt = EXEMPT_PATHS.some((p) => location.pathname.startsWith(p))
   if (!hasAccess && !isExempt) {
     return <Navigate to="/play/profile" replace />
   }

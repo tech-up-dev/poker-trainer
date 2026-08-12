@@ -369,6 +369,7 @@ function StepLesson({
   principleTag,
   concept,
   difficulty,
+  concepts,
   onTitle,
   onPrincipleTag,
   onConcept,
@@ -379,6 +380,7 @@ function StepLesson({
   principleTag: string
   concept: string
   difficulty: string
+  concepts: Concept[]
   onTitle: (v: string) => void
   onPrincipleTag: (v: string) => void
   onConcept: (v: string) => void
@@ -412,14 +414,17 @@ function StepLesson({
         />
       </Field>
 
-      <Field label="Concept / intro *" error={errors.concept}>
-        <AdminTextarea
+      <Field label="Concept *" error={errors.concept}>
+        <select
           value={concept}
-          onChange={onConcept}
-          placeholder="One-sentence description shown on the lesson card and intro screen."
-          rows={2}
-          hasError={!!errors.concept}
-        />
+          onChange={(e) => onConcept(e.target.value)}
+          className={`w-full bg-surface border rounded px-3 py-2 text-sm text-ink outline-none focus:border-link ${errors.concept ? 'border-error' : 'border-line'}`}
+        >
+          <option value="">- select concept -</option>
+          {concepts.map((c) => (
+            <option key={c.slug} value={c.slug}>{c.name}</option>
+          ))}
+        </select>
       </Field>
 
       <Field label="Difficulty">
@@ -429,9 +434,9 @@ function StepLesson({
           className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
         >
           <option value="">- optional -</option>
-          <option value="beginner">Beginner</option>
-          <option value="intermediate">Intermediate</option>
-          <option value="advanced">Advanced</option>
+          {DIFFICULTIES.map((d) => (
+            <option key={d} value={d}>{d.charAt(0).toUpperCase() + d.slice(1)}</option>
+          ))}
         </select>
       </Field>
     </div>
@@ -1061,6 +1066,11 @@ export function AuthoringWizardPage({
   const [step, setStep] = useState<WizardStep>(savedDraft?.step ?? 'lesson')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
+  const [concepts, setConcepts] = useState<Concept[]>([])
+
+  useEffect(() => {
+    fetchConcepts().then(setConcepts).catch(() => {})
+  }, [])
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -1291,6 +1301,7 @@ export function AuthoringWizardPage({
           principleTag={principleTag}
           concept={concept}
           difficulty={difficulty}
+          concepts={concepts}
           onTitle={setTitle}
           onPrincipleTag={setPrincipleTag}
           onConcept={setConcept}

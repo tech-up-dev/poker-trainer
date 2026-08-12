@@ -9,7 +9,7 @@ import { ContentBody } from './ContentBody'
 type LoadState =
   | { kind: 'loading' }
   | { kind: 'empty' }
-  | { kind: 'loaded'; content: unknown }
+  | { kind: 'loaded'; content: unknown; seq?: number }
   | { kind: 'error'; message: string }
 
 type PublishedContentProps = {
@@ -33,7 +33,7 @@ export function PublishedContent({
       setState({ kind: 'loading' })
       const { data, error } = await supabaseProd
         .from('content_published')
-        .select('content')
+        .select('content, seq')
         .eq('content_id', contentId)
         .eq('content_type', contentType)
         .maybeSingle()
@@ -47,7 +47,7 @@ export function PublishedContent({
         setState({ kind: 'empty' })
         return
       }
-      setState({ kind: 'loaded', content: data.content })
+      setState({ kind: 'loaded', content: data.content, seq: (data as { seq?: number }).seq })
     }
 
     fetchPublished()
@@ -64,7 +64,12 @@ export function PublishedContent({
           <button
             type="button"
             onClick={() =>
-              downloadJson(exportFilename(contentType, contentId), state.content)
+              downloadJson(
+                exportFilename(contentType, contentId),
+                state.seq != null
+                  ? { seq: state.seq, ...(state.content as object) }
+                  : state.content,
+              )
             }
             className="text-xs px-2 py-1 rounded bg-surface hover:bg-surface-raised text-ink-2"
           >

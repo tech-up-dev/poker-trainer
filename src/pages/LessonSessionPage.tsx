@@ -187,16 +187,21 @@ export function LessonSessionPage(): JSX.Element {
     const timeTakenMs = Date.now() - questionStartedAt.current
     const question = orderedQuestions[questionIndex]
     if (question?.question_id) {
+      const villainTypes = question.table_state?.villain_player_types
+      const playerType = villainTypes
+        ? [...new Set(Object.values(villainTypes))].join(', ')
+        : undefined
       void logAnswerEvent({
         lessonId: lessonId ?? '',
         questionId: question.question_id,
         isCorrect,
         selectedAnswerIndex: selectedIndex,
         timeTakenMs,
-        concept: question.concept,
-        street: question.street,
-        playerType: question.player_type,
-        difficulty: question.difficulty,
+        conceptTag: question.concept ?? lesson?.concept,
+        principleTag: question.principle ?? lesson?.principle_tag,
+        street: question.street ?? question.table_state?.street,
+        playerType: question.player_type ?? playerType,
+        difficulty: question.difficulty ?? lesson?.difficulty,
       }).catch(() => {})
     }
 
