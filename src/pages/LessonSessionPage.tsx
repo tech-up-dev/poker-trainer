@@ -193,6 +193,10 @@ export function LessonSessionPage(): JSX.Element {
         isCorrect,
         selectedAnswerIndex: selectedIndex,
         timeTakenMs,
+        concept: question.concept,
+        street: question.street,
+        playerType: question.player_type,
+        difficulty: question.difficulty,
       }).catch(() => {})
     }
 
