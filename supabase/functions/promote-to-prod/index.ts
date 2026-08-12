@@ -107,7 +107,7 @@ Deno.serve(async (req) => {
   // 1. Read row from staging.
   const { data: stagingRow, error: stagingErr } = await staging
     .from("content_staging")
-    .select("content")
+    .select("content, seq")
     .eq("content_id", content_id)
     .eq("content_type", content_type)
     .maybeSingle();
@@ -153,12 +153,18 @@ Deno.serve(async (req) => {
 
   const nextVersion = (maxRow?.version_number ?? 0) + 1;
 
+  // The staging row's permanent sequence number (M3-15) rides along to prod
+  // unchanged, so a published item and its versions share the number it was first
+  // assigned in save-to-staging.
+  const seq = typeof stagingRow.seq === "number" ? stagingRow.seq : null;
+
   // 4. Insert the version snapshot.
   const { error: insertErr } = await prod.from("content_versions").insert({
     content_id,
     content_type,
     version_number: nextVersion,
     content: contentToPublish,
+    seq,
     created_by: "promote",
     source_version: null,
   });
@@ -173,6 +179,7 @@ Deno.serve(async (req) => {
     content_type,
     content: contentToPublish,
     current_version: nextVersion,
+    seq,
     updated_at: new Date().toISOString(),
   });
 

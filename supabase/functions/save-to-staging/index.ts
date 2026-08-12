@@ -115,6 +115,40 @@ async function resolveContentId(
   }
 }
 
+// Resolve the sequence number for the item being saved. Order of precedence:
+//   1. the number the staging row already carries (this is an edit),
+//   2. the number the published row carries (staging was demoted, now re-saved),
+//   3. a fresh number from the per-type counter (a genuinely new item).
+// Never re-derives an existing item's number, so numbering stays permanent.
+async function resolveSeq(
+  staging: StagingClient,
+  prod: StagingClient,
+  contentType: ContentType,
+  finalId: string,
+): Promise<number | null> {
+  const { data: stagingRow } = await staging
+    .from("content_staging")
+    .select("seq")
+    .eq("content_id", finalId)
+    .eq("content_type", contentType)
+    .maybeSingle();
+  if (stagingRow && typeof stagingRow.seq === "number") return stagingRow.seq;
+
+  const { data: publishedRow } = await prod
+    .from("content_published")
+    .select("seq")
+    .eq("content_id", finalId)
+    .eq("content_type", contentType)
+    .maybeSingle();
+  if (publishedRow && typeof publishedRow.seq === "number") return publishedRow.seq;
+
+  const { data: next, error } = await staging.rpc("next_content_seq", {
+    p_content_type: contentType,
+  });
+  if (error || typeof next !== "number") return null;
+  return next;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return preflight(req);
   if (req.method !== "POST") {
@@ -189,10 +223,17 @@ Deno.serve(async (req) => {
     toStore[def.idField] = finalId;
   }
 
+  // Sequence number (M3-15): assigned once, then permanent. Preserve the number
+  // an item already has (edit), reuse a published number if the staging row was
+  // demoted and is being re-saved, and only mint a fresh one for a genuinely new
+  // item. Minting advances a per-type counter, so deletes leave gaps.
+  const seq = await resolveSeq(staging, prod, content_type, finalId);
+
   const { error } = await staging.from("content_staging").upsert({
     content_id: finalId,
     content_type,
     content: toStore,
+    seq,
     updated_at: new Date().toISOString(),
   });
 
