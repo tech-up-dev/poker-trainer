@@ -20,7 +20,6 @@ export function ConceptsAdminPage(): JSX.Element {
   const [deleting, setDeleting] = useState(false)
 
   async function load(): Promise<void> {
-    setLoading(true)
     const { data, error: err } = await supabaseProd
       .from('concepts')
       .select('slug,name,sort_order')
@@ -30,7 +29,7 @@ export function ConceptsAdminPage(): JSX.Element {
     setLoading(false)
   }
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => { void load() }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleAdd(): Promise<void> {
     if (!draft.slug.trim() || !draft.name.trim()) return

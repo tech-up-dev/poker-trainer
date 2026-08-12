@@ -1094,7 +1094,7 @@ export function AuthoringWizardPage({
     } catch {
       // sessionStorage may be unavailable in private mode; persistence is best-effort.
     }
-  }, [title, principleTag, concept, difficulty, questionType, completedQuestions, currentQuestion, editingIdx, vocabInput, step, embedded, isEditMode])
+  }, [title, principleTag, concept, difficulty, lessonId, questionType, completedQuestions, currentQuestion, editingIdx, vocabInput, step, embedded, isEditMode])
 
   const vocabTerms = vocabInput.split(',').map((t) => t.trim()).filter(Boolean)
 
