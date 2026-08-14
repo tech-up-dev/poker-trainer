@@ -3,13 +3,15 @@ import type { JSX, ReactNode } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { X, Tag, HelpCircle, BookText, Download } from 'lucide-react'
 
-import { LessonSchema } from '../../shared/schemas/lesson'
+import { LessonSchema, PRINCIPLES, PLAYER_TYPE_CODES, STREETS, DIFFICULTIES } from '../../shared/schemas/lesson'
 import type { HandScenarioState } from '../../shared/schemas/lesson'
 import { supabaseProd } from '../lib/supabase-prod'
 import { TableBuilder } from '../components/TableBuilder'
 import { ConfirmDialog } from '../components/ConfirmDialog'
 import { linkifyGlossaryTerms } from '../lib/glossary-text'
 import { fetchProdGlossaryTerms } from '../lib/glossary-terms'
+import { fetchConcepts } from '../lib/concepts'
+import type { Concept } from '../lib/concepts'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -23,6 +25,13 @@ type DraftQuestion = {
   table_state?: HandScenarioState
   prompt: string
   answers: [DraftAnswer, DraftAnswer, DraftAnswer, DraftAnswer]
+  // Question-level diagnostic tags (M3-09). concept is required; the rest are
+  // optional. Empty string means unset.
+  concept: string
+  principle: string
+  playerType: string
+  street: string
+  difficulty: string
 }
 
 type SaveState =
@@ -74,6 +83,25 @@ function blankQuestion(type: 'multiple_choice' | 'hand_scenario', n: number): Dr
     table_state: type === 'hand_scenario' ? { ...INITIAL_TABLE } : undefined,
     prompt: '',
     answers: [blankAnswer(true), blankAnswer(), blankAnswer(), blankAnswer()],
+    concept: '',
+    principle: '',
+    playerType: '',
+    street: '',
+    difficulty: '',
+  }
+}
+
+// Backfill the question-tag fields (M3-09) on a draft rehydrated from an older
+// sessionStorage draft that predates them, so selects stay controlled and
+// validation never reads undefined.
+function withTagDefaults(q: DraftQuestion): DraftQuestion {
+  return {
+    ...q,
+    concept: (q.concept as string | undefined) ?? '',
+    principle: (q.principle as string | undefined) ?? '',
+    playerType: (q.playerType as string | undefined) ?? '',
+    street: (q.street as string | undefined) ?? '',
+    difficulty: (q.difficulty as string | undefined) ?? '',
   }
 }
 
@@ -115,6 +143,11 @@ function assembleLesson(
       })),
       ...(q.type === 'hand_scenario' && q.table_state ? { table_state: q.table_state } : {}),
       ...(vocabTerms.length > 0 ? { glossary_terms: vocabTerms } : {}),
+      ...(q.concept ? { concept: q.concept } : {}),
+      ...(q.principle ? { principle: q.principle } : {}),
+      ...(q.playerType ? { player_type: q.playerType } : {}),
+      ...(q.street ? { street: q.street } : {}),
+      ...(q.difficulty ? { difficulty: q.difficulty } : {}),
     })),
   }
 }
@@ -143,6 +176,11 @@ function lessonToWizardDraft(lesson: unknown): WizardDraft {
       table_state: qObj.table_state as HandScenarioState | undefined,
       prompt: String(qObj.prompt ?? ''),
       answers: answers.slice(0, 4) as [DraftAnswer, DraftAnswer, DraftAnswer, DraftAnswer],
+      concept: String(qObj.concept ?? ''),
+      principle: String(qObj.principle ?? ''),
+      playerType: String(qObj.player_type ?? ''),
+      street: String(qObj.street ?? ''),
+      difficulty: String(qObj.difficulty ?? ''),
     }
   })
   const firstType = completedQuestions[0]?.type ?? 'multiple_choice'
@@ -413,6 +451,7 @@ function StepQuestions({
   onDeleteCompleted,
   errors,
   questionNumber,
+  concepts,
 }: {
   questionType: 'multiple_choice' | 'hand_scenario'
   onQuestionType: (v: 'multiple_choice' | 'hand_scenario') => void
@@ -424,12 +463,20 @@ function StepQuestions({
   onDeleteCompleted: (idx: number) => void
   errors: Record<string, string>
   questionNumber: number
+  concepts: Concept[]
 }): JSX.Element {
   const tableState = question.table_state ?? { ...INITIAL_TABLE }
   const correctIdx = question.answers.findIndex((a) => a.is_correct)
 
   function setPrompt(v: string): void {
     onQuestion({ ...question, prompt: v })
+  }
+
+  function setTag(
+    field: 'concept' | 'principle' | 'playerType' | 'street' | 'difficulty',
+    v: string,
+  ): void {
+    onQuestion({ ...question, [field]: v })
   }
 
   function setAnswerField(i: number, field: keyof DraftAnswer, value: string | boolean): void {
@@ -574,6 +621,85 @@ function StepQuestions({
             hasError={!!errors.prompt}
           />
         </Field>
+
+        {/* ── Question tags (M3-09) ── */}
+        <div className="space-y-3">
+          <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-2">Tags</p>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Concept *" error={errors.concept}>
+              <select
+                value={question.concept}
+                onChange={(e) => setTag('concept', e.target.value)}
+                className={`w-full bg-surface border rounded px-3 py-2 text-sm text-ink outline-none focus:border-link ${
+                  errors.concept ? 'border-error' : 'border-line'
+                }`}
+              >
+                <option value="">- select -</option>
+                {concepts.map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Principle">
+              <select
+                value={question.principle}
+                onChange={(e) => setTag('principle', e.target.value)}
+                className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
+              >
+                <option value="">- optional -</option>
+                {PRINCIPLES.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Player type">
+              <select
+                value={question.playerType}
+                onChange={(e) => setTag('playerType', e.target.value)}
+                className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
+              >
+                <option value="">- optional -</option>
+                {PLAYER_TYPE_CODES.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Street">
+              <select
+                value={question.street}
+                onChange={(e) => setTag('street', e.target.value)}
+                className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
+              >
+                <option value="">- optional -</option>
+                {STREETS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Difficulty">
+              <select
+                value={question.difficulty}
+                onChange={(e) => setTag('difficulty', e.target.value)}
+                className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
+              >
+                <option value="">- optional -</option>
+                {DIFFICULTIES.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </div>
 
         <div className="space-y-3">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-2">
@@ -919,10 +1045,10 @@ export function AuthoringWizardPage({
   )
 
   const [completedQuestions, setCompletedQuestions] = useState<DraftQuestion[]>(
-    savedDraft?.completedQuestions ?? [],
+    savedDraft?.completedQuestions?.map(withTagDefaults) ?? [],
   )
   const [currentQuestion, setCurrentQuestion] = useState<DraftQuestion>(() => {
-    if (savedDraft?.currentQuestion) return savedDraft.currentQuestion
+    if (savedDraft?.currentQuestion) return withTagDefaults(savedDraft.currentQuestion)
     if (initialTableState) {
       return { ...blankQuestion('hand_scenario', 0), table_state: initialTableState }
     }
@@ -938,6 +1064,12 @@ export function AuthoringWizardPage({
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
+
+  // Managed concept vocabulary (M3-09) for the question-tag dropdowns.
+  const [concepts, setConcepts] = useState<Concept[]>([])
+  useEffect(() => {
+    fetchConcepts().then(setConcepts)
+  }, [])
 
   // Mirror the draft to sessionStorage on every change so a tab-return remount
   // restores it. Skip when in edit-from-staging mode so the sidebar always starts fresh.
@@ -986,6 +1118,7 @@ export function AuthoringWizardPage({
   function validateQuestion(): Record<string, string> {
     const e: Record<string, string> = {}
     if (!currentQuestion.prompt.trim()) e.prompt = 'Question prompt is required'
+    if (!currentQuestion.concept.trim()) e.concept = 'Concept is required'
     currentQuestion.answers.forEach((a, i) => {
       if (!a.text.trim()) e[`answer_${i}_text`] = `Answer ${LETTERS[i]} text is required`
       if (!a.explanation.trim())
@@ -1177,6 +1310,7 @@ export function AuthoringWizardPage({
           onDeleteCompleted={handleDeleteCompleted}
           errors={errors}
           questionNumber={questionNumber}
+          concepts={concepts}
         />
       )}
       {step === 'vocab' && (

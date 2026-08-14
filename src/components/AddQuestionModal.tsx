@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import type { JSX } from 'react'
 
 import type { HandScenarioState, Question } from '../../shared/schemas/lesson'
+import { fetchConcepts } from '../lib/concepts'
+import type { Concept } from '../lib/concepts'
 
 // Modal for authoring a single question inside the Table Builder, so a table can
 // be bound to a freshly-created question without leaving for the JSON validator.
@@ -29,6 +31,11 @@ export function AddQuestionModal({ tableState, busy, onClose, onCreate }: Props)
   const [correctIndex, setCorrectIndex] = useState(0)
   const [attachTable, setAttachTable] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [concept, setConcept] = useState('')
+  const [concepts, setConcepts] = useState<Concept[]>([])
+  useEffect(() => {
+    fetchConcepts().then(setConcepts)
+  }, [])
 
   function setAnswer(i: number, patch: Partial<DraftAnswer>): void {
     setAnswers((prev) => prev.map((a, idx) => (idx === i ? { ...a, ...patch } : a)))
@@ -36,6 +43,7 @@ export function AddQuestionModal({ tableState, busy, onClose, onCreate }: Props)
 
   function handleSubmit(): void {
     if (!prompt.trim()) return setError('Prompt is required.')
+    if (!concept) return setError('Concept is required.')
     if (answers.some((a) => !a.text.trim() || !a.explanation.trim())) {
       return setError('Every answer needs text and an explanation.')
     }
@@ -49,6 +57,7 @@ export function AddQuestionModal({ tableState, busy, onClose, onCreate }: Props)
         is_correct: i === correctIndex,
         explanation: a.explanation.trim(),
       })),
+      concept,
       ...(attachTable ? { table_state: tableState } : {}),
     }
     onCreate(question)
@@ -81,6 +90,25 @@ export function AddQuestionModal({ tableState, busy, onClose, onCreate }: Props)
             className="w-full rounded-lg px-3 py-2 text-[13px]"
             style={{ background: '#07182C', border: '1px solid #2a5079', color: '#EAF1F8' }}
           />
+        </label>
+
+        <label className="block space-y-1">
+          <span className="text-[11px] font-mono uppercase tracking-widest" style={{ color: '#F4A024' }}>
+            Concept
+          </span>
+          <select
+            value={concept}
+            onChange={(e) => setConcept(e.target.value)}
+            className="w-full rounded-lg px-3 py-2 text-[13px]"
+            style={{ background: '#07182C', border: '1px solid #2a5079', color: '#EAF1F8' }}
+          >
+            <option value="">- select -</option>
+            {concepts.map((c) => (
+              <option key={c.slug} value={c.slug}>
+                {c.name}
+              </option>
+            ))}
+          </select>
         </label>
 
         <div className="space-y-3">

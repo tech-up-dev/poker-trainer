@@ -68,7 +68,7 @@ export const QuestionSchema = z
     // admin-managed vocabulary (checked against the `concepts` table in the
     // pipeline); the rest are closed sets enforced here by Zod. Exactly one
     // concept per question by construction: it is one value, not a list.
-    concept: z.string().min(1).optional(),
+    concept: z.string({ error: 'concept is required' }).min(1, 'concept is required'),
     principle: z
       .enum(PRINCIPLES, { error: () => `principle must be one of: ${PRINCIPLES.join(', ')}` })
       .optional(),
