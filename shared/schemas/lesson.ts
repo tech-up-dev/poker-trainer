@@ -11,7 +11,7 @@ export const PRINCIPLES = [
   'building_and_winning_huge_pots',
 ] as const
 export const PLAYER_TYPE_CODES = ['OMC', 'PLF', 'Y2K', 'GTO', 'DWM', 'STP'] as const
-export const STREETS = ['preflop', 'flop', 'turn', 'river'] as const
+export const STREETS = ['preflop', 'flop', 'turn', 'river', 'multi-street'] as const
 export const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const
 
 export const AnswerSchema = z.object({
