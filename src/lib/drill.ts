@@ -1,107 +1,106 @@
 import type { Question } from '../../shared/schemas/lesson'
+import { supabaseProd } from './supabase-prod'
 import { fetchLeaks } from './leaks'
 import { fetchAllPublishedLessons } from './lessons'
-import { supabaseProd } from './supabase-prod'
 
 export type DrillQuestion = Question & {
   lessonId: string
   conceptSlug: string
 }
 
-const DRILL_SIZE = 10
-const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000
-
+// Returns up to 10 drill questions weighted 4/3/3 across the top 3 weak concepts.
+// Priority within each concept: recent misses first, then unseen questions.
+// Excludes any question answered in the last 7 days.
 export async function buildDrill(): Promise<DrillQuestion[]> {
-  const [leaks, allLessons] = await Promise.all([fetchLeaks(), fetchAllPublishedLessons()])
-
-  if (leaks.length === 0) return []
-
-  const {
-    data: { user },
-  } = await supabaseProd.auth.getUser()
-
-  const recentCutoff = new Date(Date.now() - SEVEN_DAYS_MS).toISOString()
-
-  const [recentResult, missResult] = await Promise.all([
-    user
-      ? supabaseProd
-          .from('answer_events')
-          .select('question_id')
-          .eq('user_id', user.id)
-          .gte('answered_at', recentCutoff)
-      : Promise.resolve({ data: [] }),
-    user
-      ? supabaseProd
-          .from('answer_events')
-          .select('question_id')
-          .eq('user_id', user.id)
-          .eq('is_correct', false)
-          .order('answered_at', { ascending: false })
-          .limit(100)
-      : Promise.resolve({ data: [] }),
+  const [leaks, allLessons, user] = await Promise.all([
+    fetchLeaks(),
+    fetchAllPublishedLessons(),
+    supabaseProd.auth.getUser(),
   ])
 
-  const excludedIds = new Set(
-    ((recentResult as { data: { question_id: string }[] | null }).data ?? []).map(
-      (r) => r.question_id,
-    ),
-  )
+  if (leaks.length === 0 || !user.data.user) return []
 
-  const missRankMap = new Map<string, number>()
-  ;((missResult as { data: { question_id: string }[] | null }).data ?? []).forEach((r, i) => {
-    if (!missRankMap.has(r.question_id)) missRankMap.set(r.question_id, i)
-  })
+  const userId = user.data.user.id
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
 
-  // Build concept -> questions map from all lessons
-  const conceptMap = new Map<string, DrillQuestion[]>()
+  // Fetch question IDs answered in last 7 days (to exclude)
+  const { data: recentRows } = await supabaseProd
+    .from('answer_events')
+    .select('question_id')
+    .eq('user_id', userId)
+    .gte('answered_at', sevenDaysAgo)
+
+  const recentlySeenIds = new Set((recentRows ?? []).map((r) => r.question_id as string))
+
+  // Fetch recent incorrect question IDs per concept (for priority ordering)
+  const { data: missRows } = await supabaseProd
+    .from('answer_events')
+    .select('question_id, concept, answered_at')
+    .eq('user_id', userId)
+    .eq('is_correct', false)
+    .in('concept', leaks.map((l) => l.concept))
+    .order('answered_at', { ascending: false })
+
+  // Map concept slug -> ordered list of missed question IDs (most recent first)
+  const missMap: Record<string, string[]> = {}
+  for (const row of missRows ?? []) {
+    const concept = row.concept as string
+    const qId = row.question_id as string
+    if (!missMap[concept]) missMap[concept] = []
+    missMap[concept].push(qId)
+  }
+
+  // Build a pool of available questions per concept
+  // Index questions from all lessons by concept slug, excluding recently seen
+  const poolByConceptSlug: Record<string, DrillQuestion[]> = {}
   for (const lesson of allLessons) {
     if (!lesson.lesson_id) continue
     for (const q of lesson.questions) {
-      const concept = q.concept ?? lesson.concept
-      if (!concept) continue
-      if (!conceptMap.has(concept)) conceptMap.set(concept, [])
-      conceptMap.get(concept)!.push({ ...q, lessonId: lesson.lesson_id, conceptSlug: concept })
+      const conceptSlug = q.concept ?? lesson.concept
+      if (!conceptSlug) continue
+      if (recentlySeenIds.has(q.question_id)) continue
+      if (!poolByConceptSlug[conceptSlug]) poolByConceptSlug[conceptSlug] = []
+      poolByConceptSlug[conceptSlug].push({ ...q, lessonId: lesson.lesson_id, conceptSlug })
     }
   }
 
-  // 4/3/3 allocation across top 3 leak concepts
-  const topLeaks = leaks.slice(0, 3)
-  const allocations = [4, 3, 3].slice(0, topLeaks.length)
+  // Sort each concept pool: missed questions first (most recent miss first), then unseen
+  for (const conceptSlug of Object.keys(poolByConceptSlug)) {
+    const missOrder = missMap[conceptSlug] ?? []
+    const missRank = new Map(missOrder.map((id, i) => [id, i]))
+    poolByConceptSlug[conceptSlug].sort((a, b) => {
+      const ra = missRank.has(a.question_id) ? missRank.get(a.question_id)! : Infinity
+      const rb = missRank.has(b.question_id) ? missRank.get(b.question_id)! : Infinity
+      return ra - rb
+    })
+  }
 
-  const result: DrillQuestion[] = []
+  // Allocate 4/3/3 across up to 3 concepts, backfilling from the next when short
+  const targets = [4, 3, 3].slice(0, leaks.length)
+  const conceptSlugs = leaks.map((l) => l.concept)
+  const selected: DrillQuestion[] = []
+
   let remainder = 0
-
-  for (let i = 0; i < topLeaks.length; i++) {
-    const concept = topLeaks[i].concept
-    const want = allocations[i] + remainder
-
-    const pool = (conceptMap.get(concept) ?? [])
-      .filter((q) => !excludedIds.has(q.question_id))
-      .sort((a, b) => {
-        const ra = missRankMap.get(a.question_id) ?? Infinity
-        const rb = missRankMap.get(b.question_id) ?? Infinity
-        return ra - rb
-      })
-
-    const pick = pool.slice(0, want)
-    result.push(...pick)
-    remainder = want - pick.length
+  for (let i = 0; i < conceptSlugs.length; i++) {
+    const slug = conceptSlugs[i]
+    const pool = poolByConceptSlug[slug] ?? []
+    const want = targets[i] + remainder
+    const take = pool.slice(0, want)
+    selected.push(...take)
+    remainder = want - take.length
   }
 
-  // Backfill with unseen questions if we're short
-  if (result.length < DRILL_SIZE) {
-    const pickedIds = new Set(result.map((q) => q.question_id))
-    outer: for (const lesson of allLessons) {
-      if (!lesson.lesson_id) continue
-      for (const q of lesson.questions) {
-        if (pickedIds.has(q.question_id) || excludedIds.has(q.question_id)) continue
-        const concept = q.concept ?? lesson.concept
-        result.push({ ...q, lessonId: lesson.lesson_id, conceptSlug: concept })
-        pickedIds.add(q.question_id)
-        if (result.length >= DRILL_SIZE) break outer
-      }
+  // If still short after all concepts, backfill from any remaining pool entries
+  if (remainder > 0) {
+    for (const slug of conceptSlugs) {
+      const pool = poolByConceptSlug[slug] ?? []
+      const alreadyTaken = selected.filter((q) => q.conceptSlug === slug).length
+      const extras = pool.slice(alreadyTaken, alreadyTaken + remainder)
+      selected.push(...extras)
+      remainder -= extras.length
+      if (remainder <= 0) break
     }
   }
 
-  return result.slice(0, DRILL_SIZE)
+  return selected.slice(0, 10)
 }
