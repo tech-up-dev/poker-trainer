@@ -921,7 +921,7 @@ function StepReview({
   const obj = lesson as Record<string, unknown>
   const questions = (obj.questions as unknown[]) ?? []
 
-  // M3-09 #7 — warn if lesson concept doesn't match majority of question concepts
+  // M3-09 #7 - warn if lesson concept doesn't match majority of question concepts
   const lessonConcept = String(obj.concept ?? '')
   const qConcepts = questions
     .map((q) => String((q as Record<string, unknown>).concept ?? ''))
@@ -951,7 +951,7 @@ function StepReview({
           <p className="text-xs text-warning/80">
             Lesson concept is <span className="font-mono font-semibold">{lessonConcept}</span>, but
             most questions are tagged as <span className="font-mono font-semibold">{dominantConcept}</span>.
-            You can still save — update the lesson concept or retag the questions if this isn't intentional.
+            You can still save - update the lesson concept or retag the questions if this isn't intentional.
           </p>
         </div>
       )}
@@ -1130,11 +1130,6 @@ export function AuthoringWizardPage({
   const [step, setStep] = useState<WizardStep>(savedDraft?.step ?? 'lesson')
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [saveState, setSaveState] = useState<SaveState>({ kind: 'idle' })
-  const [concepts, setConcepts] = useState<Concept[]>([])
-
-  useEffect(() => {
-    fetchConcepts().then(setConcepts).catch(() => {})
-  }, [])
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [deleteError, setDeleteError] = useState<string | null>(null)
@@ -1142,7 +1137,10 @@ export function AuthoringWizardPage({
   // Managed concept vocabulary (M3-09) for the question-tag dropdowns.
   const [concepts, setConcepts] = useState<Concept[]>([])
   useEffect(() => {
-    fetchConcepts().then(setConcepts)
+    void (async () => {
+      const data = await fetchConcepts()
+      setConcepts(data)
+    })()
   }, [])
 
   // Mirror the draft to sessionStorage on every change so a tab-return remount

@@ -41,7 +41,11 @@ export function ConceptsAdminPage(): JSX.Element {
     setLoading(false)
   }
 
-  useEffect(() => { void load() }, [])
+  useEffect(() => {
+    void (async () => {
+      await load()
+    })()
+  }, [])
 
   async function handleAdd(): Promise<void> {
     if (!draft.slug.trim() || !draft.name.trim()) return
@@ -332,7 +336,7 @@ export function ConceptsAdminPage(): JSX.Element {
                     }
                     className="w-full bg-canvas border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
                   >
-                    <option value="">— pick a concept —</option>
+                    <option value="">- pick a concept -</option>
                     {otherConcepts.map((c) => (
                       <option key={c.slug} value={c.slug}>{c.name}</option>
                     ))}

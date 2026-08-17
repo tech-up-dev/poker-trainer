@@ -107,7 +107,7 @@ export function LessonsPage(): JSX.Element {
         })}
       </div>
 
-      {/* Concept filter chips — only rendered when there are tagged lessons */}
+      {/* Concept filter chips - only rendered when there are tagged lessons */}
       {concepts.length > 0 && (
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
           <button
