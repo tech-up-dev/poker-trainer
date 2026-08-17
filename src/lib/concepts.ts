@@ -1,6 +1,6 @@
 import { supabaseProd } from './supabase-prod'
 
-export type Concept = { slug: string; name: string }
+export type Concept = { slug: string; name: string; description?: string }
 
 // The managed concept vocabulary (M3-10), for the question-tag dropdowns. Read
 // against production; any authenticated user may read it (RLS). Returns [] on
@@ -8,7 +8,8 @@ export type Concept = { slug: string; name: string }
 export async function fetchConcepts(): Promise<Concept[]> {
   const { data, error } = await supabaseProd
     .from('concepts')
-    .select('slug, name')
+    .select('slug, name, description')
+    .is('deleted_at', null)
     .order('sort_order', { ascending: true })
   if (error || !data) return []
   return data as Concept[]

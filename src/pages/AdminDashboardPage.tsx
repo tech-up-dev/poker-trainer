@@ -153,7 +153,10 @@ export function AdminDashboardPage(): JSX.Element {
                     <BookOpen className="w-4 h-4 text-success" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-ink truncate">{lesson.title}</p>
+                    <p className="text-sm font-medium text-ink truncate">
+                      {lesson.seq != null ? <span className="text-ink-3 mr-1">#{lesson.seq}</span> : null}
+                      {lesson.title}
+                    </p>
                     <p className="text-xs text-ink-3">
                       {lesson.difficulty ?? 'General'} · {lesson.questions.length} question{lesson.questions.length !== 1 ? 's' : ''}
                     </p>

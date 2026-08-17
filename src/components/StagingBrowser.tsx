@@ -11,11 +11,12 @@ type StagedItem = {
   content_id: string
   content_type: ContentType
   content: unknown
+  seq?: number
   updated_at: string
   created_at?: string
 }
 
-type SortField = 'name' | 'created_at' | 'updated_at'
+type SortField = 'name' | 'seq' | 'created_at' | 'updated_at'
 type SortDir = 'asc' | 'desc'
 
 type LoadState =
@@ -268,19 +269,25 @@ export function StagingBrowser(): JSX.Element {
 
   const query = search.trim().toLowerCase()
   const matchedItems = query
-    ? tabItems.filter((item) =>
-        labelFor(item).toLowerCase().includes(query) ||
-        item.content_id.toLowerCase().includes(query),
-      )
+    ? tabItems.filter((item) => {
+        const seqMatch = item.seq != null && query === `#${item.seq}`
+        return (
+          seqMatch ||
+          labelFor(item).toLowerCase().includes(query) ||
+          item.content_id.toLowerCase().includes(query)
+        )
+      })
     : tabItems
 
   const filteredItems = [...matchedItems].sort((a, b) => {
     const cmp =
       sortField === 'name'
         ? labelFor(a).localeCompare(labelFor(b))
-        : sortField === 'created_at'
-          ? (a.created_at ?? a.updated_at).localeCompare(b.created_at ?? b.updated_at)
-          : a.updated_at.localeCompare(b.updated_at)
+        : sortField === 'seq'
+          ? ((a.seq ?? Infinity) - (b.seq ?? Infinity))
+          : sortField === 'created_at'
+            ? (a.created_at ?? a.updated_at).localeCompare(b.created_at ?? b.updated_at)
+            : a.updated_at.localeCompare(b.updated_at)
     return sortDir === 'asc' ? cmp : -cmp
   })
 
@@ -368,6 +375,7 @@ export function StagingBrowser(): JSX.Element {
               <option value="updated_at">Last modified</option>
               <option value="created_at">Creation date</option>
               <option value="name">Name</option>
+              <option value="seq">Seq #</option>
             </select>
             <button
               type="button"
@@ -453,7 +461,10 @@ export function StagingBrowser(): JSX.Element {
                           aria-label={`Select ${labelFor(item)}`}
                         />
                         <div className="min-w-0">
-                          <div className="text-sm text-ink truncate">{labelFor(item)}</div>
+                          <div className="text-sm text-ink truncate">
+                            {item.seq != null ? <span className="text-ink-3 mr-1">#{item.seq}</span> : null}
+                            {labelFor(item)}
+                          </div>
                           <div className="text-xs text-ink-3">
                             <span className="font-mono">{item.content_id}</span>
                             <span> · {formatRelative(item.updated_at)}</span>
@@ -482,7 +493,9 @@ export function StagingBrowser(): JSX.Element {
                           onClick={() =>
                             downloadJson(
                               exportFilename(item.content_type, item.content_id),
-                              item.content,
+                              item.seq != null
+                                ? { seq: item.seq, ...(item.content as object) }
+                                : item.content,
                             )
                           }
                           className="text-xs px-2 py-1 rounded bg-surface hover:bg-surface-raised text-ink-2"

@@ -20,11 +20,12 @@ export function ContentBody({
           <span className="text-ink">{lesson.title}</span> · {lesson.questions.length}{' '}
           questions
           {lesson.difficulty !== undefined ? ` · ${lesson.difficulty}` : ''}
+          {lesson.seq !== undefined ? ` · #${lesson.seq}` : ''}
         </div>
         <ul className="space-y-3">
           {lesson.questions.map((question, index) => (
             <li key={question.question_id}>
-              <QuestionCard question={question} index={index} />
+              <QuestionCard question={question} index={index} lessonSeq={lesson.seq} />
             </li>
           ))}
         </ul>
@@ -39,13 +40,14 @@ export function ContentBody({
   )
 }
 
-type QuestionCardProps = { question: Question; index: number }
+type QuestionCardProps = { question: Question; index: number; lessonSeq?: number }
 
-function QuestionCard({ question, index }: QuestionCardProps): JSX.Element {
+function QuestionCard({ question, index, lessonSeq }: QuestionCardProps): JSX.Element {
+  const label = lessonSeq != null ? `L${lessonSeq}·Q${index + 1}` : `Q${index + 1}`
   return (
     <article className="rounded border border-line bg-canvas/60 p-4 space-y-3">
       <header className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="font-mono text-ink-2">Q{index + 1}</span>
+        <span className="font-mono text-ink-2">{label}</span>
         <span className="px-2 py-0.5 rounded bg-surface text-ink-2">{question.type}</span>
         <span className="font-mono text-ink-3">{question.question_id}</span>
       </header>

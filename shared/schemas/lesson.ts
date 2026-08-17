@@ -1,16 +1,22 @@
 import { z } from 'zod'
 
 // Closed tag vocabularies, shared by the schema and the authoring-UI dropdowns
-// (M3-09). `concept` is the one OPEN, admin-managed taxonomy, the `concepts`
-// table, and is validated against the DB in the content pipeline, not here.
-export const PRINCIPLES = [
-  'character_mapping',
-  'strategic_3_betting',
-  'simple_math_for_big_stacks',
-  'floating_and_equity_flow',
-  'building_and_winning_huge_pots',
-] as const
+// (M3-09). `concept` is the one OPEN, admin-managed taxonomy stored in the
+// `concepts` table, and is validated against the DB in the content pipeline,
+// not here.
 export const PLAYER_TYPE_CODES = ['OMC', 'PLF', 'Y2K', 'GTO', 'DWM', 'STP'] as const
+
+// Full display labels for the six Character Mapping player types (spec §5).
+// Keys are the stored codes; values are the dropdown labels shown in the CMS.
+export const PLAYER_TYPE_LABELS: Record<string, string> = {
+  OMC: 'Old Man Coffee (OMC)',
+  PLF: 'Passive Loose Fish (PLF)',
+  Y2K: 'Y2K TAG (Y2K)',
+  GTO: 'GTO Boy (GTO)',
+  DWM: 'Drunk Whale Maniac (DWM)',
+  STP: 'Smart Thinking Player (STP)',
+}
+
 export const STREETS = ['preflop', 'flop', 'turn', 'river', 'multi-street'] as const
 export const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const
 
@@ -68,10 +74,7 @@ export const QuestionSchema = z
     // admin-managed vocabulary (checked against the `concepts` table in the
     // pipeline); the rest are closed sets enforced here by Zod. Exactly one
     // concept per question by construction: it is one value, not a list.
-    concept: z.string({ error: 'concept is required' }).min(1, 'concept is required'),
-    principle: z
-      .enum(PRINCIPLES, { error: () => `principle must be one of: ${PRINCIPLES.join(', ')}` })
-      .optional(),
+    concept: z.string().min(1).optional(),
     player_type: z
       .enum(PLAYER_TYPE_CODES, {
         error: () => `player_type must be one of: ${PLAYER_TYPE_CODES.join(', ')}`,
@@ -98,6 +101,7 @@ export const LessonSchema = z.object({
   // Optional: if the author omits it, the pipeline auto-generates a unique
   // slug from the title at save time. When provided it must be non-empty.
   lesson_id: z.string().min(1, 'lesson_id cannot be empty').optional(),
+  seq: z.number().int().positive().optional(),
   title: z.string({ error: 'title is required' }).min(1, 'title is required'),
   principle_tag: z
     .string({ error: 'principle_tag is required' })
