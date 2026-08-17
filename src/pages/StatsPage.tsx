@@ -1,12 +1,18 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
-import { TrendingUp, CheckCircle2, Flame, BookOpen, CheckCircle, XCircle } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Flame, BookOpen, CheckCircle, XCircle, TrendingDown, Minus, Zap } from 'lucide-react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
 import type { LessonProgress } from '../lib/progress'
 import { fetchStreak } from '../lib/streak'
+import { fetchLeaks } from '../lib/leaks'
+import type { LeakConcept } from '../lib/leaks'
+import { fetchConcepts } from '../lib/concepts'
+import type { Concept } from '../lib/concepts'
+import { fetchUserStateRow, fetchUserBadges, BADGE_CATALOGUE } from '../lib/user-state'
+import type { UserBadge } from '../lib/user-state'
 
 const DIFFICULTY_ORDER = ['beginner', 'intermediate', 'advanced'] as const
 const DIFFICULTY_LABEL: Record<string, string> = {
@@ -79,6 +85,11 @@ export function StatsPage(): JSX.Element {
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
   const [streak, setStreak] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [leaks, setLeaks] = useState<LeakConcept[] | null>(null)
+  const [leaksLoading, setLeaksLoading] = useState(true)
+  const [concepts, setConcepts] = useState<Concept[]>([])
+  const [totalPoints, setTotalPoints] = useState<number | null>(null)
+  const [badges, setBadges] = useState<UserBadge[]>([])
 
   useEffect(() => {
     Promise.all([fetchAllPublishedLessons(), fetchLessonProgress(), fetchStreak()])
@@ -91,6 +102,25 @@ export function StatsPage(): JSX.Element {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    Promise.all([fetchLeaks(), fetchConcepts()])
+      .then(([leakData, conceptData]) => {
+        setLeaks(leakData)
+        setConcepts(conceptData)
+      })
+      .catch(() => setLeaks([]))
+      .finally(() => setLeaksLoading(false))
+  }, [])
+
+  useEffect(() => {
+    Promise.all([fetchUserStateRow(), fetchUserBadges()])
+      .then(([stateRow, badgeRows]) => {
+        setTotalPoints(stateRow?.totalPoints ?? 0)
+        setBadges(badgeRows)
+      })
+      .catch(() => {})
   }, [])
 
   const attempted = lessons.filter((l) => l.lesson_id && progressMap[l.lesson_id])
@@ -106,10 +136,10 @@ export function StatsPage(): JSX.Element {
   const overallAccuracy = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0
 
   const statCards = [
-    { label: 'Streak',    value: `${streak}d`,              icon: Flame,        color: 'text-orange-500' },
-    { label: 'Completed', value: String(completed.length),  icon: CheckCircle2, color: 'text-success'    },
-    { label: 'Accuracy',  value: `${overallAccuracy}%`,     icon: TrendingUp,   color: 'text-gold'       },
-    { label: 'Questions', value: String(totalAnswered),      icon: BookOpen,     color: 'text-ink-2'      },
+    { label: 'Streak',    value: `${streak}d`,                                    icon: Flame,        color: 'text-orange-500' },
+    { label: 'Completed', value: String(completed.length),                         icon: CheckCircle2, color: 'text-success'    },
+    { label: 'Accuracy',  value: `${overallAccuracy}%`,                            icon: TrendingUp,   color: 'text-gold'       },
+    { label: 'Points',    value: totalPoints !== null ? String(totalPoints) : '-', icon: Zap,          color: 'text-gold'       },
   ]
 
   const difficultyStats: DifficultyStats[] = DIFFICULTY_ORDER.map((diff) => {
@@ -155,6 +185,119 @@ export function StatsPage(): JSX.Element {
           ))}
         </div>
       )}
+
+      {/* Where you're leaking */}
+      <div className="card space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold text-ink">Where you're leaking</h2>
+          <p className="text-xs text-ink-3 mt-0.5">
+            Concepts below 75% accuracy · last 90 days · min. 8 attempts
+          </p>
+        </div>
+
+        {leaksLoading && (
+          <p className="text-sm text-ink-3">Analysing your answer history…</p>
+        )}
+
+        {/* No data yet - brand new member */}
+        {!leaksLoading && leaks === null && (
+          <p className="text-sm text-ink-3">
+            Not enough data yet. Answer at least 8 questions on a concept to see your weakest areas.
+          </p>
+        )}
+
+        {/* Nothing leaking - all above threshold */}
+        {!leaksLoading && leaks !== null && leaks.length === 0 && (
+          <div className="flex items-center gap-3 py-2">
+            <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
+            <p className="text-sm text-ink-2">No leaks detected - you're above 75% on every concept. Keep it up!</p>
+          </div>
+        )}
+
+        {/* Leak rows */}
+        {!leaksLoading && leaks !== null && leaks.length > 0 && (
+          <div className="space-y-3">
+            {leaks.map((leak, i) => {
+              const pct      = Math.round(leak.accuracy * 100)
+              const prevPct  = leak.prevAccuracy != null ? Math.round(leak.prevAccuracy * 100) : null
+              const delta    = prevPct != null ? pct - prevPct : null
+              const name     = concepts.find((c) => c.slug === leak.concept)?.name ?? leak.concept
+              const barColor = pct < 50 ? 'bg-error' : 'bg-warning'
+
+              return (
+                <div key={leak.concept} className="space-y-1.5">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-xs font-bold text-ink-3 w-4 shrink-0">{i + 1}</span>
+                      <span className="text-sm font-medium text-ink truncate">{name}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      {delta !== null && delta !== 0 && (
+                        <span className={`flex items-center gap-0.5 text-xs font-medium ${delta > 0 ? 'text-success' : 'text-error'}`}>
+                          {delta > 0
+                            ? <TrendingUp className="w-3.5 h-3.5" />
+                            : <TrendingDown className="w-3.5 h-3.5" />
+                          }
+                          {delta > 0 ? '+' : ''}{delta}% from {prevPct}%
+                        </span>
+                      )}
+                      {delta === 0 && prevPct !== null && (
+                        <span className="flex items-center gap-0.5 text-xs text-ink-3">
+                          <Minus className="w-3.5 h-3.5" />
+                          no change
+                        </span>
+                      )}
+                      <span className={`text-base font-bold ${pct < 50 ? 'text-error' : 'text-warning'}`}>
+                        {pct}%
+                      </span>
+                    </div>
+                  </div>
+                  <div className="h-1.5 bg-elevated rounded-full overflow-hidden ml-6">
+                    <div className={`h-full rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
+                  </div>
+                  <p className="text-xs text-ink-3 ml-6">{leak.correct}/{leak.attempts} correct</p>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Badges */}
+      <div className="card space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold text-ink">Badges</h2>
+          <p className="text-xs text-ink-3 mt-0.5">Milestone achievements</p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {BADGE_CATALOGUE.map((badge) => {
+            const earned = badges.find((b) => b.slug === badge.slug)
+            return (
+              <div
+                key={badge.slug}
+                className={`flex flex-col items-center text-center gap-2 p-3 rounded-xl border transition-colors ${
+                  earned
+                    ? 'bg-gold/5 border-gold/30'
+                    : 'bg-surface border-line opacity-40'
+                }`}
+              >
+                <span className={`text-3xl ${!earned ? 'grayscale' : ''}`}>{badge.emoji}</span>
+                <div>
+                  <p className={`text-xs font-semibold ${earned ? 'text-ink' : 'text-ink-3'}`}>
+                    {badge.name}
+                  </p>
+                  <p className="text-[11px] text-ink-3 leading-tight mt-0.5">{badge.description}</p>
+                  {earned && (
+                    <p className="text-[10px] text-gold mt-1">
+                      {new Date(earned.earnedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      </div>
 
       {/* Accuracy by difficulty */}
       {!loading && difficultyStats.length > 0 && (
