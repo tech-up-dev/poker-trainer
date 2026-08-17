@@ -1,213 +1,205 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { JSX } from 'react'
-import {
-  Flame,
-  CheckCircle2,
-  BookOpen,
-  Clock,
-  ChevronRight,
-  PlayCircle,
-} from 'lucide-react'
+import { PlayCircle, Zap, TrendingDown, ChevronRight, BarChart3 } from 'lucide-react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
 import type { LessonProgress } from '../lib/progress'
-import { fetchStreak } from '../lib/streak'
+import { fetchLeaks } from '../lib/leaks'
+import type { LeakConcept } from '../lib/leaks'
+import { fetchConcepts } from '../lib/concepts'
+import type { Concept } from '../lib/concepts'
 import { TodaysTip } from '../components/TodaysTip'
 import { useAuth } from '../lib/auth-context'
 
+const ONBOARDING_KEY = 'bss_onboarding_done'
+
 export function MemberDashboardPage(): JSX.Element {
-  const { session, isAdmin } = useAuth()
   const navigate = useNavigate()
+  const { isAdmin } = useAuth()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
-  const [streak, setStreak] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [leaks, setLeaks] = useState<LeakConcept[] | null>(null)
+  const [concepts, setConcepts] = useState<Concept[]>([])
 
   useEffect(() => {
-    if (!isAdmin && !localStorage.getItem('bss_onboarding_done')) {
+    if (!isAdmin && !localStorage.getItem(ONBOARDING_KEY)) {
       void navigate('/onboarding', { replace: true })
     }
   }, [isAdmin, navigate])
 
   useEffect(() => {
-    Promise.all([
-      fetchAllPublishedLessons(),
-      fetchLessonProgress(),
-      fetchStreak(),
-    ]).then(([allLessons, progressRows, streakData]) => {
-      setLessons(allLessons)
-      const map: Record<string, LessonProgress> = {}
-      for (const row of progressRows) map[row.lessonId] = row
-      setProgressMap(map)
-      setStreak(streakData.current)
-    }).catch(() => {}).finally(() => setLoading(false))
+    Promise.all([fetchAllPublishedLessons(), fetchLessonProgress()])
+      .then(([allLessons, progressRows]) => {
+        setLessons(allLessons)
+        const map: Record<string, LessonProgress> = {}
+        for (const row of progressRows) map[row.lessonId] = row
+        setProgressMap(map)
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false))
   }, [])
 
-  const email = session?.user?.email ?? ''
-  const displayName = email.split('@')[0] ?? 'there'
-  const completed = lessons.filter((l) => l.lesson_id && progressMap[l.lesson_id]?.completed).length
-  const inProgress = lessons.filter(
-    (l) => l.lesson_id && progressMap[l.lesson_id] && !progressMap[l.lesson_id].completed,
-  ).length
-  const nextLesson = lessons.find((l) => l.lesson_id && !progressMap[l.lesson_id]?.completed)
+  useEffect(() => {
+    Promise.all([fetchLeaks(), fetchConcepts()])
+      .then(([leakData, conceptData]) => {
+        setLeaks(leakData)
+        setConcepts(conceptData)
+      })
+      .catch(() => setLeaks([]))
+  }, [])
 
-  const stats = [
-    { label: 'Streak',      value: `${streak}d`,          icon: Flame,        color: 'text-orange-500' },
-    { label: 'Completed',   value: String(completed),      icon: CheckCircle2, color: 'text-success'    },
-    { label: 'Lessons',     value: String(lessons.length), icon: BookOpen,     color: 'text-gold'       },
-    { label: 'In Progress', value: String(inProgress),     icon: Clock,        color: 'text-ink-2'      },
-  ]
+  const sortedLessons = [...lessons].sort((a, b) => (a.seq ?? 9999) - (b.seq ?? 9999))
+  const inProgressLesson = sortedLessons.find(
+    (l) => l.lesson_id && progressMap[l.lesson_id] && !progressMap[l.lesson_id].completed,
+  )
+  const nextUnstarted = sortedLessons.find((l) => l.lesson_id && !progressMap[l.lesson_id])
+  const continueLesson = inProgressLesson ?? nextUnstarted ?? null
+  const allDone = !loading && lessons.length > 0 && !continueLesson
+
+  const continueLessonProgress = continueLesson?.lesson_id
+    ? progressMap[continueLesson.lesson_id]
+    : undefined
+  const continuePct =
+    continueLessonProgress && continueLessonProgress.questionsAnswered > 0
+      ? Math.round(
+          (continueLessonProgress.questionsCorrect / continueLessonProgress.questionsAnswered) * 100,
+        )
+      : null
+
+  const topLeak = leaks && leaks.length > 0 ? leaks[0] : null
+  const topLeakName = topLeak
+    ? (concepts.find((c) => c.slug === topLeak.concept)?.name ?? topLeak.concept)
+    : null
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-4">
 
-      {/* Welcome header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-lg text-ink-2">Welcome back,</p>
-          <h1 className="text-3xl font-bold text-ink">{displayName}</h1>
-        </div>
-        {streak > 0 && (
-          <div className="flex items-center gap-2 px-4 py-2 bg-gold/10 rounded-full">
-            <Flame className="w-6 h-6 text-gold" />
-            <span className="text-xl font-bold text-gold">{streak}</span>
-          </div>
-        )}
-      </div>
+      {/* Block 1 — Pick up where you left off */}
+      <div className="card-elevated">
+        <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
+          Pick up where you left off
+        </p>
 
-      {/* Stats grid */}
-      {!loading && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {stats.map((stat) => (
-            <div key={stat.label} className="stat-card">
-              <stat.icon className={`w-6 h-6 ${stat.color} mb-1`} />
-              <p className="stat-value">{stat.value}</p>
-              <p className="stat-label">{stat.label}</p>
-            </div>
-          ))}
-        </div>
-      )}
+        {loading && <p className="text-sm text-ink-3">Loading…</p>}
 
-      {/* Daily tip */}
-      <TodaysTip />
-
-      {/* Continue learning */}
-      {!loading && nextLesson && (
-        <div className="card-elevated">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        {!loading && continueLesson && (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1 min-w-0">
-              <p className="text-sm text-ink-3 mb-1">Continue Learning</p>
-              <h3 className="text-xl font-semibold text-ink mb-2">{nextLesson.title}</h3>
-              {nextLesson.concept && (
-                <p className="text-sm text-ink-2 leading-relaxed line-clamp-2 mb-3">{nextLesson.concept}</p>
-              )}
-              {(() => {
-                const p = nextLesson.lesson_id ? progressMap[nextLesson.lesson_id] : undefined
-                if (!p || p.questionsAnswered === 0) return null
-                const pct = Math.round((p.questionsCorrect / p.questionsAnswered) * 100)
-                return (
-                  <div>
-                    <p className="text-sm text-ink-3 mb-2">{pct}% complete</p>
-                    <div className="progress-bar w-full max-w-xs">
-                      <div className="progress-fill" style={{ width: `${pct}%` }} />
-                    </div>
+              <h2 className="text-xl font-bold text-ink mb-1 truncate">{continueLesson.title}</h2>
+              <p className="text-sm text-ink-3 mb-3">
+                {continueLesson.difficulty ?? 'General'} &middot;{' '}
+                {continueLesson.questions.length}{' '}
+                {continueLesson.questions.length === 1 ? 'question' : 'questions'}
+              </p>
+              {continuePct !== null && (
+                <div className="space-y-1 max-w-xs">
+                  <p className="text-xs text-ink-3">{continuePct}% correct so far</p>
+                  <div className="progress-bar w-full">
+                    <div className="progress-fill" style={{ width: `${continuePct}%` }} />
                   </div>
-                )
-              })()}
+                </div>
+              )}
             </div>
             <button
               type="button"
-              onClick={() => navigate(`/play/lessons/${nextLesson.lesson_id}`)}
+              onClick={() => void navigate(`/play/lessons/${continueLesson.lesson_id}`)}
               className="btn-primary btn-lg shrink-0"
             >
               <PlayCircle className="w-5 h-5" />
-              {inProgress > 0 ? 'Resume' : 'Start'}
+              {inProgressLesson ? 'Resume' : 'Start'}
             </button>
           </div>
-        </div>
-      )}
+        )}
 
-      {!loading && !nextLesson && lessons.length > 0 && (
-        <div className="card text-center space-y-3">
-          <p className="text-2xl">🎉</p>
-          <p className="text-base font-semibold text-ink">All lessons complete!</p>
-          <p className="text-sm text-ink-2">You've finished every lesson. Keep practicing to sharpen your edge.</p>
-          <button
-            type="button"
-            onClick={() => navigate('/play/lessons')}
-            className="btn-secondary w-full"
-          >
-            Review lessons
-          </button>
-        </div>
-      )}
-
-      {/* Lessons preview list */}
-      {!loading && lessons.length > 0 && (
-        <div className="card">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold text-ink">Lessons</h2>
-            <Link
-              to="/play/lessons"
-              className="text-gold hover:text-amber text-sm flex items-center gap-1 transition-colors"
+        {!loading && allDone && (
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-ink mb-1">All lessons complete!</h2>
+              <p className="text-sm text-ink-3">
+                You've finished every lesson. Keep sharpening your edge.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => void navigate('/play/lessons')}
+              className="btn-secondary shrink-0"
             >
-              View all
-              <ChevronRight className="w-4 h-4" />
-            </Link>
+              Review lessons
+            </button>
           </div>
+        )}
 
-          <div className="space-y-1">
-            {lessons.slice(0, 4).map((lesson) => {
-              const progress = lesson.lesson_id ? progressMap[lesson.lesson_id] : undefined
-              const pct = progress && progress.questionsAnswered > 0
-                ? Math.round((progress.questionsCorrect / progress.questionsAnswered) * 100)
-                : null
-              return (
-                <button
-                  key={lesson.lesson_id ?? lesson.title}
-                  type="button"
-                  onClick={() => navigate(`/play/lessons/${lesson.lesson_id}`)}
-                  className="w-full flex items-center justify-between p-3 rounded-xl hover:bg-surface-overlay transition-colors group text-left"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="text-base font-medium text-ink truncate">{lesson.title}</p>
-                    <p className="text-sm text-ink-3">
-                      {lesson.difficulty ?? 'General'} · {lesson.questions.length} questions
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {progress?.completed && (
-                      <span className="badge-success">Complete</span>
-                    )}
-                    {progress && !progress.completed && pct !== null && (
-                      <span className="badge-warning">{pct}%</span>
-                    )}
-                    {!progress && (
-                      <span className="badge-muted">Start</span>
-                    )}
-                    <ChevronRight className="w-5 h-5 text-ink-3 group-hover:text-gold transition-colors" />
-                  </div>
-                </button>
-              )
-            })}
+        {!loading && lessons.length === 0 && (
+          <p className="text-sm text-ink-3">No lessons available yet.</p>
+        )}
+      </div>
+
+      {/* Block 2 — Where you're leaking + Drill button */}
+      <div className="card space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-1.5">
+              Where you're leaking
+            </p>
+            {topLeak && topLeakName ? (
+              <div className="flex items-center gap-2 flex-wrap">
+                <TrendingDown className="w-4 h-4 text-error shrink-0" />
+                <span className="text-base font-semibold text-ink">{topLeakName}</span>
+                <span className="text-sm font-medium text-error">
+                  {Math.round(topLeak.accuracy * 100)}% correct
+                </span>
+              </div>
+            ) : leaks !== null && leaks.length === 0 ? (
+              <p className="text-sm text-ink-2">No leaks - above 75% on all concepts.</p>
+            ) : leaks === null ? (
+              <p className="text-sm text-ink-3">
+                Answer 8+ questions on a concept to see weak spots.
+              </p>
+            ) : (
+              <p className="text-sm text-ink-3">Analysing your history…</p>
+            )}
+          </div>
+          <Link
+            to="/play/stats"
+            className="text-xs text-ink-3 hover:text-ink flex items-center gap-0.5 shrink-0 pt-0.5"
+          >
+            See all
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void navigate('/play/drill')}
+          className="btn-secondary w-full flex items-center justify-center gap-2"
+        >
+          <Zap className="w-4 h-4" />
+          Drill my weak spots
+        </button>
+      </div>
+
+      {/* Block 3 — This month (days progress, wired up in M5-02) */}
+      <div className="card">
+        <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
+          This month
+        </p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
+            <BarChart3 className="w-5 h-5 text-gold" />
+          </div>
+          <div>
+            <p className="text-base font-semibold text-ink">- of - training days</p>
+            <p className="text-xs text-ink-3">Monthly goal coming soon</p>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* Learning path nav card */}
-      <Link
-        to="/play/lessons"
-        className="card flex items-center justify-between hover:bg-surface-overlay transition-colors group"
-      >
-        <div>
-          <h2 className="text-xl font-semibold text-ink mb-1">Your Learning Path</h2>
-          <p className="text-ink-2 text-sm">Follow a guided curriculum tailored for small stakes</p>
-        </div>
-        <ChevronRight className="w-6 h-6 text-ink-3 group-hover:text-gold transition-colors shrink-0" />
-      </Link>
+      {/* Block 4 — Today's Tip (full-width) */}
+      <TodaysTip />
 
     </div>
   )

@@ -32,6 +32,8 @@ import { ProTrainingAdminPage } from './pages/ProTrainingAdminPage'
 import { AppSettingsAdminPage } from './pages/AppSettingsAdminPage'
 import { ConceptsAdminPage } from './pages/ConceptsAdminPage'
 import { EntitlementsAdminPage } from './pages/EntitlementsAdminPage'
+import { SkillsPathPage } from './pages/SkillsPathPage'
+import { DrillSessionPage } from './pages/DrillSessionPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -84,6 +86,8 @@ export const router = createBrowserRouter([
           { path: '/play/saved-tips',       element: <SavedTipsPage /> },
           { path: '/play/references',       element: <GlossaryDrawerProvider><ReferencesLibraryPage /></GlossaryDrawerProvider> },
           { path: '/play/pro-training',      element: <ProTrainingPage /> },
+          { path: '/play/path',             element: <SkillsPathPage /> },
+          { path: '/play/drill',            element: <DrillSessionPage /> },
           { path: '/play/checkout/success', element: <CheckoutSuccessPage /> },
         ],
       },
