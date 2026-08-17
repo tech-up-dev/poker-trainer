@@ -198,7 +198,7 @@ export function LessonSessionPage(): JSX.Element {
         selectedAnswerIndex: selectedIndex,
         timeTakenMs,
         conceptTag: question.concept ?? lesson?.concept,
-        principleTag: question.principle ?? lesson?.principle_tag,
+        principleTag: lesson?.principle_tag,
         street: question.street ?? question.table_state?.street,
         playerType: question.player_type ?? playerType,
         difficulty: question.difficulty ?? lesson?.difficulty,

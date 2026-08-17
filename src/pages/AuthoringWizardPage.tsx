@@ -3,7 +3,7 @@ import type { JSX, ReactNode } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { X, Tag, HelpCircle, BookText, Download } from 'lucide-react'
 
-import { LessonSchema, PLAYER_TYPE_CODES, PLAYER_TYPE_LABELS, STREETS, DIFFICULTIES } from '../../shared/schemas/lesson'
+import { LessonSchema, PLAYER_TYPE_CODES, STREETS, DIFFICULTIES } from '../../shared/schemas/lesson'
 import type { HandScenarioState } from '../../shared/schemas/lesson'
 import { supabaseProd } from '../lib/supabase-prod'
 import { TableBuilder } from '../components/TableBuilder'
@@ -647,20 +647,6 @@ function StepQuestions({
                 ))}
               </select>
             </Field>
-            <Field label="Principle">
-              <select
-                value={question.principle}
-                onChange={(e) => setTag('principle', e.target.value)}
-                className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
-              >
-                <option value="">- optional -</option>
-                {PRINCIPLES.map((p) => (
-                  <option key={p} value={p}>
-                    {p}
-                  </option>
-                ))}
-              </select>
-            </Field>
             <Field label="Player type">
               <select
                 value={question.playerType}
@@ -705,45 +691,6 @@ function StepQuestions({
             </Field>
           </div>
         </div>
-
-        <Field label="Player type (per-question)">
-          <select
-            value={question.player_type ?? ''}
-            onChange={(e) => onQuestion({ ...question, player_type: e.target.value || undefined })}
-            className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
-          >
-            <option value="">- none -</option>
-            {PLAYER_TYPE_CODES.map((pt) => (
-              <option key={pt} value={pt}>{PLAYER_TYPE_LABELS[pt]}</option>
-            ))}
-          </select>
-        </Field>
-
-        <Field label="Street (per-question)">
-          <select
-            value={question.street ?? ''}
-            onChange={(e) => onQuestion({ ...question, street: e.target.value || undefined })}
-            className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
-          >
-            <option value="">- none -</option>
-            {STREETS.map((s) => (
-              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
-            ))}
-          </select>
-        </Field>
-
-        <Field label="Concept (per-question override)">
-          <select
-            value={question.concept ?? ''}
-            onChange={(e) => onQuestion({ ...question, concept: e.target.value || undefined })}
-            className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
-          >
-            <option value="">- inherit from lesson -</option>
-            {concepts.map((c) => (
-              <option key={c.slug} value={c.slug} title={c.description}>{c.name}</option>
-            ))}
-          </select>
-        </Field>
 
         <div className="space-y-3">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-2">
