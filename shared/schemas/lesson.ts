@@ -103,9 +103,12 @@ export const LessonSchema = z.object({
   lesson_id: z.string().min(1, 'lesson_id cannot be empty').optional(),
   seq: z.number().int().positive().optional(),
   title: z.string({ error: 'title is required' }).min(1, 'title is required'),
-  principle_tag: z
-    .string({ error: 'principle_tag is required' })
-    .min(1, 'principle_tag is required'),
+  // Lesson-form rename (M3-10 content model): the managed `concept` dropdown
+  // replaced the old free-text `principle_tag`, and the intro copy moved to
+  // `intro`. principle_tag is now optional so legacy content stays valid while
+  // the wizard no longer sends it; intro is the wizard's intro copy.
+  principle_tag: z.string().min(1).optional(),
+  intro: z.string().optional(),
   concept: z.string({ error: 'concept is required' }).min(1, 'concept is required'),
   difficulty: z
     .enum(['beginner', 'intermediate', 'advanced'], {
