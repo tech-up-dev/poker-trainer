@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { JSX } from 'react'
-import { BookOpen, HelpCircle, BookText, Plus, ChevronRight } from 'lucide-react'
+import { BookOpen, HelpCircle, BookText, Plus, ChevronRight, Tag, Users, Settings } from 'lucide-react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
@@ -112,6 +112,26 @@ export function AdminDashboardPage(): JSX.Element {
             </p>
             <p className="text-sm text-ink-3">{stat.label}</p>
           </div>
+        ))}
+      </div>
+
+      {/* Admin tools */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          { label: 'Concept Vocabulary', description: 'Manage topic tags for lessons and questions', icon: Tag, path: '/admin/concepts' },
+          { label: 'Entitlements', description: 'Grant or revoke quiz access by user email', icon: Users, path: '/admin/entitlements' },
+          { label: 'App Settings', description: 'Result tiers, leak thresholds and more', icon: Settings, path: '/admin/settings' },
+        ].map((tool) => (
+          <button
+            key={tool.path}
+            type="button"
+            onClick={() => navigate(tool.path)}
+            className="card text-left hover:bg-surface-overlay transition-colors"
+          >
+            <tool.icon className="w-5 h-5 text-gold mb-2" />
+            <p className="text-sm font-semibold text-ink">{tool.label}</p>
+            <p className="text-xs text-ink-3 mt-0.5">{tool.description}</p>
+          </button>
         ))}
       </div>
 

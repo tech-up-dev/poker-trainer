@@ -81,17 +81,28 @@ export function ConceptsAdminPage(): JSX.Element {
   async function openDeleteModal(c: Concept): Promise<void> {
     setDeleteError(null)
     setDeleteModal({ phase: 'checking', slug: c.slug, name: c.name })
-    const { count, error: err } = await supabaseProd
-      .from('content_published')
-      .select('content_id', { count: 'exact', head: true })
-      .eq('content_type', 'lesson')
-      .eq('content->>concept', c.slug)
-    if (err) {
+    // Check both lesson-level concept AND question-level concept usage in parallel.
+    // A lesson where only questions (not the lesson itself) use the slug would be
+    // missed by the lesson-level check alone — that's the gap that left 34 questions
+    // pointing at a deleted concept during M3 testing.
+    const [lessonRes, questionRes] = await Promise.all([
+      supabaseProd
+        .from('content_published')
+        .select('content_id', { count: 'exact', head: true })
+        .eq('content_type', 'lesson')
+        .eq('content->>concept', c.slug),
+      supabaseProd
+        .from('content_published')
+        .select('content_id', { count: 'exact', head: true })
+        .eq('content_type', 'lesson')
+        .filter('content->questions', 'cs', JSON.stringify([{ concept: c.slug }])),
+    ])
+    if (lessonRes.error ?? questionRes.error) {
       setDeleteModal(null)
-      setError(`Could not check usage: ${err.message}`)
+      setError(`Could not check usage: ${(lessonRes.error ?? questionRes.error)!.message}`)
       return
     }
-    const n = count ?? 0
+    const n = (lessonRes.count ?? 0) + (questionRes.count ?? 0)
     if (n === 0) {
       setDeleteModal({ phase: 'safe', slug: c.slug, name: c.name })
     } else {
