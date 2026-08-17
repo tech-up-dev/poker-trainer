@@ -16,6 +16,27 @@ import type { Lesson } from "../../../shared/schemas/lesson.ts";
 
 type ProdClient = ReturnType<typeof createClient>;
 
+// M3-09 #7: non-blocking publish warning. If the lesson's own concept does not
+// match the concept most of its questions carry, surface a warning (the promote
+// still succeeds) so the author can fix the tag if it was a mistake.
+function majorityConceptWarnings(lesson: Lesson): string[] {
+  const counts: Record<string, number> = {};
+  for (const q of lesson.questions ?? []) {
+    const c = (q as { concept?: string }).concept;
+    if (c) counts[c] = (counts[c] ?? 0) + 1;
+  }
+  const ranked = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+  if (ranked.length === 0) return [];
+  const majority = ranked[0][0];
+  const lessonConcept = (lesson as { concept?: string }).concept;
+  if (lessonConcept && lessonConcept !== majority) {
+    return [
+      `Lesson concept "${lessonConcept}" does not match the majority of its questions ("${majority}").`,
+    ];
+  }
+  return [];
+}
+
 // After a glossary is promoted, re-link every PUBLISHED lesson against the prod
 // glossary (Feature 2). Updates content_published in place - glossary_terms is
 // derived data, so this deliberately does not cut a new version per lesson (that
@@ -208,5 +229,7 @@ Deno.serve(async (req) => {
   // Promoting a glossary term re-links every published lesson (Feature 2).
   const relinked = content_type === "glossary" ? await backfillPublishedLessons(prod) : 0;
 
-  return jsonResponse(req, { ok: true, content_id, content_type, version_number: nextVersion, relinked });
+  const warnings = content_type === "lesson" ? majorityConceptWarnings(contentToPublish as Lesson) : [];
+
+  return jsonResponse(req, { ok: true, content_id, content_type, version_number: nextVersion, relinked, warnings });
 });
