@@ -56,3 +56,27 @@ export async function getContactById(id: string): Promise<GhlContact | null> {
   const data = await res.json();
   return toContact(data.contact ?? null);
 }
+
+export type ContactField = { key: string; value: string | number };
+
+// Write custom fields on a contact (M3-13 write-back) via the PIT. Fields are
+// referenced by their GHL field key (e.g. "contact.last_trained_date"). Retries
+// on transient failures (429 / 5xx); a permanent 4xx returns false without
+// looping. NOTE: the exact custom-field body shape ({ key, field_value }) should
+// be confirmed against a live contact that has these fields defined.
+export async function updateContactFields(contactId: string, fields: ContactField[]): Promise<boolean> {
+  const body = JSON.stringify({
+    customFields: fields.map((f) => ({ key: f.key, field_value: f.value })),
+  });
+  const headers = { ...ghlHeaders(), "Content-Type": "application/json" };
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const res = await fetch(`${BASE}/contacts/${encodeURIComponent(contactId)}`, {
+      method: "PUT",
+      headers,
+      body,
+    });
+    if (res.ok) return true;
+    if (res.status !== 429 && res.status < 500) return false;
+  }
+  return false;
+}
