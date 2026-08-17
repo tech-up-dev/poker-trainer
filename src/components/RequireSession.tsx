@@ -13,10 +13,12 @@ export function RequireSession(): JSX.Element {
   const { session, hasAccess, loading } = useAuth()
   const location = useLocation()
 
-  // Block rendering only on the very first load before any session is known.
-  // If a session already exists (e.g. background token refresh), keep the Outlet
-  // mounted so in-progress lesson state isn't lost.
-  if (loading && !session) {
+  // Block rendering until both session and entitlements are known. We can't
+  // safely evaluate hasAccess until resolveEntitlements has run — showing a
+  // loading screen is cheaper than a spurious redirect to /play/profile.
+  // TOKEN_REFRESHED never sets loading=true (skipped in auth.tsx), so an
+  // in-progress lesson stays mounted during background refreshes.
+  if (loading) {
     return (
       <div className="min-h-screen bg-canvas text-ink-2 flex items-center justify-center">
         Loading…
