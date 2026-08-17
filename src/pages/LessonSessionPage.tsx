@@ -228,6 +228,9 @@ export function LessonSessionPage(): JSX.Element {
         completed: true,
       }).catch(() => {})
 
+      // M3-13: push last_trained_date + current_streak to GHL after every session
+      void supabaseProd.functions.invoke('ghl-push-fields')
+
       setPhase({ kind: 'complete', correct, total, missed })
     } else {
       questionStartedAt.current = Date.now()

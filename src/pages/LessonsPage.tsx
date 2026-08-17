@@ -7,6 +7,8 @@ import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
 import type { LessonProgress } from '../lib/progress'
+import { fetchConcepts } from '../lib/concepts'
+import type { Concept } from '../lib/concepts'
 
 const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const
 type Difficulty = typeof DIFFICULTIES[number]
@@ -20,16 +22,21 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 export function LessonsPage(): JSX.Element {
   const navigate = useNavigate()
   const [lessons, setLessons] = useState<Lesson[]>([])
+  const [concepts, setConcepts] = useState<Concept[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState<Difficulty | null>(null)
+  const [activeConcept, setActiveConcept] = useState<string | null>(null)
 
   useEffect(() => {
-    Promise.all([fetchAllPublishedLessons(), fetchLessonProgress()])
-      .then(([allLessons, progressRows]) => {
+    Promise.all([fetchAllPublishedLessons(), fetchLessonProgress(), fetchConcepts()])
+      .then(([allLessons, progressRows, allConcepts]) => {
         setLessons(allLessons)
+        // Only show concepts that actually appear on at least one published lesson
+        const usedSlugs = new Set(allLessons.map((l) => l.concept).filter(Boolean))
+        setConcepts(allConcepts.filter((c) => usedSlugs.has(c.slug)))
         const map: Record<string, LessonProgress> = {}
         for (const row of progressRows) map[row.lessonId] = row
         setProgressMap(map)
@@ -43,7 +50,8 @@ export function LessonsPage(): JSX.Element {
   const filtered = lessons.filter((l) => {
     const matchesSearch = l.title.toLowerCase().includes(search.toLowerCase())
     const matchesDiff = !activeFilter || l.difficulty === activeFilter
-    return matchesSearch && matchesDiff
+    const matchesConcept = !activeConcept || l.concept === activeConcept
+    return matchesSearch && matchesDiff && matchesConcept
   })
 
   const activeDifficulties = activeFilter
@@ -98,6 +106,30 @@ export function LessonsPage(): JSX.Element {
           )
         })}
       </div>
+
+      {/* Concept filter chips — only rendered when there are tagged lessons */}
+      {concepts.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
+          <button
+            type="button"
+            onClick={() => setActiveConcept(null)}
+            className={activeConcept === null ? 'chip-active' : 'chip-inactive'}
+          >
+            All topics
+          </button>
+          {concepts.map((c) => (
+            <button
+              key={c.slug}
+              type="button"
+              onClick={() => setActiveConcept(c.slug)}
+              title={c.description}
+              className={activeConcept === c.slug ? 'chip-active' : 'chip-inactive'}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {loading && <p className="text-ink-3 text-sm">Loading lessons…</p>}
       {error && <p className="text-error text-sm">{error}</p>}

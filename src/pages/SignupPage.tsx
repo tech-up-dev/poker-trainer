@@ -53,6 +53,8 @@ export function SignupPage(): JSX.Element {
     // only a defensive fallback for the misconfigured (confirmations ON) case -
     // it should never fire in a correctly configured project.
     if (data.session) {
+      // Fire-and-forget: sync new user to GHL. Never block navigation on this.
+      void supabaseProd.functions.invoke('ghl-sync-me')
       navigate('/play', { replace: true })
     } else {
       setEmailSent(true)

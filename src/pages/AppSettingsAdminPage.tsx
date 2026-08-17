@@ -25,17 +25,31 @@ export function AppSettingsAdminPage(): JSX.Element {
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Leak panel thresholds (M3-16)
+  const [minAttempts, setMinAttempts] = useState(8)
+  const [accuracyCeiling, setAccuracyCeiling] = useState(75)
+  const [leakSaving, setLeakSaving] = useState(false)
+  const [leakSaved, setLeakSaved] = useState(false)
+  const [leakError, setLeakError] = useState<string | null>(null)
+
   useEffect(() => {
     void (async () => {
       const { data } = await supabaseProd
         .from('app_settings')
-        .select('value')
-        .eq('key', 'lesson_result_tiers')
-        .single()
-      if (data?.value) {
-        const rows = data.value as Tier[]
-        if (Array.isArray(rows) && rows.length > 0) {
-          setTiers([...rows].sort((a, b) => b.min_pct - a.min_pct))
+        .select('key,value')
+        .in('key', ['lesson_result_tiers', 'leak_min_attempts', 'leak_accuracy_ceiling'])
+      if (data) {
+        for (const row of data) {
+          if (row.key === 'lesson_result_tiers') {
+            const rows = row.value as Tier[]
+            if (Array.isArray(rows) && rows.length > 0) {
+              setTiers([...rows].sort((a, b) => b.min_pct - a.min_pct))
+            }
+          } else if (row.key === 'leak_min_attempts') {
+            setMinAttempts(Number(row.value))
+          } else if (row.key === 'leak_accuracy_ceiling') {
+            setAccuracyCeiling(Number(row.value))
+          }
         }
       }
       setLoading(false)
@@ -65,6 +79,24 @@ export function AppSettingsAdminPage(): JSX.Element {
     setSaved(false)
   }
 
+  async function handleLeakSave(): Promise<void> {
+    setLeakSaving(true)
+    setLeakError(null)
+    const updates = [
+      supabaseProd.from('app_settings').update({ value: minAttempts }).eq('key', 'leak_min_attempts'),
+      supabaseProd.from('app_settings').update({ value: accuracyCeiling }).eq('key', 'leak_accuracy_ceiling'),
+    ]
+    const results = await Promise.all(updates)
+    const err = results.find((r) => r.error)?.error
+    if (err) {
+      setLeakError(err.message)
+      setLeakSaving(false)
+      return
+    }
+    setLeakSaved(true)
+    setLeakSaving(false)
+  }
+
   async function handleSave(): Promise<void> {
     setSaving(true)
     setError(null)
@@ -87,7 +119,7 @@ export function AppSettingsAdminPage(): JSX.Element {
     <section className="space-y-6 max-w-2xl">
       <header className="space-y-1">
         <h1 className="text-2xl font-semibold">App Settings</h1>
-        <p className="text-ink-2">Configure lesson result thresholds and messages shown to members after completing a lesson.</p>
+        <p className="text-ink-2">Configure lesson result thresholds, leak panel behaviour, and other admin-tunable values.</p>
       </header>
 
       <div className="rounded border border-line bg-canvas divide-y divide-line">
@@ -174,6 +206,67 @@ export function AppSettingsAdminPage(): JSX.Element {
           {saving ? 'Saving…' : 'Save changes'}
         </button>
         {saved && <span className="text-sm text-success">Saved successfully.</span>}
+      </div>
+      {/* ── Leak panel thresholds (M3-16) ── */}
+      <div className="border-t border-line pt-6 space-y-4">
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold">"Where you're leaking" panel</h2>
+          <p className="text-sm text-ink-2">
+            A concept appears in the leak panel only when both thresholds are met. Adjust after launch based on real usage.
+          </p>
+        </div>
+
+        <div className="rounded border border-line bg-canvas divide-y divide-line">
+          <div className="px-4 py-3 flex items-center gap-4">
+            <div className="flex-1 space-y-0.5">
+              <p className="text-sm font-medium text-ink">Minimum attempts</p>
+              <p className="text-xs text-ink-3">A concept must have at least this many answer attempts before it can appear.</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <input
+                type="number"
+                min={1}
+                max={100}
+                value={minAttempts}
+                onChange={(e) => { setMinAttempts(Number(e.target.value)); setLeakSaved(false) }}
+                className="w-20 px-2 py-1.5 text-sm rounded border border-line bg-canvas text-ink focus:outline-none focus:border-gold text-right"
+              />
+              <span className="text-xs text-ink-3 w-16">attempts</span>
+            </div>
+          </div>
+
+          <div className="px-4 py-3 flex items-center gap-4">
+            <div className="flex-1 space-y-0.5">
+              <p className="text-sm font-medium text-ink">Accuracy ceiling</p>
+              <p className="text-xs text-ink-3">A concept only shows as a leak if the member's accuracy is below this percentage.</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <input
+                type="number"
+                min={1}
+                max={99}
+                value={accuracyCeiling}
+                onChange={(e) => { setAccuracyCeiling(Number(e.target.value)); setLeakSaved(false) }}
+                className="w-20 px-2 py-1.5 text-sm rounded border border-line bg-canvas text-ink focus:outline-none focus:border-gold text-right"
+              />
+              <span className="text-xs text-ink-3 w-16">% correct</span>
+            </div>
+          </div>
+        </div>
+
+        {leakError && <p className="text-sm text-error">{leakError}</p>}
+
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => void handleLeakSave()}
+            disabled={leakSaving}
+            className="px-5 py-2 rounded bg-gold text-on-gold font-semibold text-sm hover:bg-amber disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {leakSaving ? 'Saving…' : 'Save thresholds'}
+          </button>
+          {leakSaved && <span className="text-sm text-success">Saved successfully.</span>}
+        </div>
       </div>
     </section>
   )

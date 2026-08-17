@@ -3,7 +3,7 @@ import type { JSX, ReactNode } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { X, Tag, HelpCircle, BookText, Download } from 'lucide-react'
 
-import { LessonSchema, PRINCIPLES, PLAYER_TYPE_CODES, STREETS, DIFFICULTIES } from '../../shared/schemas/lesson'
+import { LessonSchema, PLAYER_TYPE_CODES, PLAYER_TYPE_LABELS, STREETS, DIFFICULTIES } from '../../shared/schemas/lesson'
 import type { HandScenarioState } from '../../shared/schemas/lesson'
 import { supabaseProd } from '../lib/supabase-prod'
 import { TableBuilder } from '../components/TableBuilder'
@@ -114,7 +114,7 @@ function prevStep(step: WizardStep): WizardStep {
 
 function assembleLesson(
   title: string,
-  principleTag: string,
+  intro: string,
   concept: string,
   difficulty: string,
   lessonId: string,
@@ -129,7 +129,7 @@ function assembleLesson(
   return {
     ...(lessonId ? { lesson_id: lessonId } : {}),
     title: title.trim(),
-    principle_tag: principleTag.trim(),
+    intro: intro.trim(),
     concept: concept.trim(),
     ...(difficulty ? { difficulty } : {}),
     questions: allQuestions.map((q, i) => ({
@@ -188,7 +188,7 @@ function lessonToWizardDraft(lesson: unknown): WizardDraft {
     ((rawQuestions[0] as Record<string, unknown>)?.glossary_terms as string[] | undefined) ?? []
   return {
     title: String(l.title ?? ''),
-    principleTag: String(l.principle_tag ?? ''),
+    intro: String(l.intro ?? l.principle_tag ?? ''),
     concept: String(l.concept ?? ''),
     difficulty: String(l.difficulty ?? ''),
     lessonId: String(l.lesson_id ?? ''),
@@ -366,23 +366,23 @@ function FullscreenStepIndicator({
 
 function StepLesson({
   title,
-  principleTag,
+  intro,
   concept,
   difficulty,
   concepts,
   onTitle,
-  onPrincipleTag,
+  onIntro,
   onConcept,
   onDifficulty,
   errors,
 }: {
   title: string
-  principleTag: string
+  intro: string
   concept: string
   difficulty: string
   concepts: Concept[]
   onTitle: (v: string) => void
-  onPrincipleTag: (v: string) => void
+  onIntro: (v: string) => void
   onConcept: (v: string) => void
   onDifficulty: (v: string) => void
   errors: Record<string, string>
@@ -392,7 +392,7 @@ function StepLesson({
       <div>
         <h2 className="text-lg font-bold text-ink">Lesson details</h2>
         <p className="text-sm text-ink-2 mt-1">
-          Fill in the lesson metadata. Title, tag and concept are required.
+          Fill in the lesson metadata. Title, concept and intro are required.
         </p>
       </div>
 
@@ -405,15 +405,6 @@ function StepLesson({
         />
       </Field>
 
-      <Field label="Principle tag *" error={errors.principle_tag}>
-        <AdminInput
-          value={principleTag}
-          onChange={onPrincipleTag}
-          placeholder="e.g. opening_ranges_utg"
-          hasError={!!errors.principle_tag}
-        />
-      </Field>
-
       <Field label="Concept *" error={errors.concept}>
         <select
           value={concept}
@@ -422,9 +413,18 @@ function StepLesson({
         >
           <option value="">- select concept -</option>
           {concepts.map((c) => (
-            <option key={c.slug} value={c.slug}>{c.name}</option>
+            <option key={c.slug} value={c.slug} title={c.description}>{c.name}</option>
           ))}
         </select>
+      </Field>
+
+      <Field label="Intro *" error={errors.intro}>
+        <AdminInput
+          value={intro}
+          onChange={onIntro}
+          placeholder="e.g. How to float effectively against aggressive players"
+          hasError={!!errors.intro}
+        />
       </Field>
 
       <Field label="Difficulty">
@@ -706,6 +706,45 @@ function StepQuestions({
           </div>
         </div>
 
+        <Field label="Player type (per-question)">
+          <select
+            value={question.player_type ?? ''}
+            onChange={(e) => onQuestion({ ...question, player_type: e.target.value || undefined })}
+            className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
+          >
+            <option value="">- none -</option>
+            {PLAYER_TYPE_CODES.map((pt) => (
+              <option key={pt} value={pt}>{PLAYER_TYPE_LABELS[pt]}</option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Street (per-question)">
+          <select
+            value={question.street ?? ''}
+            onChange={(e) => onQuestion({ ...question, street: e.target.value || undefined })}
+            className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
+          >
+            <option value="">- none -</option>
+            {STREETS.map((s) => (
+              <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
+            ))}
+          </select>
+        </Field>
+
+        <Field label="Concept (per-question override)">
+          <select
+            value={question.concept ?? ''}
+            onChange={(e) => onQuestion({ ...question, concept: e.target.value || undefined })}
+            className="w-full bg-surface border border-line rounded px-3 py-2 text-sm text-ink outline-none focus:border-link"
+          >
+            <option value="">- inherit from lesson -</option>
+            {concepts.map((c) => (
+              <option key={c.slug} value={c.slug} title={c.description}>{c.name}</option>
+            ))}
+          </select>
+        </Field>
+
         <div className="space-y-3">
           <p className="text-[11px] font-semibold uppercase tracking-widest text-ink-2">
             Answers - mark exactly one correct
@@ -882,6 +921,20 @@ function StepReview({
   const obj = lesson as Record<string, unknown>
   const questions = (obj.questions as unknown[]) ?? []
 
+  // M3-09 #7 — warn if lesson concept doesn't match majority of question concepts
+  const lessonConcept = String(obj.concept ?? '')
+  const qConcepts = questions
+    .map((q) => String((q as Record<string, unknown>).concept ?? ''))
+    .filter(Boolean)
+  const conceptCounts: Record<string, number> = {}
+  for (const s of qConcepts) conceptCounts[s] = (conceptCounts[s] ?? 0) + 1
+  const lessonConceptCount = lessonConcept ? (conceptCounts[lessonConcept] ?? 0) : 0
+  const dominantConcept = Object.entries(conceptCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? ''
+  const showConceptWarning =
+    lessonConcept.length > 0 &&
+    qConcepts.length >= 2 &&
+    lessonConceptCount < qConcepts.length / 2
+
   return (
     <div className="space-y-5">
       <div>
@@ -892,12 +945,23 @@ function StepReview({
         </p>
       </div>
 
+      {showConceptWarning && (
+        <div className="rounded-xl border border-warning bg-warning/10 px-4 py-3 space-y-1">
+          <p className="text-sm font-semibold text-warning">Concept mismatch</p>
+          <p className="text-xs text-warning/80">
+            Lesson concept is <span className="font-mono font-semibold">{lessonConcept}</span>, but
+            most questions are tagged as <span className="font-mono font-semibold">{dominantConcept}</span>.
+            You can still save — update the lesson concept or retag the questions if this isn't intentional.
+          </p>
+        </div>
+      )}
+
       <div className="bg-surface border border-line rounded-xl p-4 space-y-3 text-sm">
         <div className="grid grid-cols-[120px_1fr] gap-y-2 text-ink-2">
           <span className="font-semibold text-ink">Title</span>
           <span>{String(obj.title ?? '')}</span>
-          <span className="font-semibold text-ink">Tag</span>
-          <span>{String(obj.principle_tag ?? '')}</span>
+          <span className="font-semibold text-ink">Intro</span>
+          <span className="line-clamp-2">{String(obj.intro ?? '')}</span>
           <span className="font-semibold text-ink">Concept</span>
           <span className="line-clamp-2">{String(obj.concept ?? '')}</span>
           {Boolean(obj.difficulty) && (
@@ -980,7 +1044,7 @@ const WIZARD_DRAFT_KEY = 'bss_wizard_draft'
 
 type WizardDraft = {
   title: string
-  principleTag: string
+  intro: string
   concept: string
   difficulty: string
   lessonId: string
@@ -1040,7 +1104,7 @@ export function AuthoringWizardPage({
   }, []) // eslint-disable-line react-hooks/exhaustive-deps -- intentionally read once on mount
 
   const [title, setTitle] = useState(savedDraft?.title ?? '')
-  const [principleTag, setPrincipleTag] = useState(savedDraft?.principleTag ?? '')
+  const [intro, setIntro] = useState(savedDraft?.intro ?? '')
   const [concept, setConcept] = useState(savedDraft?.concept ?? '')
   const [difficulty, setDifficulty] = useState(savedDraft?.difficulty ?? '')
   const [lessonId] = useState(savedDraft?.lessonId ?? '')
@@ -1086,7 +1150,7 @@ export function AuthoringWizardPage({
   useEffect(() => {
     if (embedded || isEditMode) return
     const draft: WizardDraft = {
-      title, principleTag, concept, difficulty, lessonId, questionType,
+      title, intro, concept, difficulty, lessonId, questionType,
       completedQuestions, currentQuestion, editingIdx, vocabInput, step,
     }
     try {
@@ -1094,7 +1158,7 @@ export function AuthoringWizardPage({
     } catch {
       // sessionStorage may be unavailable in private mode; persistence is best-effort.
     }
-  }, [title, principleTag, concept, difficulty, lessonId, questionType, completedQuestions, currentQuestion, editingIdx, vocabInput, step, embedded, isEditMode])
+  }, [title, intro, concept, difficulty, lessonId, questionType, completedQuestions, currentQuestion, editingIdx, vocabInput, step, embedded, isEditMode])
 
   const vocabTerms = vocabInput.split(',').map((t) => t.trim()).filter(Boolean)
 
@@ -1105,7 +1169,7 @@ export function AuthoringWizardPage({
       : completedQuestions
 
   const assembled = assembleLesson(
-    title, principleTag, concept, difficulty, lessonId,
+    title, intro, concept, difficulty, lessonId,
     questionsForAssembly,
     editingIdx !== null ? blankQuestion(questionType, 0) : currentQuestion,
     vocabTerms,
@@ -1120,7 +1184,7 @@ export function AuthoringWizardPage({
   function validateLesson(): Record<string, string> {
     const e: Record<string, string> = {}
     if (!title.trim()) e.title = 'Title is required'
-    if (!principleTag.trim()) e.principle_tag = 'Principle tag is required'
+    if (!intro.trim()) e.intro = 'Intro is required'
     if (!concept.trim()) e.concept = 'Concept is required'
     return e
   }
@@ -1298,12 +1362,12 @@ export function AuthoringWizardPage({
       {step === 'lesson' && (
         <StepLesson
           title={title}
-          principleTag={principleTag}
+          intro={intro}
           concept={concept}
           difficulty={difficulty}
           concepts={concepts}
           onTitle={setTitle}
-          onPrincipleTag={setPrincipleTag}
+          onIntro={setIntro}
           onConcept={setConcept}
           onDifficulty={setDifficulty}
           errors={errors}
