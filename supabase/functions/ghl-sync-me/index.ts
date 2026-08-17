@@ -10,7 +10,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { jsonResponse, preflight } from "../_shared/responses.ts";
 import { getContactByEmail } from "../_shared/ghl.ts";
-import { reconcileEntitlement } from "../_shared/ghl-entitlements.ts";
+import { reconcileFromTags } from "../_shared/ghl-entitlements.ts";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return preflight(req);
@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
   try {
     const contact = await getContactByEmail(user.email);
     if (!contact) return jsonResponse(req, { ok: true, action: "noop", reason: "no GHL contact" });
-    const result = await reconcileEntitlement(prod, user.id, contact.tags, contact.id);
+    const result = await reconcileFromTags(prod, user.id, contact.tags, contact.id);
     return jsonResponse(req, { ok: true, ...result });
   } catch (_err) {
     // Fail-open: never block or change access on a sync error.

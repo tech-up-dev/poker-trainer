@@ -1,28 +1,45 @@
-// Ghl-webhook Edge Function (M3-14 #2).
-// Target of a GoHighLevel Workflow "Webhook" action, fired when a contact's tags
-// change. GHL has no Supabase JWT, so this is gated by a shared secret header
-// (x-webhook-secret) instead of the admin JWT, and must be deployed with
-// --no-verify-jwt. The payload only tells us WHICH contact changed; we re-fetch
-// the contact from GHL for its authoritative current tags, map the email to a
-// Supabase user, and reconcile. No matching user yet (bought before signup) is a
-// harmless noop that the signup sync / resync will pick up later.
+// Ghl-webhook Edge Function (M3-14).
+// Target of the two GoHighLevel Workflows (one on the access tag being added, one
+// on it being removed). GHL has no Supabase JWT, so this is gated by a shared
+// secret header (x-webhook-secret) and must be deployed with --no-verify-jwt.
+//
+// The payload carries the contact id, email, the tag, and whether it was added or
+// removed. We re-fetch the contact from GHL with the Private Integration token for
+// its authoritative current tags and reconcile from those (access tag present ->
+// grant, absent -> cancel); if that read is unavailable we fall back to the
+// add/remove signal in the payload. Writes are add-only with a source, and the
+// whole thing fails open: any error acknowledges with 200 and changes nothing, so
+// a GHL retry storm or a transient outage never revokes a paying member.
+//
+// The exact payload field names are finalized on the setup call; extraction below
+// is deliberately lenient across the common shapes.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { jsonResponse, preflight } from "../_shared/responses.ts";
 import { getContactById, getContactByEmail } from "../_shared/ghl.ts";
-import { reconcileEntitlement } from "../_shared/ghl-entitlements.ts";
+import { reconcileFromTags, reconcileFromAction } from "../_shared/ghl-entitlements.ts";
 import { findUserByEmail } from "../_shared/users.ts";
 
-// Pull a contact id or email out of a loosely-shaped GHL webhook body. The exact
-// fields depend on how the Workflow is configured, so accept the common spots.
-function extractRef(body: Record<string, unknown>): { id?: string; email?: string } {
+function extractRef(body: Record<string, unknown>): {
+  id?: string;
+  email?: string;
+  tag?: string;
+  add: boolean | null;
+} {
   const contact = (body.contact ?? {}) as Record<string, unknown>;
   const id = body.contact_id ?? body.contactId ?? body.id ?? contact.id;
   const email = body.email ?? contact.email;
+  const tag = body.tag ?? body.tag_name ?? body.tagName;
+  const action = String(body.action ?? body.type ?? body.event ?? body.status ?? "").toLowerCase();
+  let add: boolean | null = null;
+  if (/add|subscrib|activ|grant/.test(action)) add = true;
+  else if (/remov|delet|cancel|lapse|inactiv|revoke/.test(action)) add = false;
   return {
     id: typeof id === "string" ? id : undefined,
     email: typeof email === "string" ? email : undefined,
+    tag: typeof tag === "string" ? tag : undefined,
+    add,
   };
 }
 
@@ -58,19 +75,36 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const contact = ref.id ? await getContactById(ref.id) : await getContactByEmail(ref.email as string);
-    if (!contact?.email) {
-      return jsonResponse(req, { ok: true, action: "noop", reason: "contact not resolved" });
+    // Authoritative current state from GHL.
+    let contact = null;
+    try {
+      contact = ref.id ? await getContactById(ref.id) : await getContactByEmail(ref.email as string);
+    } catch {
+      contact = null;
     }
-    const user = await findUserByEmail(prod, contact.email);
+
+    const email = contact?.email ?? ref.email;
+    if (!email) {
+      return jsonResponse(req, { ok: true, action: "noop", reason: "no email to match" });
+    }
+    const user = await findUserByEmail(prod, email);
     if (!user) {
+      // Bought before signing up: signup sync / resync will pick them up later.
       return jsonResponse(req, { ok: true, action: "noop", reason: "no matching user" });
     }
-    const result = await reconcileEntitlement(prod, user.id, contact.tags, contact.id);
+    const contactId = contact?.id ?? ref.id ?? "unknown";
+
+    let result;
+    if (contact) {
+      result = await reconcileFromTags(prod, user.id, contact.tags, contactId);
+    } else if (ref.add !== null) {
+      result = await reconcileFromAction(prod, user.id, ref.add, contactId);
+    } else {
+      return jsonResponse(req, { ok: true, action: "noop", reason: "state undetermined" });
+    }
     return jsonResponse(req, { ok: true, ...result });
   } catch (_err) {
-    // Fail-open: acknowledge with 200 so GHL does not spin on retries, but make no
-    // entitlement change on a sync error. The resync is the safety net.
+    // Fail-open: acknowledge with 200 and change nothing.
     return jsonResponse(req, { ok: true, action: "noop", reason: "sync unavailable" });
   }
 });
