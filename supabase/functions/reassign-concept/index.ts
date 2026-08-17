@@ -28,6 +28,12 @@ async function retagLessons(client: Client, table: string, fromSlug: string, toS
         changed = true;
       }
     }
+    // Also move the lesson-level concept (browsing/organisation tag), otherwise it
+    // is left pointing at the now soft-deleted slug and shows blank in the CMS.
+    if (lesson.concept === fromSlug) {
+      lesson.concept = toSlug;
+      changed = true;
+    }
     if (changed) {
       await client
         .from(table)
