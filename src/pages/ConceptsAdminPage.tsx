@@ -83,7 +83,7 @@ export function ConceptsAdminPage(): JSX.Element {
     setDeleteModal({ phase: 'checking', slug: c.slug, name: c.name })
     // Check both lesson-level concept AND question-level concept usage in parallel.
     // A lesson where only questions (not the lesson itself) use the slug would be
-    // missed by the lesson-level check alone — that's the gap that left 34 questions
+    // missed by the lesson-level check alone; that is the gap that left 34 questions
     // pointing at a deleted concept during M3 testing.
     const [lessonRes, questionRes] = await Promise.all([
       supabaseProd
