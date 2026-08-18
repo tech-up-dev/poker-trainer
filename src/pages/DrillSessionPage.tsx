@@ -75,6 +75,7 @@ export function DrillSessionPage(): JSX.Element {
         questionsAnswered: total,
         questionsCorrect: correct,
         completed: true,
+        contentType: 'drill',
       }).catch(() => {})
 
       void supabaseProd.functions.invoke('ghl-push-fields')
