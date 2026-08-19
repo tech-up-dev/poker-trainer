@@ -59,11 +59,44 @@ go-live.
    webhook grants an entitlement, treat `trialing` the same as `active`, so an
    in-app trial is never wrongly denied.
 
+## Access latency: Stripe webhook is primary for in-app buyers
+
+For an **in-app** purchase, access must be granted the moment payment succeeds.
+Relying only on the GoHighLevel round-trip (Stripe pays -> GHL syncs -> GHL
+workflow -> our `ghl-webhook`) can leave the buyer waiting up to a minute for the
+tag to come back around. So the two paths have distinct jobs:
+
+- **Stripe webhook is the primary, instant path for in-app buyers.** A direct
+  Stripe webhook to `/functions/v1/stripe-webhook` grants the entitlement
+  immediately on payment.
+- **GoHighLevel is the CRM and the path for funnel/promo buyers and
+  cancellations.** The `ghl-webhook` (M3-14) reconciles from the tag; it is the
+  safety net and the channel for purchases that originate outside the app.
+
+Both converge on the same `app_subscriber_active` access. A buyer never depends on
+the GHL sync for their initial in-app unlock.
+
+### Stripe webhook endpoint (M3-05 / M3-06 — to build + deploy)
+
+`stripe-webhook` does not exist in the repo yet. It must:
+
+- Be deployed at `/functions/v1/stripe-webhook`, `--no-verify-jwt` (Stripe has no
+  Supabase JWT), and **verify the Stripe signature** using the `whsec_...` signing
+  secret (server-side env).
+- Subscribe to four events: `checkout.session.completed`,
+  `customer.subscription.created`, `customer.subscription.updated`,
+  `customer.subscription.deleted`.
+- Grant the entitlement immediately on created/updated (**treat `trialing` the
+  same as `active`**) and revoke on `deleted`. Writes add-only with a `source`.
+- The client creates the endpoint in the Stripe Dashboard and sends the `whsec_`
+  signing secret (one-time link). Do **not** ask the client to "Send test event"
+  until the function is deployed, or the endpoint 404s.
+
 ## Purchase paths
 
 - **In-app checkout** consumes the price IDs above (cards and wallets: Apple Pay,
-  Google Pay, Link). On success the entitlement is granted and GHL is kept in
-  sync.
+  Google Pay, Link). On success the Stripe webhook grants the entitlement
+  instantly and GHL is kept in sync.
 - **GoHighLevel sales page / promos** grant the same access via the
   `app_subscriber_active` tag (dual purchase path, M3-07). Buy-now-pay-later
   methods (Afterpay, Klarna) and Cash App live on this path, since Stripe does
