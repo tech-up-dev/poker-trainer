@@ -76,21 +76,26 @@ tag to come back around. So the two paths have distinct jobs:
 Both converge on the same `app_subscriber_active` access. A buyer never depends on
 the GHL sync for their initial in-app unlock.
 
-### Stripe webhook endpoint (M3-05 / M3-06 — to build + deploy)
+### Stripe webhook endpoint (M3-05 / M3-06 — built + deployed)
 
-`stripe-webhook` does not exist in the repo yet. It must:
+`stripe-webhook` is built and deployed (`origin/dev @ eb2e82c`, prod +
+staging, `--no-verify-jwt` since Stripe has no Supabase JWT). It:
 
-- Be deployed at `/functions/v1/stripe-webhook`, `--no-verify-jwt` (Stripe has no
-  Supabase JWT), and **verify the Stripe signature** using the `whsec_...` signing
-  secret (server-side env).
-- Subscribe to four events: `checkout.session.completed`,
+- **Verifies the Stripe signature** using the `whsec_...` signing secret.
+- Subscribes to four events: `checkout.session.completed`,
   `customer.subscription.created`, `customer.subscription.updated`,
   `customer.subscription.deleted`.
-- Grant the entitlement immediately on created/updated (**treat `trialing` the
-  same as `active`**) and revoke on `deleted`. Writes add-only with a `source`.
-- The client creates the endpoint in the Stripe Dashboard and sends the `whsec_`
-  signing secret (one-time link). Do **not** ask the client to "Send test event"
-  until the function is deployed, or the endpoint 404s.
+- Grants the entitlement on created/updated (**treats `trialing` the same as
+  `active`**) and revokes on `deleted`; `past_due` left as-is. Writes add-only
+  with a `source`. Wrong/tampered signature -> 400, no change. Verified 9/9 on
+  staging with signed synthetic events.
+
+**Only outstanding config:** `STRIPE_WEBHOOK_SECRET` is not yet set on prod, so
+the live endpoint returns `500 {"Missing required environment variables"}` (its
+env-guard). It comes from Steve's Stripe endpoint (`whsec_...`). Once set, Steve's
+"Send test event" turns the endpoint green. `STRIPE_SECRET_KEY` is already set and
+verified as the account that owns Steve's prices (a real prod checkout-session
+create returned 200), so **no new key is needed**.
 
 ## Purchase paths
 
