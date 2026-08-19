@@ -68,7 +68,7 @@ export function MemberDashboardPage(): JSX.Element {
   return (
     <div className="max-w-2xl mx-auto space-y-4">
 
-      {/* Block 1 — Pick up where you left off */}
+      {/* Block 1 - Pick up where you left off */}
       <div className="card-elevated">
         <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
           Pick up where you left off
@@ -128,7 +128,7 @@ export function MemberDashboardPage(): JSX.Element {
         )}
       </div>
 
-      {/* Block 2 — Where you're leaking + Drill button */}
+      {/* Block 2 - Where you're leaking + Drill button */}
       <div className="card space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -172,7 +172,7 @@ export function MemberDashboardPage(): JSX.Element {
         </button>
       </div>
 
-      {/* Block 3 — This month (days progress, wired up in M5-02) */}
+      {/* Block 3 - This month (days progress, wired up in M5-02) */}
       <div className="card">
         <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
           This month
@@ -188,7 +188,7 @@ export function MemberDashboardPage(): JSX.Element {
         </div>
       </div>
 
-      {/* Block 4 — Today's Tip (full-width) */}
+      {/* Block 4 - Today's Tip (full-width) */}
       <TodaysTip />
 
     </div>
