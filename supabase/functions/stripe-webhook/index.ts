@@ -174,10 +174,36 @@ Deno.serve(async (req) => {
   try {
     switch (event.type) {
       case "checkout.session.completed": {
-        // Establish the customer -> user link early; the subscription events do
-        // the actual grant.
-        const session = event.data.object as { customer?: string };
-        if (session.customer) await resolveUserId(prod, stripeKey, session.customer);
+        // Grant straight from the session: the buyer email and customer id are in
+        // the event, so a completed in-app subscription unlocks access immediately
+        // without a later subscription.* event and without the Stripe key needing
+        // to read customers (the prod key is a restricted key). Also stores the
+        // customer -> user link so subsequent subscription.* events resolve locally.
+        const session = event.data.object as {
+          customer?: string;
+          customer_email?: string;
+          customer_details?: { email?: string };
+          subscription?: string;
+        };
+        const email = session.customer_details?.email ?? session.customer_email ?? null;
+        const customerId = typeof session.customer === "string" ? session.customer : null;
+        if (email && customerId) {
+          const user = await findUserByEmail(prod, email);
+          if (user) {
+            await prod.from("user_profiles").update({ stripe_customer_id: customerId }).eq("user_id", user.id);
+            await prod.from("entitlements").upsert(
+              {
+                user_id: user.id,
+                entitlement_key: KEY,
+                status: "active",
+                source: `stripe:${customerId}`,
+                stripe_subscription_id: typeof session.subscription === "string" ? session.subscription : null,
+                updated_at: new Date().toISOString(),
+              },
+              { onConflict: "user_id,entitlement_key" },
+            );
+          }
+        }
         break;
       }
       case "customer.subscription.created":
