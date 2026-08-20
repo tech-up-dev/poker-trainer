@@ -86,7 +86,7 @@ export const router = createBrowserRouter([
           { path: '/play/references',       element: <GlossaryDrawerProvider><ReferencesLibraryPage /></GlossaryDrawerProvider> },
           { path: '/play/pro-training',      element: <ProTrainingPage /> },
           { path: '/play/checkout/success', element: <CheckoutSuccessPage /> },
-          { path: '/play/drill',            element: <DrillSessionPage /> },
+          { path: '/play/drill',            element: <GlossaryDrawerProvider><DrillSessionPage /></GlossaryDrawerProvider> },
         ],
       },
       // Onboarding is full-screen - outside MemberLayout
