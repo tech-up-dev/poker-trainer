@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
-import { TrendingUp, CheckCircle2, Flame, BookOpen, CheckCircle, XCircle } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Flame, Zap, CheckCircle, XCircle } from 'lucide-react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
 import type { LessonProgress } from '../lib/progress'
 import { fetchStreak } from '../lib/streak'
+import { fetchUserStateRow, fetchUserBadges, BADGE_CATALOGUE } from '../lib/user-state'
+import type { EarnedBadge } from '../lib/user-state'
 
 const DIFFICULTY_ORDER = ['beginner', 'intermediate', 'advanced'] as const
 const DIFFICULTY_LABEL: Record<string, string> = {
@@ -78,6 +80,8 @@ export function StatsPage(): JSX.Element {
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
   const [streak, setStreak] = useState(0)
+  const [totalPoints, setTotalPoints] = useState(0)
+  const [earnedBadges, setEarnedBadges] = useState<EarnedBadge[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -91,6 +95,15 @@ export function StatsPage(): JSX.Element {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    Promise.all([fetchUserStateRow(), fetchUserBadges()])
+      .then(([state, badges]) => {
+        setTotalPoints(state.totalPoints)
+        setEarnedBadges(badges)
+      })
+      .catch(() => {})
   }, [])
 
   const attempted = lessons.filter((l) => l.lesson_id && progressMap[l.lesson_id])
@@ -109,7 +122,7 @@ export function StatsPage(): JSX.Element {
     { label: 'Streak',    value: `${streak}d`,              icon: Flame,        color: 'text-orange-500' },
     { label: 'Completed', value: String(completed.length),  icon: CheckCircle2, color: 'text-success'    },
     { label: 'Accuracy',  value: `${overallAccuracy}%`,     icon: TrendingUp,   color: 'text-gold'       },
-    { label: 'Questions', value: String(totalAnswered),      icon: BookOpen,     color: 'text-ink-2'      },
+    { label: 'Points',    value: String(totalPoints),        icon: Zap,          color: 'text-gold'       },
   ]
 
   const difficultyStats: DifficultyStats[] = DIFFICULTY_ORDER.map((diff) => {
@@ -175,6 +188,38 @@ export function StatsPage(): JSX.Element {
                   <p className="text-xs text-ink-3 mt-0.5">
                     {s.completed}/{s.total} lessons
                   </p>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Badges */}
+      {!loading && (
+        <div className="card">
+          <h2 className="text-xl font-semibold text-ink mb-4">Badges</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {BADGE_CATALOGUE.map((badge) => {
+              const earned = earnedBadges.find((b) => b.slug === badge.slug)
+              return (
+                <div
+                  key={badge.slug}
+                  className={`flex items-center gap-3 p-3 rounded-xl ${
+                    earned ? 'bg-gold/10' : 'bg-surface-overlay opacity-50 grayscale'
+                  }`}
+                >
+                  <span className="text-2xl shrink-0">{badge.icon}</span>
+                  <div className="min-w-0">
+                    <p className={`text-sm font-semibold truncate ${earned ? 'text-ink' : 'text-ink-3'}`}>
+                      {badge.label}
+                    </p>
+                    <p className="text-xs text-ink-3 truncate">
+                      {earned
+                        ? new Date(earned.earnedAt).toLocaleDateString()
+                        : badge.description}
+                    </p>
+                  </div>
                 </div>
               )
             })}

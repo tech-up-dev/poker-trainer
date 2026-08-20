@@ -164,7 +164,7 @@ export function MemberDashboardPage(): JSX.Element {
 
         <button
           type="button"
-          onClick={() => void navigate('/play/lessons')}
+          onClick={() => void navigate('/play/drill')}
           className="btn-secondary w-full flex items-center justify-center gap-2"
         >
           <Zap className="w-4 h-4" />

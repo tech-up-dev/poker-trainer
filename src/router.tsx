@@ -32,6 +32,7 @@ import { ProTrainingAdminPage } from './pages/ProTrainingAdminPage'
 import { AppSettingsAdminPage } from './pages/AppSettingsAdminPage'
 import { ConceptsAdminPage } from './pages/ConceptsAdminPage'
 import { EntitlementsAdminPage } from './pages/EntitlementsAdminPage'
+import { DrillSessionPage } from './pages/DrillSessionPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
@@ -85,6 +86,7 @@ export const router = createBrowserRouter([
           { path: '/play/references',       element: <GlossaryDrawerProvider><ReferencesLibraryPage /></GlossaryDrawerProvider> },
           { path: '/play/pro-training',      element: <ProTrainingPage /> },
           { path: '/play/checkout/success', element: <CheckoutSuccessPage /> },
+          { path: '/play/drill',            element: <DrillSessionPage /> },
         ],
       },
       // Onboarding is full-screen - outside MemberLayout
