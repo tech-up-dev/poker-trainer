@@ -149,7 +149,7 @@ export function ProTrainingPage(): JSX.Element {
       </div>
 
       {/* Banner - suppressed until config loads to avoid flash of default text */}
-      {(hasAccess || upsell) && (
+      {upsell && (
         <div
           className="flex items-center gap-3 text-[13.5px]"
           style={{ margin: '0 0 26px', padding: '14px 18px', borderRadius: 12, background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.42)', color: '#f3d9a6' }}
