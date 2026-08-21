@@ -183,7 +183,7 @@ export function LessonsPage(): JSX.Element {
                           <h3 className="text-base font-medium text-ink truncate">{lesson.title}</h3>
                         </div>
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-3 ml-7">
-                          <span>{lesson.questions.length} questions</span>
+                          <span>{lesson.questions.length} question{lesson.questions.length !== 1 ? 's' : ''}</span>
                           {lesson.principle_tag && (
                             <span className="badge-muted">{lesson.principle_tag}</span>
                           )}
@@ -196,7 +196,7 @@ export function LessonsPage(): JSX.Element {
                       </div>
 
                       <div className="flex items-center gap-3 shrink-0 ml-3">
-                        {accuracy !== null && (
+                        {accuracy !== null && !p?.completed && (
                           <span className="text-sm font-medium text-ink-3">{accuracy}%</span>
                         )}
                         <ChevronRight className="w-5 h-5 text-ink-3 group-hover:text-gold transition-colors" />
@@ -234,7 +234,7 @@ export function LessonsPage(): JSX.Element {
                         )}
                         <h3 className="text-base font-medium text-ink truncate">{lesson.title}</h3>
                       </div>
-                      <p className="text-sm text-ink-3 ml-7">{lesson.questions.length} questions</p>
+                      <p className="text-sm text-ink-3 ml-7">{lesson.questions.length} question{lesson.questions.length !== 1 ? 's' : ''}</p>
                     </div>
                     <ChevronRight className="w-5 h-5 text-ink-3 group-hover:text-gold transition-colors shrink-0 ml-3" />
                   </button>

@@ -5,6 +5,7 @@ import { useAuth } from '../lib/auth-context'
 import { supabaseProd } from '../lib/supabase-prod'
 import { PRICING_PLANS, createCheckoutSession } from '../lib/checkout'
 import type { PricingPlan } from '../lib/checkout'
+import { getTextSize, setTextSize, TEXT_SIZE_OPTIONS } from '../lib/text-size'
 
 type Entitlement = {
   entitlement_key: string
@@ -82,6 +83,13 @@ export function ProfilePage(): JSX.Element {
     return 'badge-error'
   }
 
+  const [textSize, setTextSizeState] = useState(getTextSize)
+
+  function handleTextSize(size: Parameters<typeof setTextSize>[0]): void {
+    setTextSize(size)
+    setTextSizeState(size)
+  }
+
   const email = session?.user?.email ?? ''
   const initial = email.charAt(0).toUpperCase()
 
@@ -95,6 +103,23 @@ export function ProfilePage(): JSX.Element {
         <div className="min-w-0">
           <p className="font-semibold text-ink truncate">{email}</p>
           <p className="text-sm text-ink-3">Member</p>
+        </div>
+      </div>
+
+      {/* Text size */}
+      <div className="card space-y-3">
+        <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">Text Size</p>
+        <div className="flex gap-2">
+          {TEXT_SIZE_OPTIONS.map((opt) => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => handleTextSize(opt.value)}
+              className={textSize === opt.value ? 'chip-active flex-1' : 'chip-inactive flex-1'}
+            >
+              {opt.label}
+            </button>
+          ))}
         </div>
       </div>
 
