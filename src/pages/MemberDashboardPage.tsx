@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { JSX } from 'react'
-import { PlayCircle, Zap, TrendingDown, ChevronRight, BarChart3 } from 'lucide-react'
+import { PlayCircle, Zap, TrendingDown, ChevronRight, BarChart3, CalendarDays, Target } from 'lucide-react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
@@ -12,6 +12,8 @@ import type { LeakConcept } from '../lib/leaks'
 import { fetchConcepts } from '../lib/concepts'
 import type { Concept } from '../lib/concepts'
 import { TodaysTip } from '../components/TodaysTip'
+import { fetchActivitySummary, WEEKLY_GOAL_DAYS, MONTHLY_GOAL_DAYS } from '../lib/activity'
+import type { ActivitySummary } from '../lib/activity'
 
 export function MemberDashboardPage(): JSX.Element {
   const navigate = useNavigate()
@@ -20,6 +22,7 @@ export function MemberDashboardPage(): JSX.Element {
   const [loading, setLoading] = useState(true)
   const [leaks, setLeaks] = useState<LeakConcept[] | null>(null)
   const [concepts, setConcepts] = useState<Concept[]>([])
+  const [activity, setActivity] = useState<ActivitySummary | null>(null)
 
   useEffect(() => {
     Promise.all([fetchAllPublishedLessons(), fetchLessonProgress()])
@@ -40,6 +43,12 @@ export function MemberDashboardPage(): JSX.Element {
         setConcepts(conceptData)
       })
       .catch(() => setLeaks([]))
+  }, [])
+
+  useEffect(() => {
+    fetchActivitySummary()
+      .then(setActivity)
+      .catch(() => {})
   }, [])
 
   const sortedLessons = [...lessons].sort((a, b) => (a.seq ?? 9999) - (b.seq ?? 9999))
@@ -172,20 +181,61 @@ export function MemberDashboardPage(): JSX.Element {
         </button>
       </div>
 
-      {/* Block 3 - This month (days progress, wired up in M5-02) */}
-      <div className="card">
-        <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
-          This month
-        </p>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
-            <BarChart3 className="w-5 h-5 text-gold" />
+      {/* Block 3 - This week + This month */}
+      <div className="grid grid-cols-2 gap-3">
+
+        {/* M5-01: Weekly goal */}
+        <div className="card">
+          <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
+            This week
+          </p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
+              <Target className="w-5 h-5 text-gold" />
+            </div>
+            <div>
+              <p className="text-base font-semibold text-ink">
+                {activity !== null ? activity.weeklyActiveDays : '-'} of {WEEKLY_GOAL_DAYS} days
+              </p>
+              <p className="text-xs text-ink-3">Weekly goal</p>
+            </div>
           </div>
-          <div>
-            <p className="text-base font-semibold text-ink">- of - training days</p>
-            <p className="text-xs text-ink-3">Monthly goal coming soon</p>
-          </div>
+          {activity !== null && (
+            <div className="progress-bar mt-3">
+              <div
+                className="progress-fill"
+                style={{ width: `${Math.min(100, Math.round((activity.weeklyActiveDays / WEEKLY_GOAL_DAYS) * 100))}%` }}
+              />
+            </div>
+          )}
         </div>
+
+        {/* M5-02: Monthly training days */}
+        <div className="card">
+          <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
+            This month
+          </p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
+              <CalendarDays className="w-5 h-5 text-gold" />
+            </div>
+            <div>
+              <p className="text-base font-semibold text-ink">
+                {activity !== null ? activity.monthlyActiveDays : '-'} of {MONTHLY_GOAL_DAYS} days
+              </p>
+              <p className="text-xs text-ink-3">Training days</p>
+            </div>
+          </div>
+          {activity !== null && (
+            <div className="progress-bar mt-3">
+              <div
+                className="progress-fill"
+                style={{ width: `${Math.min(100, Math.round((activity.monthlyActiveDays / MONTHLY_GOAL_DAYS) * 100))}%` }}
+              />
+            </div>
+          )}
+        </div>
+
       </div>
 
       {/* Block 4 - Today's Tip (full-width) */}
