@@ -161,6 +161,7 @@ type Course = {
   cta_text: string
   sort_order: number
   enabled: boolean
+  ghl_tag: string | null
 }
 
 type CourseForm = Omit<Course, 'id' | 'enabled'>
@@ -184,20 +185,37 @@ const EMPTY_FORM: CourseForm = {
   sales_url: '',
   cta_text: 'Order Now',
   sort_order: 0,
+  ghl_tag: null,
 }
 
 function CourseFormModal({
   initial,
   onSave,
   onClose,
+  ghlTags,
+  onRefreshTags,
 }: {
   initial: CourseForm | null
   onSave: (form: CourseForm) => Promise<void>
   onClose: () => void
+  ghlTags: string[]
+  onRefreshTags: () => Promise<void>
 }): JSX.Element {
   const [form, setForm] = useState<CourseForm>(initial ?? EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [tagSearch, setTagSearch] = useState(initial?.ghl_tag ?? '')
+  const [refreshingTags, setRefreshingTags] = useState(false)
+
+  const filteredTags = tagSearch.length > 0
+    ? ghlTags.filter((t) => t.toLowerCase().includes(tagSearch.toLowerCase())).slice(0, 50)
+    : []
+
+  async function handleRefreshTags(): Promise<void> {
+    setRefreshingTags(true)
+    await onRefreshTags()
+    setRefreshingTags(false)
+  }
 
   function set<K extends keyof CourseForm>(key: K, value: CourseForm[K]): void {
     setForm((f) => ({ ...f, [key]: value }))
@@ -339,6 +357,62 @@ function CourseFormModal({
             />
           </div>
 
+          {/* GHL tag */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-semibold text-ink-3 uppercase tracking-wide">
+                GHL tag (suppression)
+              </label>
+              <button
+                type="button"
+                onClick={() => void handleRefreshTags()}
+                disabled={refreshingTags}
+                className="text-xs text-gold hover:opacity-80 disabled:opacity-40"
+              >
+                {refreshingTags ? 'Refreshing…' : 'Refresh tags'}
+              </button>
+            </div>
+            <input
+              className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-gold"
+              value={tagSearch}
+              onChange={(e) => {
+                setTagSearch(e.target.value)
+                if (!e.target.value) set('ghl_tag', null)
+              }}
+              placeholder="Search or clear to unset…"
+            />
+            {filteredTags.length > 0 && (
+              <div className="border border-line rounded-lg mt-1 max-h-36 overflow-y-auto bg-canvas">
+                {filteredTags.map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => { set('ghl_tag', tag); setTagSearch(tag) }}
+                    className="w-full text-left px-3 py-1.5 text-xs text-ink hover:bg-surface-overlay transition-colors"
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            )}
+            {form.ghl_tag && (
+              <p className="text-xs text-ink-3 mt-1">
+                Selected: <span className="text-gold font-medium">{form.ghl_tag}</span>
+                {' '}
+                <button
+                  type="button"
+                  onClick={() => { set('ghl_tag', null); setTagSearch('') }}
+                  className="text-error hover:opacity-80"
+                >
+                  Clear
+                </button>
+              </p>
+            )}
+            <p className="text-xs text-ink-3 mt-1">
+              Members with this GHL tag already own this course and won't see it.
+            </p>
+          </div>
+
           {/* Sort order */}
           <div>
             <label className="block text-xs font-semibold text-ink-3 mb-1.5 uppercase tracking-wide">Sort order</label>
@@ -387,6 +461,17 @@ export function ProTrainingAdminPage(): JSX.Element {
   const [savingOrder, setSavingOrder] = useState(false)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
   const dragIndexRef = useRef<number | null>(null)
+  const [ghlTags, setGhlTags] = useState<string[]>([])
+
+  async function loadGhlTags(): Promise<void> {
+    const { data } = await supabaseProd.from('ghl_tags_cache').select('tags').eq('id', true).maybeSingle()
+    setGhlTags((data?.tags as string[] | null) ?? [])
+  }
+
+  async function handleRefreshTags(): Promise<void> {
+    await supabaseProd.functions.invoke('refresh-ghl-tags')
+    await loadGhlTags()
+  }
 
   async function load(): Promise<void> {
     setLoading(true)
@@ -403,13 +488,13 @@ export function ProTrainingAdminPage(): JSX.Element {
   useEffect(() => {
     let cancelled = false
     void (async () => {
-      const { data, error: err } = await supabaseProd
-        .from('pro_training_courses')
-        .select('*')
-        .order('sort_order', { ascending: true })
+      const [coursesResult] = await Promise.all([
+        supabaseProd.from('pro_training_courses').select('*').order('sort_order', { ascending: true }),
+        loadGhlTags(),
+      ])
       if (cancelled) return
-      if (err) { setError(err.message); setLoading(false); return }
-      setCourses((data ?? []) as Course[])
+      if (coursesResult.error) { setError(coursesResult.error.message); setLoading(false); return }
+      setCourses((coursesResult.data ?? []) as Course[])
       setLoading(false)
     })()
     return () => { cancelled = true }
@@ -491,6 +576,7 @@ export function ProTrainingAdminPage(): JSX.Element {
         sales_url: editingCourse.sales_url,
         cta_text: editingCourse.cta_text ?? 'Order Now',
         sort_order: editingCourse.sort_order,
+        ghl_tag: editingCourse.ghl_tag,
       }
     : null
 
@@ -501,6 +587,8 @@ export function ProTrainingAdminPage(): JSX.Element {
           initial={formInitial}
           onSave={handleSave}
           onClose={() => { setModalOpen(false); setEditingCourse(null) }}
+          ghlTags={ghlTags}
+          onRefreshTags={handleRefreshTags}
         />
       )}
 
@@ -578,6 +666,7 @@ export function ProTrainingAdminPage(): JSX.Element {
                     <p className="text-sm font-semibold text-ink truncate">{course.title}</p>
                     <p className="text-xs text-ink-3 mt-0.5">
                       ${course.list_price} → ${course.member_price} ({discount}% off) · sort {course.sort_order}
+                      {course.ghl_tag && <> · <span className="text-gold">{course.ghl_tag}</span></>}
                     </p>
                   </div>
 

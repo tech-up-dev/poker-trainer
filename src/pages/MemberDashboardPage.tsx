@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { FormEvent, JSX } from 'react'
-import { PlayCircle, Zap, TrendingDown, ChevronRight, BarChart3, Lock, CalendarDays, Target } from 'lucide-react'
+import { PlayCircle, Zap, TrendingDown, ChevronRight, BarChart3, Lock, CalendarDays, Target, Snowflake, Flame } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
 
@@ -14,8 +14,9 @@ import type { LeakConcept } from '../lib/leaks'
 import { fetchConcepts } from '../lib/concepts'
 import type { Concept } from '../lib/concepts'
 import { TodaysTip } from '../components/TodaysTip'
-import { fetchActivitySummary, WEEKLY_GOAL_DAYS, MONTHLY_GOAL_DAYS } from '../lib/activity'
+import { fetchActivitySummary } from '../lib/activity'
 import type { ActivitySummary } from '../lib/activity'
+import { fetchUserStateRow, fetchFreezeCount } from '../lib/user-state'
 
 export function MemberDashboardPage(): JSX.Element {
   const navigate = useNavigate()
@@ -32,6 +33,8 @@ export function MemberDashboardPage(): JSX.Element {
   const pwInputRef = useRef<HTMLInputElement>(null)
   const [concepts, setConcepts] = useState<Concept[]>([])
   const [activity, setActivity] = useState<ActivitySummary | null>(null)
+  const [currentStreak, setCurrentStreak] = useState(0)
+  const [freezeCount, setFreezeCount] = useState(0)
 
   useEffect(() => {
     Promise.all([fetchAllPublishedLessons(), fetchLessonProgress()])
@@ -55,8 +58,12 @@ export function MemberDashboardPage(): JSX.Element {
   }, [])
 
   useEffect(() => {
-    fetchActivitySummary()
-      .then(setActivity)
+    Promise.all([fetchActivitySummary(), fetchUserStateRow(), fetchFreezeCount()])
+      .then(([activityData, stateRow, freezes]) => {
+        setActivity(activityData)
+        setCurrentStreak(stateRow.currentStreak)
+        setFreezeCount(freezes)
+      })
       .catch(() => {})
   }, [])
 
@@ -210,10 +217,10 @@ export function MemberDashboardPage(): JSX.Element {
         </button>
       </div>
 
-      {/* Block 3 - This week + This month */}
+      {/* Block 3 - This week (M5-01) + This month (M5-02) */}
       <div className="grid grid-cols-2 gap-3">
 
-        {/* M5-01: Weekly goal */}
+        {/* Weekly goal — primary; streak + freeze count secondary */}
         <div className="card">
           <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
             This week
@@ -224,7 +231,7 @@ export function MemberDashboardPage(): JSX.Element {
             </div>
             <div>
               <p className="text-base font-semibold text-ink">
-                {activity !== null ? activity.weeklyActiveDays : '-'} of {WEEKLY_GOAL_DAYS} days
+                {activity !== null ? activity.weeklyActiveDays : '-'} of {activity?.weeklyGoalDays ?? '-'} days
               </p>
               <p className="text-xs text-ink-3">Weekly goal</p>
             </div>
@@ -233,13 +240,26 @@ export function MemberDashboardPage(): JSX.Element {
             <div className="progress-bar mt-3">
               <div
                 className="progress-fill"
-                style={{ width: `${Math.min(100, Math.round((activity.weeklyActiveDays / WEEKLY_GOAL_DAYS) * 100))}%` }}
+                style={{ width: `${Math.min(100, Math.round((activity.weeklyActiveDays / activity.weeklyGoalDays) * 100))}%` }}
               />
             </div>
           )}
+          {/* Streak + freeze — secondary */}
+          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-line">
+            <span className="flex items-center gap-1 text-xs text-ink-3">
+              <Flame className="w-3.5 h-3.5 text-orange-500" />
+              {currentStreak}d streak
+            </span>
+            {freezeCount > 0 && (
+              <span className="flex items-center gap-1 text-xs text-ink-3">
+                <Snowflake className="w-3.5 h-3.5 text-blue-400" />
+                {freezeCount} {freezeCount === 1 ? 'freeze' : 'freezes'}
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* M5-02: Monthly training days */}
+        {/* Monthly training days */}
         <div className="card">
           <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
             This month
@@ -250,7 +270,7 @@ export function MemberDashboardPage(): JSX.Element {
             </div>
             <div>
               <p className="text-base font-semibold text-ink">
-                {activity !== null ? activity.monthlyActiveDays : '-'} of {MONTHLY_GOAL_DAYS} days
+                {activity !== null ? activity.monthlyActiveDays : '-'} of {activity?.monthlyGoalDays ?? '-'} days
               </p>
               <p className="text-xs text-ink-3">Training days</p>
             </div>
@@ -259,7 +279,7 @@ export function MemberDashboardPage(): JSX.Element {
             <div className="progress-bar mt-3">
               <div
                 className="progress-fill"
-                style={{ width: `${Math.min(100, Math.round((activity.monthlyActiveDays / MONTHLY_GOAL_DAYS) * 100))}%` }}
+                style={{ width: `${Math.min(100, Math.round((activity.monthlyActiveDays / activity.monthlyGoalDays) * 100))}%` }}
               />
             </div>
           )}

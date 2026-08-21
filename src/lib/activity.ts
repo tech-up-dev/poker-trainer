@@ -1,58 +1,62 @@
 import { supabaseProd } from './supabase-prod'
 
 export type ActivitySummary = {
-  weeklyActiveDays: number   // distinct days with activity in the current ISO week (Mon-Sun)
-  monthlyActiveDays: number  // distinct days with activity in the current calendar month
+  weeklyActiveDays: number
+  monthlyActiveDays: number
+  weeklyGoalDays: number
+  monthlyGoalDays: number
 }
 
-export const WEEKLY_GOAL_DAYS  = 5   // target active days per week
-export const MONTHLY_GOAL_DAYS = 20  // target active days per month (qualification threshold)
-
+// Qualifying day = any calendar day on which the member completed at least one
+// lesson or drill. Matches the BE cron definition so the counts stay in sync.
 export async function fetchActivitySummary(): Promise<ActivitySummary> {
   const {
     data: { user },
   } = await supabaseProd.auth.getUser()
-  if (!user) return { weeklyActiveDays: 0, monthlyActiveDays: 0 }
+  if (!user) return { weeklyActiveDays: 0, monthlyActiveDays: 0, weeklyGoalDays: 5, monthlyGoalDays: 20 }
 
   const now = new Date()
-
-  // Calendar month window
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-  const monthEnd   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59).toISOString()
 
-  // ISO week window: Mon–Sun
-  const dayOfWeek = now.getDay() === 0 ? 6 : now.getDay() - 1  // 0=Mon … 6=Sun
+  // ISO week: Mon=0 … Sun=6
+  const dowIso = now.getDay() === 0 ? 6 : now.getDay() - 1
   const weekStart = new Date(now)
-  weekStart.setDate(now.getDate() - dayOfWeek)
+  weekStart.setDate(now.getDate() - dowIso)
   weekStart.setHours(0, 0, 0, 0)
-  const weekEnd = new Date(weekStart)
-  weekEnd.setDate(weekStart.getDate() + 6)
-  weekEnd.setHours(23, 59, 59, 999)
 
-  const { data, error } = await supabaseProd
-    .from('answer_events')
-    .select('answered_at')
-    .eq('user_id', user.id)
-    .gte('answered_at', monthStart)
-    .lte('answered_at', monthEnd)
+  const [progressResult, settingsResult] = await Promise.all([
+    supabaseProd
+      .from('user_progress')
+      .select('last_attempted_at')
+      .eq('user_id', user.id)
+      .eq('completed', true)
+      .gte('last_attempted_at', monthStart),
+    supabaseProd
+      .from('app_settings')
+      .select('key, value')
+      .in('key', ['weekly_goal_days', 'monthly_goal_days']),
+  ])
 
-  if (error || !data) return { weeklyActiveDays: 0, monthlyActiveDays: 0 }
+  const toDay = (iso: string) => new Date(iso).toLocaleDateString('en-CA') // YYYY-MM-DD
+  const completions = progressResult.data ?? []
 
-  const toDay = (iso: string) =>
-    new Date(iso).toLocaleDateString('en-CA') // YYYY-MM-DD
-
-  const monthDays = new Set(data.map((r) => toDay(r.answered_at as string)))
-  const weekDays  = new Set(
-    data
-      .filter((r) => {
-        const d = new Date(r.answered_at as string)
-        return d >= weekStart && d <= weekEnd
-      })
-      .map((r) => toDay(r.answered_at as string)),
+  const monthDays = new Set(completions.map((r) => toDay(r.last_attempted_at as string)))
+  const weekDays = new Set(
+    completions
+      .filter((r) => new Date(r.last_attempted_at as string) >= weekStart)
+      .map((r) => toDay(r.last_attempted_at as string)),
   )
+
+  const settings = settingsResult.data ?? []
+  const getSetting = (key: string, def: number): number => {
+    const row = settings.find((s) => s.key === key)
+    return row ? Number(row.value ?? def) : def
+  }
 
   return {
     weeklyActiveDays:  weekDays.size,
     monthlyActiveDays: monthDays.size,
+    weeklyGoalDays:    getSetting('weekly_goal_days',  5),
+    monthlyGoalDays:   getSetting('monthly_goal_days', 20),
   }
 }
