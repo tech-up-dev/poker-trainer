@@ -38,9 +38,15 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
   const navigate = useNavigate()
   const email = session?.user?.email ?? ''
   const [upsell, setUpsell] = useState<UpsellButtonConfig | null>(null)
+  const [ownsAll, setOwnsAll] = useState(false)
 
   useEffect(() => {
-    void fetchUpsellButtonConfig().then(setUpsell)
+    void Promise.all([
+      fetchUpsellButtonConfig().then(setUpsell),
+      supabaseProd.rpc('get_owned_courses').then(({ data }) => {
+        setOwnsAll((data?.owns_all as boolean | null) ?? false)
+      }),
+    ])
   }, [])
   const initial = email.charAt(0).toUpperCase()
 
@@ -94,8 +100,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
           ))}
         </nav>
 
-        {/* Upsell - shown to all users when enabled */}
-        {upsell?.enabled && (
+        {/* Upsell - hidden when member already owns all courses */}
+        {upsell?.enabled && !ownsAll && (
           <div className="px-3 pb-3">
             <button
               type="button"

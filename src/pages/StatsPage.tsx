@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import type { JSX } from 'react'
-import { TrendingUp, CheckCircle2, Flame, Zap, CheckCircle, XCircle } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Flame, Zap, CheckCircle, XCircle, Plus, Trash2, DollarSign, Clock, Calendar } from 'lucide-react'
+import { supabaseProd } from '../lib/supabase-prod'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
@@ -76,7 +77,274 @@ type DifficultyStats = {
   questionsCorrect: number
 }
 
+// ─── Session logging (M5-05) ──────────────────────────────────────────────────
+
+type SessionLog = {
+  id: string
+  session_date: string
+  stakes: string
+  hours: number | null
+  result_amount: number
+  notes: string | null
+}
+
+type SessionForm = {
+  session_date: string
+  stakes: string
+  hours: string
+  result_amount: string
+  notes: string
+}
+
+const EMPTY_SESSION: SessionForm = {
+  session_date: new Date().toISOString().slice(0, 10),
+  stakes: '',
+  hours: '',
+  result_amount: '',
+  notes: '',
+}
+
+function SessionsTab(): JSX.Element {
+  const [sessions, setSessions] = useState<SessionLog[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState<SessionForm>(EMPTY_SESSION)
+  const [saving, setSaving] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const formRef = useRef<HTMLDivElement>(null)
+
+  async function load(): Promise<void> {
+    const { data: { user } } = await supabaseProd.auth.getUser()
+    if (!user) return
+    const { data } = await supabaseProd
+      .from('session_logs')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('session_date', { ascending: false })
+    setSessions((data ?? []) as SessionLog[])
+    setLoading(false)
+  }
+
+  useEffect(() => { void load() }, [])
+
+  function set<K extends keyof SessionForm>(key: K, value: string): void {
+    setForm((f) => ({ ...f, [key]: value }))
+  }
+
+  async function handleAdd(e: React.FormEvent): Promise<void> {
+    e.preventDefault()
+    setError(null)
+    const resultNum = parseFloat(form.result_amount)
+    if (isNaN(resultNum)) { setError('Enter a valid result amount (negative for a loss).'); return }
+    setSaving(true)
+    const { data: { user } } = await supabaseProd.auth.getUser()
+    if (!user) { setSaving(false); return }
+    const { error: err } = await supabaseProd.from('session_logs').insert({
+      user_id: user.id,
+      session_date: form.session_date,
+      stakes: form.stakes.trim() || null,
+      hours: form.hours ? parseFloat(form.hours) : null,
+      result_amount: resultNum,
+      notes: form.notes.trim() || null,
+    })
+    setSaving(false)
+    if (err) { setError(err.message); return }
+    setForm(EMPTY_SESSION)
+    setShowForm(false)
+    await load()
+  }
+
+  async function handleDelete(id: string): Promise<void> {
+    setDeletingId(id)
+    await supabaseProd.from('session_logs').delete().eq('id', id)
+    setDeletingId(null)
+    await load()
+  }
+
+  // Running totals
+  const totalSessions = sessions.length
+  const totalHours = sessions.reduce((sum, s) => sum + (s.hours ?? 0), 0)
+  const netResult = sessions.reduce((sum, s) => sum + s.result_amount, 0)
+  const winSessions = sessions.filter((s) => s.result_amount > 0).length
+
+  const fmt = (n: number): string =>
+    (n >= 0 ? '+' : '') + n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+
+  return (
+    <div className="space-y-6">
+      {/* Summary stat cards */}
+      {!loading && totalSessions > 0 && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="stat-card">
+            <Calendar className="w-6 h-6 text-gold mb-2" />
+            <p className="stat-value">{totalSessions}</p>
+            <p className="stat-label">Sessions</p>
+          </div>
+          <div className="stat-card">
+            <Clock className="w-6 h-6 text-gold mb-2" />
+            <p className="stat-value">{totalHours.toFixed(1)}h</p>
+            <p className="stat-label">Hours played</p>
+          </div>
+          <div className="stat-card">
+            <DollarSign className={`w-6 h-6 mb-2 ${netResult >= 0 ? 'text-success' : 'text-error'}`} />
+            <p className={`stat-value ${netResult >= 0 ? 'text-success' : 'text-error'}`}>{fmt(netResult)}</p>
+            <p className="stat-label">Net result</p>
+          </div>
+          <div className="stat-card">
+            <TrendingUp className="w-6 h-6 text-gold mb-2" />
+            <p className="stat-value">
+              {totalSessions > 0 ? Math.round((winSessions / totalSessions) * 100) : 0}%
+            </p>
+            <p className="stat-label">Win rate</p>
+          </div>
+        </div>
+      )}
+
+      {/* Log a session */}
+      <div className="card space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-ink">Session log</h2>
+          <button
+            type="button"
+            onClick={() => { setShowForm((v) => !v); setError(null) }}
+            className="btn-primary btn-sm flex items-center gap-1.5"
+          >
+            <Plus className="w-4 h-4" />
+            Log session
+          </button>
+        </div>
+
+        {showForm && (
+          <div ref={formRef} className="border border-line rounded-xl p-4 bg-surface-overlay space-y-3">
+            <form onSubmit={(e) => void handleAdd(e)} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">Date</label>
+                  <input
+                    type="date"
+                    className="input"
+                    value={form.session_date}
+                    onChange={(e) => set('session_date', e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="label">Stakes (e.g. NL10)</label>
+                  <input
+                    type="text"
+                    className="input"
+                    value={form.stakes}
+                    onChange={(e) => set('stakes', e.target.value)}
+                    placeholder="NL10"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">Hours played</label>
+                  <input
+                    type="number"
+                    step="0.5"
+                    min="0"
+                    className="input"
+                    value={form.hours}
+                    onChange={(e) => set('hours', e.target.value)}
+                    placeholder="2.5"
+                  />
+                </div>
+                <div>
+                  <label className="label">Result ($)</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="input"
+                    value={form.result_amount}
+                    onChange={(e) => set('result_amount', e.target.value)}
+                    placeholder="-25 or +120"
+                    required
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="label">Notes (optional)</label>
+                <textarea
+                  className="input resize-none"
+                  rows={2}
+                  value={form.notes}
+                  onChange={(e) => set('notes', e.target.value)}
+                  placeholder="Key hands, reads, mistakes…"
+                />
+              </div>
+              {error && <p className="text-sm text-error">{error}</p>}
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => { setShowForm(false); setError(null) }}
+                  className="btn-ghost btn-sm flex-1"
+                >
+                  Cancel
+                </button>
+                <button type="submit" disabled={saving} className="btn-primary btn-sm flex-1">
+                  {saving ? 'Saving…' : 'Save session'}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+
+        {loading && <p className="text-sm text-ink-3">Loading…</p>}
+
+        {!loading && sessions.length === 0 && (
+          <p className="text-sm text-ink-3 py-4 text-center">No sessions logged yet.</p>
+        )}
+
+        {!loading && sessions.length > 0 && (
+          <div className="space-y-2">
+            {sessions.map((s) => (
+              <div
+                key={s.id}
+                className="flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-overlay"
+              >
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-sm font-semibold text-ink">{s.session_date}</span>
+                    {s.stakes && <span className="badge-muted">{s.stakes}</span>}
+                    {s.hours != null && (
+                      <span className="text-xs text-ink-3">{s.hours}h</span>
+                    )}
+                  </div>
+                  {s.notes && (
+                    <p className="text-xs text-ink-3 mt-0.5 truncate">{s.notes}</p>
+                  )}
+                </div>
+                <span className={`text-sm font-bold shrink-0 ${s.result_amount >= 0 ? 'text-success' : 'text-error'}`}>
+                  {fmt(s.result_amount)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => { if (confirm('Delete this session?')) void handleDelete(s.id) }}
+                  disabled={deletingId === s.id}
+                  className="p-1.5 rounded-lg text-ink-3 hover:text-error hover:bg-error/10 transition-colors disabled:opacity-40 shrink-0"
+                  aria-label="Delete session"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── StatsPage with tab switcher ─────────────────────────────────────────────
+
+type StatsTab = 'training' | 'sessions'
+
 export function StatsPage(): JSX.Element {
+  const [tab, setTab] = useState<StatsTab>('training')
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
   const [streak, setStreak] = useState(0)
@@ -153,8 +421,30 @@ export function StatsPage(): JSX.Element {
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-ink mb-2">Stats</h1>
-        <p className="text-lg text-ink-2">Track your poker knowledge growth</p>
+        <p className="text-lg text-ink-2">Track your poker knowledge and results</p>
       </div>
+
+      {/* Tab switcher */}
+      <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => setTab('training')}
+          className={tab === 'training' ? 'chip-active' : 'chip-inactive'}
+        >
+          Training
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab('sessions')}
+          className={tab === 'sessions' ? 'chip-active' : 'chip-inactive'}
+        >
+          Session log
+        </button>
+      </div>
+
+      {tab === 'sessions' && <SessionsTab />}
+
+      {tab === 'training' && (<>
 
       {/* Stat cards */}
       {!loading && (
@@ -280,6 +570,7 @@ export function StatsPage(): JSX.Element {
           <p className="text-sm text-ink-3">Complete your first lesson to see your progress here.</p>
         </div>
       )}
+      </>)}
     </div>
   )
 }

@@ -18,14 +18,31 @@ export const BADGE_CATALOGUE: BadgeMeta[] = [
 
 export type UserStateRow = {
   totalPoints: number
+  currentStreak: number
 }
 
 export async function fetchUserStateRow(): Promise<UserStateRow> {
   const { data } = await supabaseProd
     .from('user_streaks')
-    .select('total_points')
+    .select('total_points, current_streak')
     .maybeSingle()
-  return { totalPoints: (data?.total_points as number | null) ?? 0 }
+  return {
+    totalPoints:   (data?.total_points   as number | null) ?? 0,
+    currentStreak: (data?.current_streak as number | null) ?? 0,
+  }
+}
+
+export async function fetchFreezeCount(): Promise<number> {
+  const {
+    data: { user },
+  } = await supabaseProd.auth.getUser()
+  if (!user) return 0
+  const { data } = await supabaseProd
+    .from('streak_freezes')
+    .select('freezes_available')
+    .eq('user_id', user.id)
+    .maybeSingle()
+  return (data?.freezes_available as number | null) ?? 0
 }
 
 export type EarnedBadge = {

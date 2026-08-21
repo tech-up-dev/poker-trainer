@@ -122,15 +122,18 @@ export function ProTrainingPage(): JSX.Element {
 
   useEffect(() => {
     void (async () => {
-      const [coursesResult] = await Promise.all([
+      const [coursesResult, ownedResult] = await Promise.all([
         supabaseProd
           .from('pro_training_courses')
           .select('id, eyebrow, title, description, list_price, member_price, tone, sales_url, sort_order')
           .eq('enabled', true)
           .order('sort_order', { ascending: true }),
+        supabaseProd.rpc('get_owned_courses'),
         fetchUpsellButtonConfig().then(setUpsell),
       ])
-      setCourses((coursesResult.data ?? []) as Course[])
+      const ownedIds = new Set<string>((ownedResult.data?.owned_course_ids as string[] | null) ?? [])
+      const visible = ((coursesResult.data ?? []) as Course[]).filter((c) => !ownedIds.has(c.id))
+      setCourses(visible)
       setLoading(false)
     })()
   }, [])
