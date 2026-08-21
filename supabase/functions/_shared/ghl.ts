@@ -59,15 +59,28 @@ export async function getContactById(id: string): Promise<GhlContact | null> {
 
 export type ContactField = { key: string; value: string | number };
 
-// Write custom fields on a contact (M3-13 write-back) via the PIT. Fields are
-// referenced by their GHL field key (e.g. "contact.last_trained_date"). Retries
-// on transient failures (429 / 5xx); a permanent 4xx returns false without
-// looping. NOTE: the exact custom-field body shape ({ key, field_value }) should
-// be confirmed against a live contact that has these fields defined.
+// GHL v2 writes custom fields by their internal field ID, not the merge fieldKey
+// (a PUT with { key, field_value } returns 200 but silently writes nothing), so we
+// map fieldKey -> id here. IDs are for the connected location (X9YN3cpdM3TwR2niCEmk),
+// read from GET /locations/{id}/customFields; see docs/integrations/ghl.md.
+const CUSTOM_FIELD_IDS: Record<string, string> = {
+  "contact.last_trained_date": "pgkLNSFAeJW0xRGjKhq7",
+  "contact.current_streak": "5rVKcvwUA4mnSS3w1uBm",
+  "contact.weakest_concept": "ekiDsFazDVtGFsOEfL5c",
+  "contact.weekly_goal_progress": "Lt4zLukTOJsSd5MWK7pv",
+  "contact.monthly_days_trained": "33u2it1ES8QWRI4SLw5B",
+};
+
+// Write custom fields on a contact (M3-13 write-back) via the PIT. Fields come in
+// keyed by fieldKey; we resolve each to its id and write by id (unknown keys are
+// skipped). Retries on transient failures (429 / 5xx); a permanent 4xx returns
+// false without looping.
 export async function updateContactFields(contactId: string, fields: ContactField[]): Promise<boolean> {
-  const body = JSON.stringify({
-    customFields: fields.map((f) => ({ key: f.key, field_value: f.value })),
-  });
+  const customFields = fields
+    .map((f) => ({ id: CUSTOM_FIELD_IDS[f.key], field_value: f.value }))
+    .filter((cf) => cf.id);
+  if (customFields.length === 0) return false;
+  const body = JSON.stringify({ customFields });
   const headers = { ...ghlHeaders(), "Content-Type": "application/json" };
   for (let attempt = 0; attempt < 3; attempt++) {
     const res = await fetch(`${BASE}/contacts/${encodeURIComponent(contactId)}`, {
