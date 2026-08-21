@@ -125,3 +125,15 @@ export const addContactTag = (contactId: string, tag: string): Promise<boolean> 
   tagRequest("POST", contactId, tag);
 export const removeContactTag = (contactId: string, tag: string): Promise<boolean> =>
   tagRequest("DELETE", contactId, tag);
+
+// List the location's live GHL tag names (M5-03). Feeds the cached admin dropdown
+// for the per-course "owns this" tag. Needs the PIT Tags:read scope.
+export async function getLocationTags(): Promise<string[]> {
+  const res = await ghlFetch(`/locations/${locationId()}/tags`);
+  if (!res.ok) throw new Error(`GHL tags list failed: ${res.status}`);
+  const data = await res.json();
+  const list = (data.tags ?? data.data ?? []) as Array<{ name?: string } | string>;
+  return list
+    .map((t) => (typeof t === "string" ? t : (t.name ?? "")))
+    .filter((n) => n.length > 0);
+}

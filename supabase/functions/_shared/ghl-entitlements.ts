@@ -68,3 +68,13 @@ export async function reconcileFromAction(
   await cancelAccess(prod, userId, contactId);
   return { action: "cancelled" };
 }
+
+// Record a member's current GHL tags (M5-03), so the app can hide Pro Training
+// courses they already own without re-hitting GHL. Called from the same
+// reconcile paths (webhook + resync) that already hold the contact's tags.
+export async function recordMemberTags(prod: Client, userId: string, tags: string[]): Promise<void> {
+  await prod.from("member_ghl_tags").upsert(
+    { user_id: userId, tags, synced_at: new Date().toISOString() },
+    { onConflict: "user_id" },
+  );
+}
