@@ -18,7 +18,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { jsonResponse, preflight } from "../_shared/responses.ts";
 import { getContactById, getContactByEmail } from "../_shared/ghl.ts";
-import { reconcileFromTags, reconcileFromAction } from "../_shared/ghl-entitlements.ts";
+import { reconcileFromTags, reconcileFromAction, recordMemberTags } from "../_shared/ghl-entitlements.ts";
 import { findUserByEmail } from "../_shared/users.ts";
 
 function extractRef(body: Record<string, unknown>): {
@@ -97,6 +97,7 @@ Deno.serve(async (req) => {
     let result;
     if (contact) {
       result = await reconcileFromTags(prod, user.id, contact.tags, contactId);
+      await recordMemberTags(prod, user.id, contact.tags); // M5-03: keep owned-course sync fresh
     } else if (ref.add !== null) {
       result = await reconcileFromAction(prod, user.id, ref.add, contactId);
     } else {

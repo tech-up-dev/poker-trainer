@@ -26,6 +26,7 @@ export type ProgressPayload = {
   questionsAnswered: number
   questionsCorrect: number
   completed: boolean
+  contentType?: 'lesson' | 'drill'
 }
 
 export async function upsertProgress(payload: ProgressPayload): Promise<void> {
@@ -38,7 +39,7 @@ export async function upsertProgress(payload: ProgressPayload): Promise<void> {
     {
       user_id: user.id,
       content_id: payload.lessonId,
-      content_type: 'lesson',
+      content_type: payload.contentType ?? 'lesson',
       questions_answered: payload.questionsAnswered,
       questions_correct: payload.questionsCorrect,
       completed: payload.completed,

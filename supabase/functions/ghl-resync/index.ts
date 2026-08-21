@@ -10,7 +10,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { jsonResponse, preflight } from "../_shared/responses.ts";
 import { getContactByEmail } from "../_shared/ghl.ts";
-import { reconcileFromTags } from "../_shared/ghl-entitlements.ts";
+import { reconcileFromTags, recordMemberTags } from "../_shared/ghl-entitlements.ts";
 
 type Client = ReturnType<typeof createClient>;
 
@@ -45,6 +45,7 @@ Deno.serve(async (req) => {
         const contact = await getContactByEmail(user.email);
         if (!contact) continue;
         const result = await reconcileFromTags(prod, user.id, contact.tags, contact.id);
+        await recordMemberTags(prod, user.id, contact.tags); // M5-03: owned-course sync
         if (result.action === "granted") granted++;
         else if (result.action === "cancelled") cancelled++;
       } catch (_err) {

@@ -14,7 +14,7 @@ export function RequireSession(): JSX.Element {
   const location = useLocation()
 
   // Block rendering until both session and entitlements are known. We can't
-  // safely evaluate hasAccess until resolveEntitlements has run — showing a
+  // safely evaluate hasAccess until resolveEntitlements has run - showing a
   // loading screen is cheaper than a spurious redirect to /play/profile.
   // TOKEN_REFRESHED never sets loading=true (skipped in auth.tsx), so an
   // in-progress lesson stays mounted during background refreshes.
