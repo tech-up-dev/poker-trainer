@@ -93,3 +93,35 @@ export async function updateContactFields(contactId: string, fields: ContactFiel
   }
   return false;
 }
+
+// --- In-app purchase CRM sync (M3-06) ---
+
+// Upsert a contact by email (create if new, else return the existing one) so an
+// in-app Stripe buyer lands in GHL. Returns the contact id, or null on failure.
+export async function upsertContact(email: string): Promise<string | null> {
+  const res = await fetch(`${BASE}/contacts/upsert`, {
+    method: "POST",
+    headers: { ...ghlHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ locationId: locationId(), email }),
+  });
+  if (!res.ok) return null;
+  const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
+  const contact = (data.contact ?? data) as Record<string, unknown>;
+  return typeof contact.id === "string" ? contact.id : null;
+}
+
+async function tagRequest(method: string, contactId: string, tag: string): Promise<boolean> {
+  const res = await fetch(`${BASE}/contacts/${encodeURIComponent(contactId)}/tags`, {
+    method,
+    headers: { ...ghlHeaders(), "Content-Type": "application/json" },
+    body: JSON.stringify({ tags: [tag] }),
+  });
+  return res.ok;
+}
+
+// Apply / clear a tag on a contact (M3-06). Applying the subscriber tag is what
+// triggers the client's email/automation workflows.
+export const addContactTag = (contactId: string, tag: string): Promise<boolean> =>
+  tagRequest("POST", contactId, tag);
+export const removeContactTag = (contactId: string, tag: string): Promise<boolean> =>
+  tagRequest("DELETE", contactId, tag);

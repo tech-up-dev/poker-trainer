@@ -24,6 +24,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { jsonResponse } from "../_shared/responses.ts";
 import { findUserByEmail } from "../_shared/users.ts";
+import { upsertContact, addContactTag, removeContactTag } from "../_shared/ghl.ts";
 
 type Client = ReturnType<typeof createClient>;
 
@@ -143,6 +144,28 @@ async function cancel(prod: Client, userId: string, sub: StripeSubscription, cus
     .eq("entitlement_key", KEY);
 }
 
+const SUBSCRIBER_TAG = (): string => Deno.env.get("GHL_SUBSCRIBER_TAG") ?? "app_subscriber_active";
+
+// Land the in-app buyer in GHL and (un)apply the subscriber tag so the client's
+// CRM and email workflows fire (M3-06). Best-effort: it never breaks the
+// entitlement path. Applying the tag also fires the client's tag workflow ->
+// our ghl-webhook, which idempotently re-grants; that is harmless.
+async function syncGhlTag(email: string, add: boolean): Promise<void> {
+  try {
+    const contactId = await upsertContact(email);
+    if (!contactId) return;
+    if (add) await addContactTag(contactId, SUBSCRIBER_TAG());
+    else await removeContactTag(contactId, SUBSCRIBER_TAG());
+  } catch (_err) {
+    // CRM sync is best-effort.
+  }
+}
+
+async function userEmail(prod: Client, userId: string): Promise<string | null> {
+  const { data } = await prod.auth.admin.getUserById(userId);
+  return data.user?.email ?? null;
+}
+
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return jsonResponse(req, { ok: false, message: "Method not allowed" }, 405);
@@ -202,6 +225,7 @@ Deno.serve(async (req) => {
               },
               { onConflict: "user_id,entitlement_key" },
             );
+            await syncGhlTag(email, true);
           }
         }
         break;
@@ -214,7 +238,11 @@ Deno.serve(async (req) => {
         const userId = await resolveUserId(prod, stripeKey, customerId);
         if (!userId) break; // bought before signup / no match: the GHL path or resync covers it
         if (GRANT_STATUSES.has(sub.status)) await grant(prod, userId, sub, customerId);
-        else if (CANCEL_STATUSES.has(sub.status)) await cancel(prod, userId, sub, customerId);
+        else if (CANCEL_STATUSES.has(sub.status)) {
+          await cancel(prod, userId, sub, customerId);
+          const email = await userEmail(prod, userId);
+          if (email) await syncGhlTag(email, false);
+        }
         // other statuses (e.g. past_due) are intentionally left as-is
         break;
       }
@@ -223,7 +251,11 @@ Deno.serve(async (req) => {
         const customerId = customerIdOf(sub);
         if (!customerId) break;
         const userId = await resolveUserId(prod, stripeKey, customerId);
-        if (userId) await cancel(prod, userId, sub, customerId);
+        if (userId) {
+          await cancel(prod, userId, sub, customerId);
+          const email = await userEmail(prod, userId);
+          if (email) await syncGhlTag(email, false);
+        }
         break;
       }
       default:
