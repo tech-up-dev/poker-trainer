@@ -101,7 +101,11 @@ create returned 200), so **no new key is needed**.
 
 - **In-app checkout** consumes the price IDs above (cards and wallets: Apple Pay,
   Google Pay, Link). On success the Stripe webhook grants the entitlement
-  instantly and GHL is kept in sync.
+  instantly, and (M3-06, built) also upserts the buyer's GHL contact by email and
+  applies `app_subscriber_active` so the client's email workflows fire for in-app
+  buyers too. The GHL push is best-effort and never blocks the entitlement grant.
+  The client's native Stripe-GHL connection does not create the contact, so the
+  function does.
 - **GoHighLevel sales page / promos** grant the same access via the
   `app_subscriber_active` tag (dual purchase path, M3-07). Buy-now-pay-later
   methods (Afterpay, Klarna) and Cash App live on this path, since Stripe does

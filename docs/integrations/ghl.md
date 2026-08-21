@@ -17,20 +17,28 @@ Sub-account / Location ID: `X9YN3cpdM3TwR2niCEmk`
 ## Contact custom fields (M3-13 write-back)
 
 The app writes these member-behaviour fields back to the member's GHL contact so
-the client's email workflows can fire on them. Use these exact field keys.
+the client's email workflows can fire on them.
 
-| Field key                          | Type   | Meaning                                   | Example      |
-| ---------------------------------- | ------ | ----------------------------------------- | ------------ |
-| `contact.last_trained_date`        | date   | Date of the member's last training        | 2026-08-14   |
-| `contact.current_streak`           | number | Consecutive active days                   | 7            |
-| `contact.weakest_concept`          | text   | Current weakest concept (display name)    | C-Betting    |
-| `contact.weekly_goal_progress`     | text   | Progress toward the weekly goal           | 3 of 5       |
-| `contact.monthly_days_trained`     | number | Active days this calendar month           | 12           |
+**Write by field ID, not by merge-key.** GoHighLevel v2 writes custom fields by
+their internal **field ID**. The `contact.xxx` names are template/merge keys, not
+the API write reference — writing by them returns `200` but is silently ignored.
+The Private Integration token needs the `locations/customFields.readonly` scope to
+resolve IDs (added by the client Aug 2026). The IDs below are the write reference.
 
-Writes retry on transient failure. `weakest_concept` is the concept **display
-name** resolved at write time (the app stores concept slugs internally; see the
-answer-event snapshot notes), so a later concept rename is reflected on the next
-write.
+| Field key                      | Field ID (write reference) | Type   | Meaning                                | Example    |
+| ------------------------------ | -------------------------- | ------ | -------------------------------------- | ---------- |
+| `contact.last_trained_date`    | `pgkLNSFAeJW0xRGjKhq7`     | date   | Date of the member's last training     | 2026-08-14 |
+| `contact.current_streak`       | `5rVKcvwUA4mnSS3w1uBm`     | number | Consecutive active days                | 7          |
+| `contact.weakest_concept`      | `ekiDsFazDVtGFsOEfL5c`     | text   | Current weakest concept (display name) | C-Betting  |
+| `contact.weekly_goal_progress` | `Lt4zLukTOJsSd5MWK7pv`     | text   | Progress toward the weekly goal        | 3 of 5     |
+| `contact.monthly_days_trained` | `33u2it1ES8QWRI4SLw5B`     | number | Active days this calendar month        | 12         |
+
+The push currently writes `last_trained_date` and `current_streak` (E2E-verified
+populating a live contact). The other three light up once the M4/M5 data behind
+them exists. Writes retry on transient failure. `weakest_concept` is the concept
+**display name** resolved at write time (the app stores concept slugs internally;
+see the answer-event snapshot notes), so a later concept rename is reflected on the
+next write.
 
 ## Access tag (M3-14 entitlements)
 
@@ -38,10 +46,21 @@ Single tag that represents active app access:
 
 - `app_subscriber_active`
 
-The app adds this tag when a subscription is active and removes it when the
-subscription lapses or is cancelled. This tag is what drives who can enter the
-app. Additional per-price-point tags can be added later if needed; one is enough
-to launch.
+This tag is what drives who can enter the app, and it is applied from two
+directions:
+
+- **In-app purchase (M3-06):** on a successful Stripe purchase the `stripe-webhook`
+  upserts the buyer's GHL contact by email and applies `app_subscriber_active`
+  (removing it on cancel). This is what makes the client's email workflows fire for
+  in-app buyers, not just funnel buyers. Best-effort: it never blocks the in-app
+  entitlement grant, which happens directly regardless. E2E-verified on prod
+  (purchase -> tagged, cancel -> untagged). The client's native Stripe-GHL
+  connection does **not** create the contact, so the function must.
+- **Funnel / promo purchase:** the client's GHL automation applies the tag, which
+  our `ghl-webhook` reconciles into an entitlement.
+
+Additional per-price-point tags can be added later if needed; one is enough to
+launch.
 
 ## Inbound tag-change workflows
 
