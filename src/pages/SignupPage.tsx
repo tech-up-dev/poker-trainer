@@ -1,13 +1,22 @@
-﻿import { useState } from 'react'
+import { useState } from 'react'
 import type { FormEvent, JSX } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
 
 export function SignupPage(): JSX.Element {
   const navigate = useNavigate()
-  const [email, setEmail] = useState('')
+  // Activation deep link: a GHL thank-you-page button sends buyers here with
+  // ?email=<their purchase email>. We prefill and lock it so the account is
+  // created under the exact email that carries the app_subscriber_active tag,
+  // which is what grants access on signup. Locked (read-only), not just
+  // prefilled, so a mismatch can't silently lock the buyer out.
+  const [searchParams] = useSearchParams()
+  const prefilledEmail = (searchParams.get('email') ?? '').trim()
+  const emailLocked = prefilledEmail.length > 0
+
+  const [email, setEmail] = useState(prefilledEmail)
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [ageVerified, setAgeVerified] = useState(false)
@@ -112,12 +121,20 @@ export function SignupPage(): JSX.Element {
                 type="email"
                 autoComplete="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  if (emailLocked) return
+                  setEmail(e.target.value)
+                }}
+                readOnly={emailLocked}
+                aria-readonly={emailLocked}
                 required
                 placeholder="you@example.com"
-                className="input pl-10"
+                className={`input pl-10${emailLocked ? ' opacity-70 cursor-not-allowed' : ''}`}
               />
             </div>
+            {emailLocked && (
+              <p className="text-xs text-ink-3">Using the email from your purchase.</p>
+            )}
           </div>
 
           {/* Password */}
