@@ -1,8 +1,8 @@
 {
-  "lesson_id": "preflop-opens-utg-9max",
-  "title": "Pre-flop Opens from UTG (9-max)",
-  "principle_tag": "character_mapping",
-  "concept": "opening_ranges_utg",
+  "lesson_id": "preflop-opens-and-cbets-utg-9max",
+  "title": "Pre-flop Opens and C-bets from UTG (9-max)",
+  "intro": "You are UTG in a live 9-max $1/$2 cash game with deep stacks. This lesson walks through opening hand selection, sizing, a dry-board c-bet, and a two-street barrel plan when the turn changes the equity picture.",
+  "concept": "c-betting",
   "difficulty": "intermediate",
   "questions": [
     {
@@ -31,6 +31,9 @@
           "explanation": "Q9s is too dominated and too disconnected to open profitably from UTG; it's a late-position hand."
         }
       ],
+      "concept": "hand-reading",
+      "street": "preflop",
+      "difficulty": "intermediate",
       "glossary_terms": ["UTG", "opening range", "dominated"]
     },
     {
@@ -59,12 +62,15 @@
           "explanation": "Limping UTG caps your range and gives up the initiative. It's almost always a leak in 9-max cash with no prior action."
         }
       ],
+      "concept": "bet-sizing",
+      "street": "preflop",
+      "difficulty": "beginner",
       "glossary_terms": ["raise sizing", "fold equity"]
     },
     {
-      "question_id": "utg-q3-flop-decision",
+      "question_id": "utg-q3-flop-cbet",
       "type": "hand_scenario",
-      "prompt": "You open AKs from UTG to $6 and only the BB calls. Flop comes Kc 7d 2s. BB checks. What is the most theoretically sound action?",
+      "prompt": "You open AKs from UTG to $6 and only the BB (a passive loose fish) calls. Flop comes Kc 7d 2s. BB checks. What is the most theoretically sound action?",
       "answers": [
         {
           "text": "Check back",
@@ -102,7 +108,58 @@
         },
         "notes": "Villain has been calling wide preflop and folding turn often when missed."
       },
+      "concept": "c-betting",
+      "player_type": "PLF",
+      "street": "flop",
+      "difficulty": "intermediate",
       "glossary_terms": ["c-bet", "top pair", "dry board", "protection"]
+    },
+    {
+      "question_id": "utg-q4-turn-barrel-plan",
+      "type": "hand_scenario",
+      "prompt": "Same hand: UTG opens AKs to $6, BB (PLF) calls. Flop Kc 7d 2s: you c-bet $4, BB calls. Turn is Th, putting a backdoor flush draw and gutshot straight draws on the board. BB checks. Considering the whole line - flop c-bet AND the turn - what is the most theoretically sound plan?",
+      "answers": [
+        {
+          "text": "Give up, check back",
+          "is_correct": false,
+          "explanation": "Checking back the turn abandons the equity you built with the flop c-bet and lets villain's floats and gutshots realize their equity for free."
+        },
+        {
+          "text": "Small barrel ~1/3 pot for thin value and denial",
+          "is_correct": true,
+          "explanation": "A small second barrel (~$7 into $21) keeps folding out the pure air, charges the gutshots and backdoor flush draws, and gets value from Kx and 7x that called flop. Consistent with the small-c-bet, multi-street pressure plan against a PLF's wide calling range."
+        },
+        {
+          "text": "Polarizing overbet",
+          "is_correct": false,
+          "explanation": "Overbetting turn on a card that added draws bloats the pot on the exact street where villain's range gets sticky. Reserve overbets for range-nutted spots, not here."
+        },
+        {
+          "text": "Check turn planning to river-bluff",
+          "is_correct": false,
+          "explanation": "Delaying aggression here is a leak: villain calls flop with too many hands you beat, and you lose value + protection by checking a turn that helps their draws."
+        }
+      ],
+      "table_state": {
+        "street": "turn",
+        "hero_position": "UTG",
+        "hero_hole_cards": ["As", "Ks"],
+        "board_cards": ["Kc", "7d", "2s", "Th"],
+        "pot_size": 21,
+        "stack_sizes": {
+          "UTG": 190,
+          "BB": 190
+        },
+        "villain_player_types": {
+          "BB": "PLF"
+        },
+        "notes": "Question spans flop AND turn decisions - the plan is evaluated across both streets."
+      },
+      "concept": "barreling",
+      "player_type": "PLF",
+      "street": "multi-street",
+      "difficulty": "intermediate",
+      "glossary_terms": ["barrel", "backdoor", "gutshot", "range advantage"]
     }
   ]
 }

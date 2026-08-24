@@ -105,9 +105,11 @@ c-bet sizing on dry boards.
 Top-level fields:
 - lesson_id: kebab-case, descriptive, like "cbet-sizing-dry-boards"
 - title: a clear human-readable title
-- principle_tag: pick the closest match from the five core principles
-- concept: "cbet_sizing_dry_boards"
+- intro: a short paragraph (2-4 sentences) setting up the situation
+- concept: a slug from the managed concept vocabulary (see the Concept vocabulary section)
 - difficulty: "intermediate"
+
+For every question also include the question-level tags: `concept` (from the same vocabulary), and where relevant `player_type` (one of OMC/PLF/Y2K/GTO/DWM/STP), `street` (preflop/flop/turn/river/multi-street) and `difficulty`.
 
 Questions: exactly 10, mixed as follows:
 - 6 multiple_choice
@@ -174,7 +176,7 @@ Structure:
 
 - `# Title` on the first heading line becomes the lesson `title`.
 - Metadata lines before the first question, as `- key: value`, set the top-level
-  fields: `principle_tag`, `concept`, `difficulty` (and optionally `lesson_id`).
+  fields: `intro`, `concept`, `difficulty` (and optionally `lesson_id`).
 - Each question starts with `## Q: <prompt>`.
 - Answers are list items `- [ ] text :: explanation` (wrong) or
   `- [x] text :: explanation` (correct). Exactly 4 answers, exactly one `[x]`.
@@ -187,8 +189,8 @@ Example:
 
 ```markdown
 # C-bet sizing on dry boards
-- principle_tag: character_mapping
-- concept: cbet_sizing_dry_boards
+- intro: How to size continuation bets on dry boards where villain's range hits weakly.
+- concept: c-betting
 - difficulty: intermediate
 
 ## Q: On a K-7-2 rainbow flop as the preflop raiser vs one caller, what c-bet size?
@@ -207,12 +209,14 @@ A Lesson is a JSON object with the following top-level fields.
 
 | Field           | Type       | Required | Notes                                                                                         |
 | --------------- | ---------- | -------- | --------------------------------------------------------------------------------------------- |
-| `lesson_id`     | string     | yes      | Non-empty. Stable unique identifier. Lowercase, hyphen-separated, descriptive.                |
+| `lesson_id`     | string     | no       | Non-empty when present. Stable unique identifier; auto-generated from `title` if omitted.     |
 | `title`         | string     | yes      | Non-empty. Human-readable title shown in the app.                                             |
-| `principle_tag` | string     | yes      | Non-empty. One of the five core teaching principles (see below).                              |
-| `concept`       | string     | yes      | Non-empty. The specific poker concept the lesson teaches.                                     |
+| `intro`         | string     | no       | Short setup paragraph shown before the first question. Optional but strongly recommended.     |
+| `concept`       | string     | yes      | Non-empty. A slug from the managed concept vocabulary (admin-editable at `/admin/concepts`).  |
 | `difficulty`    | enum       | no       | One of `"beginner"`, `"intermediate"`, `"advanced"`.                                          |
 | `questions`     | Question[] | yes      | At least one question. Each must match the QuestionSchema (multiple_choice or hand_scenario). |
+
+> Legacy field: `principle_tag` was removed in M3-10. Existing content may still carry it (kept optional so historical lessons validate); new content should omit it and use per-question `concept` tags instead.
 
 ### `lesson_id`
 
@@ -242,63 +246,56 @@ Examples:
 - `"River Bluff Blockers"`
 - `"3-bet Defense from the Big Blind vs. the Button"`
 
-### `principle_tag`
+### `intro`
 
-One of the five core teaching principles of the Controlled Chaos system.
-**This is a closed set** — these five values are the canonical list. When
-generating lessons, ask Claude explicitly for variety across principles, and
-pick the one that most directly maps to the lesson's intent.
+Optional short paragraph shown to the member before the first question. Sets
+up the situation the lesson teaches (game format, position, stakes, or the
+motivating question). Two to four sentences is ideal; longer runs push the
+first question below the fold.
 
-The five principles, in snake_case identifier form:
+Replaces the free-text intro that used to live inline in the first question.
+Legacy lessons without `intro` render unchanged.
 
-- `"character_mapping"` — reading player types and exploiting their tendencies
-- `"strategic_3_betting"` — when, why, and how to 3-bet (sizing, ranges, light vs value)
-- `"simple_math_for_big_stacks"` — equity, pot odds, implied odds, SPR-aware math
-- `"floating_and_equity_flow"` — postflop float strategy and how equity moves between streets
-- `"building_and_winning_huge_pots"` — constructing and capturing the pots that matter
+### `concept` (lesson-level)
 
-The validator only requires `principle_tag` to be a non-empty string. The
-five-value closed list above is enforced editorially. If a lesson does not
-map cleanly to one principle, pick the closest fit and note the gap in the
-PR description so the taxonomy can be revisited.
+The single poker concept this lesson teaches, expressed as a slug from the
+managed concept vocabulary (see the Concept vocabulary section below). Every
+lesson has exactly one; questions each carry their own `concept` too and may
+tag a different one when a question drills a related-but-distinct sub-topic.
 
-### `concept`
+### Concept vocabulary
 
-The specific poker concept this lesson teaches. Think of `principle_tag` as
-the broad teaching frame and `concept` as the narrow topic. A single principle
-can power many concepts.
+**The concept list is an admin-managed vocabulary.** It lives in the `concepts`
+table (with `slug`, display `name`, sort order, and an optional `description`),
+is edited at `/admin/concepts`, and is validated in the content pipeline against
+that table. Renames flow through history because every question and answer-event
+snapshots the slug; historical stats survive vocabulary edits.
 
-**Concepts are an open, editable taxonomy.** Unlike `principle_tag` and
-player-type codes, the concept list grows as the founder authors content. New
-concepts are added through the CMS at author time, not by editing this doc.
-Use a snake_case identifier derived from the concept's display name.
+Seed vocabulary (twenty slugs, in order):
 
-Seed concepts (the founder will extend this list over time):
-
-- `"3bet_sizing"` — 3-Bet Sizing
-- `"core_34"` — Core 34
-- `"3betting_light"` — 3-Betting Light
-- `"value_3betting"` — Value 3-Betting
-- `"isolating_limpers"` — Isolating Limpers
-- `"building_table_image"` — Building Table Image
-- `"character_mapping"` — Character Mapping
-- `"implied_odds"` — Implied Odds
-- `"pot_odds"` — Pot Odds
-- `"equity_flow"` — Equity Flow
+- `"3-betting"` — 3-Betting
+- `"character-mapping"` — Character Mapping
+- `"playing-3bet-pots"` — Playing 3-Bet Pots
+- `"c-betting"` — C-Betting
+- `"value-betting"` — Value Betting
+- `"barreling"` — Barreling
 - `"floating"` — Floating
-- `"hand_reading"` — Hand Reading
-- `"value_betting"` — Value Betting
-- `"bet_sizing"` — Bet Sizing
-- `"pot_control"` — Pot Control
-- `"blockers"` — Blockers
-- `"in_position"` — In Position
-- `"out_of_position"` — Out of Position
-- `"spr"` — Stack to Pot Ratio (SPR)
-- `"continuation_betting"` — Continuation Betting
-- `"table_image"` — Table Image
+- `"odds-equity"` — Odds & Equity
+- `"facing-3bets"` — Facing 3-Bets
+- `"squeezing"` — Squeezing
+- `"check-raising"` — Check-Raising
+- `"bet-sizing"` — Bet Sizing
+- `"isolating-limpers"` — Isolating Limpers
+- `"hand-reading"` — Hand Reading
+- `"multiway-pots"` — Multiway Pots
+- `"playing-draws"` — Playing Draws
+- `"bluff-catching"` — Bluff Catching
+- `"blind-defense"` — Blind Defense
+- `"board-texture"` — Board Texture
+- `"table-image"` — Table Image
 
-Convention: snake_case, lowercase, descriptive, no spaces, hyphens dropped
-(so "3-Bet Sizing" becomes `"3bet_sizing"`, not `"3-bet_sizing"`).
+Convention: lowercase kebab-case, no underscores. New concepts are added by an
+admin through the CMS; do not invent slugs in a lesson.
 
 ### Closed sets vs. open taxonomies
 
@@ -306,11 +303,12 @@ A quick rule the validator does not enforce but content authoring depends on:
 
 | Field                                       | Set type   | Rule                                                                                                         |
 | ------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------ |
-| `principle_tag`                             | **Closed** | One of the five values listed above. New principles require a doc + schema update.                           |
-| player-type codes in `villain_player_types` | **Closed** | One of the six codes listed in the HandScenarioState section below. New codes require a doc update.          |
+| `concept` (lesson and question)             | **Managed**| Any active slug in the `concepts` table. Admins add/rename/soft-delete through the CMS at `/admin/concepts`. |
+| `player_type` (question-level)              | **Closed** | One of the six Character Mapping codes: OMC / PLF / Y2K / GTO / DWM / STP. Enforced by the validator.       |
+| `street` (question-level)                   | **Closed** | One of `"preflop"`, `"flop"`, `"turn"`, `"river"`, `"multi-street"`. Enforced by the validator.             |
+| player-type codes in `villain_player_types` | **Closed** | Same six codes as `player_type`. Enforced by the validator.                                                 |
 | `action` in `seat_actions`                  | **Closed** | One of the nine actions listed in the HandScenarioState section below. Enforced by the validator.           |
-| `concept`                                   | **Open**   | Any snake_case identifier the author chooses. New concepts are added through the CMS as content is authored. |
-| `difficulty`                                | **Closed** | One of `"beginner"`, `"intermediate"`, `"advanced"`. Enforced by the validator.                              |
+| `difficulty` (lesson and question)          | **Closed** | One of `"beginner"`, `"intermediate"`, `"advanced"`. Enforced by the validator.                              |
 
 ### `difficulty`
 
@@ -330,8 +328,8 @@ the next section for the shape of each.
 {
   "lesson_id": "preflop-opens-utg-9max",
   "title": "Pre-flop Opens from UTG (9-max)",
-  "principle_tag": "character_mapping",
-  "concept": "opening_ranges_utg",
+  "intro": "You are UTG in a live 9-max $1/$2 cash game with deep stacks. This lesson walks through opening selection, sizing and the resulting c-bet decisions.",
+  "concept": "c-betting",
   "difficulty": "intermediate",
   "questions": [/* one or more Question objects, see next section */]
 }
@@ -349,6 +347,10 @@ Every question, regardless of type, shares the following fields.
 | `type`           | enum     | yes      | Exactly `"multiple_choice"` or `"hand_scenario"`. This is the discriminator.                  |
 | `prompt`         | string   | yes      | Non-empty. The question text shown to the member.                                             |
 | `answers`        | Answer[] | yes      | Exactly four AnswerSchema objects, exactly one with `is_correct: true`.                       |
+| `concept`        | string   | no       | A slug from the managed concept vocabulary; the specific concept this question drills. Recommended on all new questions; the wizard supplies it.  |
+| `player_type`    | enum     | no       | One of the six Character Mapping codes (OMC / PLF / Y2K / GTO / DWM / STP). Set when a specific villain type is what the question tests.        |
+| `street`         | enum     | no       | One of `"preflop"`, `"flop"`, `"turn"`, `"river"`, `"multi-street"`. Use `"multi-street"` when the question evaluates a plan spanning two or more streets. |
+| `difficulty`     | enum     | no       | One of `"beginner"`, `"intermediate"`, `"advanced"`. Overrides the lesson-level difficulty for this one question when set.                       |
 | `glossary_terms` | string[] | no       | Terms in the prompt or explanations that should render as tappable glossary links in the app. |
 
 `hand_scenario` questions additionally require `table_state` (see the
@@ -645,12 +647,13 @@ shows the field path and the message verbatim.
 
 **Lesson-level**
 
-- `lesson_id` must be present and a non-empty string.
+- `lesson_id`, if present, must be a non-empty string (auto-generated from `title` when omitted).
 - `title` must be present and a non-empty string.
-- `principle_tag` must be present and a non-empty string.
-- `concept` must be present and a non-empty string.
+- `intro`, if present, must be a string.
+- `concept` must be present and a non-empty string; the content pipeline additionally rejects concept slugs that are not active in the `concepts` table.
 - `difficulty`, if present, must be one of `"beginner"`, `"intermediate"`, `"advanced"`.
 - `questions` must be present and have at least one question.
+- `principle_tag` (legacy) is optional and only kept so historical lessons still validate. New lessons should omit it.
 
 **Question-level (applies to every question regardless of type)**
 
@@ -660,6 +663,10 @@ shows the field path and the message verbatim.
 - `prompt` must be present and a non-empty string.
 - `answers` must be present and contain exactly four entries.
 - Exactly one of the four answers must have `is_correct: true`.
+- `concept`, if present, must be a non-empty string; the content pipeline additionally rejects concept slugs that are not active in the `concepts` table.
+- `player_type`, if present, must be exactly one of `"OMC"`, `"PLF"`, `"Y2K"`, `"GTO"`, `"DWM"`, `"STP"`.
+- `street`, if present, must be exactly one of `"preflop"`, `"flop"`, `"turn"`, `"river"`, `"multi-street"`.
+- `difficulty`, if present, must be one of `"beginner"`, `"intermediate"`, `"advanced"`.
 
 **Answer-level**
 
@@ -687,8 +694,7 @@ shows the field path and the message verbatim.
 
 **Things the validator does NOT enforce**
 
-- The exact list of valid `principle_tag` values.
-- The exact list of valid `concept` values.
+- The exact list of active `concept` slugs (enforced by the content pipeline against the `concepts` table, not by the JSON schema itself).
 - The format of card strings (`"As"`, `"Kh"`, etc.).
 - The number of `board_cards` for a given `street`.
 - That `hero_position` is one of the canonical poker positions.
@@ -709,8 +715,8 @@ pattern-match against when generating new content.
 {
   "lesson_id": "cbet-sizing-dry-boards",
   "title": "C-bet Sizing on Dry Boards",
-  "principle_tag": "simple_math_for_big_stacks",
-  "concept": "continuation_betting",
+  "intro": "How to size continuation bets on dry boards where villain's range hits weakly. Understand when small sizings maximize EV and when to reach for larger bets.",
+  "concept": "c-betting",
   "difficulty": "intermediate",
   "questions": [
     {
@@ -978,11 +984,10 @@ nearby; it is the difference between clean output and constant re-prompting.
   this answer is correct in terms of EV against villain's range — value, fold
   equity, protection, or initiative — not just 'this is the standard line.'"
 
-- **Iterate on principle alignment.** After a batch, ask Claude: "For each
-  question, restate the principle_tag and one sentence describing how the
-  correct answer demonstrates that principle." Use the answers to check
-  whether the batch actually reinforces the principle or just talks around
-  it.
+- **Iterate on concept alignment.** After a batch, ask Claude: "For each
+  question, restate the `concept` and one sentence describing how the
+  correct answer demonstrates that concept." Use the answers to check whether
+  the batch actually reinforces the tagged concept or just talks around it.
 
 - **Use the validator as a teacher.** The error messages were written for a
   tester to read. If an error message is unclear, that is a bug in the
