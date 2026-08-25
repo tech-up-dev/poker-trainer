@@ -32,6 +32,7 @@ import { ProTrainingAdminPage } from './pages/ProTrainingAdminPage'
 import { AppSettingsAdminPage } from './pages/AppSettingsAdminPage'
 import { ConceptsAdminPage } from './pages/ConceptsAdminPage'
 import { EntitlementsAdminPage } from './pages/EntitlementsAdminPage'
+import { AdminMembersPage } from './pages/AdminMembersPage'
 import { DrillSessionPage } from './pages/DrillSessionPage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
           { path: 'admin/settings',     element: <AppSettingsAdminPage /> },
           { path: 'admin/concepts',     element: <ConceptsAdminPage /> },
           { path: 'admin/entitlements', element: <EntitlementsAdminPage /> },
+          { path: 'admin/members',     element: <AdminMembersPage /> },
           { path: '*', element: <Navigate to="/admin/dashboard" replace /> },
         ],
       },

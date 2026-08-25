@@ -107,7 +107,7 @@ export function ProfilePage(): JSX.Element {
       {!loading && (
         <div className="space-y-4">
           {/* Subscription */}
-          {entitlement !== null ? (
+          {entitlement !== null && entitlement.status === 'active' ? (
             <div className="card space-y-4">
               <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">
                 Subscription
@@ -131,6 +131,47 @@ export function ProfilePage(): JSX.Element {
                 >
                   {portalLoading ? 'Opening…' : 'Manage billing'}
                 </button>
+              </div>
+            </div>
+          ) : entitlement !== null ? (
+            /* Lapsed / cancelled membership */
+            <div className="card space-y-4">
+              <div>
+                <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-2">
+                  Membership inactive
+                </p>
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={statusBadgeClass(entitlement.status)}>
+                    {statusLabel(entitlement.status)}
+                  </span>
+                </div>
+                <p className="text-sm text-ink-2">
+                  Your progress data is safe. Reactivate to pick up right where you left off.
+                </p>
+              </div>
+              <div className="space-y-3">
+                {PRICING_PLANS.map((plan) => (
+                  <div
+                    key={plan.id}
+                    className="border border-line rounded-xl p-4 flex items-center justify-between gap-4 bg-surface-overlay"
+                  >
+                    <div>
+                      <p className="text-sm font-semibold text-ink">{plan.label}</p>
+                      <p className="text-xs text-ink-2">
+                        <span className="text-ink font-semibold text-base">{plan.price}</span>
+                        {' '}{plan.period}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleSubscribe(plan)}
+                      disabled={checkoutLoading !== null}
+                      className="btn-primary btn-sm shrink-0"
+                    >
+                      {checkoutLoading === plan.id ? 'Redirecting…' : 'Reactivate'}
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           ) : (

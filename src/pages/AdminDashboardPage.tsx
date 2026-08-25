@@ -119,7 +119,8 @@ export function AdminDashboardPage(): JSX.Element {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: 'Concept Vocabulary', description: 'Manage topic tags for lessons and questions', icon: Tag, path: '/admin/concepts' },
-          { label: 'Entitlements', description: 'Grant or revoke quiz access by user email', icon: Users, path: '/admin/entitlements' },
+          { label: 'Member Access', description: 'Grant or revoke quiz access by user email', icon: Users, path: '/admin/entitlements' },
+          { label: 'Member Directory', description: 'Search members, view activity, send password resets', icon: Users, path: '/admin/members' },
           { label: 'App Settings', description: 'Result tiers, leak thresholds and more', icon: Settings, path: '/admin/settings' },
         ].map((tool) => (
           <button
