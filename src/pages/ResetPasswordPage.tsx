@@ -15,6 +15,13 @@ export function ResetPasswordPage(): JSX.Element {
   const [done, setDone] = useState(false)
 
   useEffect(() => {
+    // The PASSWORD_RECOVERY event fires when Supabase parses the token from the
+    // URL hash during client init — often before this component mounts. Check
+    // getSession() first so we don't miss it in that race.
+    void supabaseProd.auth.getSession().then(({ data: { session } }) => {
+      if (session) setReady(true)
+    })
+
     const {
       data: { subscription },
     } = supabaseProd.auth.onAuthStateChange((event) => {
