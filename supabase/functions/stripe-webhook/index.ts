@@ -211,7 +211,23 @@ Deno.serve(async (req) => {
         const email = session.customer_details?.email ?? session.customer_email ?? null;
         const customerId = typeof session.customer === "string" ? session.customer : null;
         if (email && customerId) {
-          const user = await findUserByEmail(prod, email);
+          // Pay-first (Steve M3 follow-up item 1): if no auth user exists for
+          // this email yet, create one now with a random password. The buyer
+          // arrives at /play/checkout/success, is signed in via a one-time
+          // recovery link (post-purchase-signin), and sets their real password.
+          // email_confirm=true so recovery works immediately with no verify.
+          let user = await findUserByEmail(prod, email);
+          if (!user) {
+            const tempPassword = crypto.randomUUID() + crypto.randomUUID();
+            const created = await prod.auth.admin.createUser({
+              email,
+              password: tempPassword,
+              email_confirm: true,
+            });
+            if (created.data.user) {
+              user = { id: created.data.user.id, email };
+            }
+          }
           if (user) {
             await prod.from("user_profiles").update({ stripe_customer_id: customerId }).eq("user_id", user.id);
             await prod.from("entitlements").upsert(
