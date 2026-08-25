@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   User,
+  Users,
 } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
@@ -30,6 +31,7 @@ const NAV_ITEMS = [
   { to: '/admin/table-builder', icon: Table2,    label: 'Table Builder' },
   { to: '/admin/wizard',        icon: Wand2,       label: 'Wizard'        },
   { to: '/admin/pro-training', icon: ShoppingBag, label: 'Pro Training'  },
+  { to: '/admin/members',      icon: Users,       label: 'Members'       },
   { to: '/admin/settings',     icon: Settings,    label: 'Settings'      },
 ]
 
