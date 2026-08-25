@@ -1,12 +1,15 @@
 // Admin-send-recovery Edge Function (M3 follow-up 5b).
-// Admin-gated: lets a support/admin trigger the Supabase password-recovery email
-// for any member (typical support case: "member forgot their password, help me
-// send them a reset link"). Uses the Supabase Auth admin API to generate the
-// recovery link and its email, which routes through our custom SMTP (Resend).
-//
-// The response returns { sent: true } on success plus a `properties` block
-// (containing the raw action_link) that the admin FE can optionally show for an
-// out-of-band share (Slack DM etc). No plaintext password ever crosses the wire.
+// Admin-gated: lets a support/admin trigger a real password-recovery email for a
+// member (typical support case: "member forgot their password, help me send them
+// a reset link"). Two steps:
+//   (1) anon.auth.resetPasswordForEmail  - dispatches the standard recovery
+//       email through our configured SMTP (Resend). This IS the send.
+//   (2) admin.auth.admin.generateLink(type=recovery)  - mints an extra link the
+//       admin FE can show as an out-of-band fallback (Slack DM, etc) if the
+//       member reports the email never arrived. NOTE: generateLink alone does
+//       NOT send an email via SMTP (docs: "It's up to you to send this email
+//       using your own SMTP server."); that is why we also call
+//       resetPasswordForEmail above.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
@@ -22,11 +25,13 @@ Deno.serve(async (req) => {
 
   const url = Deno.env.get("SUPABASE_URL");
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  if (!url || !key) {
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (!url || !key || !anonKey) {
     return jsonResponse(req, { ok: false, message: "Missing required environment variables" }, 500);
   }
 
   const admin = createClient(url, key);
+  const anon = createClient(url, anonKey);
 
   try {
     await assertAdmin(req, admin);
@@ -48,17 +53,29 @@ Deno.serve(async (req) => {
   const user = await findUserByEmail(admin, email);
   if (!user) return jsonResponse(req, { ok: false, message: "No user with that email" }, 404);
 
-  // generateLink type=recovery both mints the link and (with SMTP configured)
-  // sends the standard recovery email through our SMTP provider.
   const redirectTo = typeof body.redirect_to === "string" ? body.redirect_to : undefined;
-  const { data, error } = await admin.auth.admin.generateLink({
-    type: "recovery",
-    email,
-    options: redirectTo ? { redirectTo } : undefined,
-  });
 
-  if (error) {
-    return jsonResponse(req, { ok: false, message: `Supabase Auth error: ${error.message}` }, 500);
+  // (1) actually dispatch the email through our SMTP.
+  const { error: sendErr } = await anon.auth.resetPasswordForEmail(
+    email,
+    redirectTo ? { redirectTo } : undefined,
+  );
+  if (sendErr) {
+    return jsonResponse(req, { ok: false, message: `SMTP send error: ${sendErr.message}` }, 500);
+  }
+
+  // (2) mint a fallback action_link the admin UI can copy out-of-band. Best-
+  //     effort: if this step fails we still consider the recovery sent.
+  let actionLink: string | null = null;
+  try {
+    const { data } = await admin.auth.admin.generateLink({
+      type: "recovery",
+      email,
+      options: redirectTo ? { redirectTo } : undefined,
+    });
+    actionLink = data?.properties?.action_link ?? null;
+  } catch {
+    actionLink = null;
   }
 
   return jsonResponse(req, {
@@ -66,8 +83,6 @@ Deno.serve(async (req) => {
     sent: true,
     user_id: user.id,
     email,
-    // action_link is included so the admin FE can optionally show a copyable
-    // fallback link (e.g. if the user says the email never arrives).
-    action_link: data?.properties?.action_link ?? null,
+    action_link: actionLink,
   });
 });
