@@ -210,6 +210,27 @@ Deno.serve(async (req) => {
         };
         const email = session.customer_details?.email ?? session.customer_email ?? null;
         const customerId = typeof session.customer === "string" ? session.customer : null;
+        const subId = typeof session.subscription === "string" ? session.subscription : null;
+        // Fetch the subscription to get current_period_end so the entitlement's
+        // expires_at is set at grant time (Round-2 #12 fix). The checkout session
+        // object itself does not include the period end; only the subscription
+        // does. customer.subscription.updated fires seconds later and would set
+        // it anyway, but doing it here closes the race window so the billing
+        // portal / next-billing UI show the right date immediately.
+        let checkoutExpiresAt: string | null = null;
+        if (subId) {
+          try {
+            const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${encodeURIComponent(subId)}`, {
+              headers: { Authorization: `Bearer ${stripeKey}` },
+            });
+            if (subRes.ok) {
+              const sub = await subRes.json() as { current_period_end?: number };
+              if (sub.current_period_end) checkoutExpiresAt = new Date(sub.current_period_end * 1000).toISOString();
+            }
+          } catch {
+            // Best-effort: if Stripe is unreachable, subscription.updated will fill it in.
+          }
+        }
         if (email && customerId) {
           // Pay-first (Steve M3 follow-up item 1): if no auth user exists for
           // this email yet, create one now with a random password. The buyer
@@ -236,7 +257,8 @@ Deno.serve(async (req) => {
                 entitlement_key: KEY,
                 status: "active",
                 source: `stripe:${customerId}`,
-                stripe_subscription_id: typeof session.subscription === "string" ? session.subscription : null,
+                stripe_subscription_id: subId,
+                expires_at: checkoutExpiresAt,
                 updated_at: new Date().toISOString(),
               },
               { onConflict: "user_id,entitlement_key" },
