@@ -13,7 +13,7 @@ export function MemberLayout(): JSX.Element {
 
   // Authed users without an active entitlement land on /play/profile to subscribe
   // or reactivate. Show bare chrome so they don't see a sidebar full of locked nav
-  // items — the nav implies they're inside the app when they haven't subscribed yet.
+  // items; the nav implies they're inside the app when they haven't subscribed yet.
   if (!hasAccess) {
     return (
       <div className="min-h-screen bg-canvas flex flex-col overflow-x-hidden w-full">

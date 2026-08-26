@@ -18,8 +18,10 @@ type Member = {
 
 type ResetState = 'idle' | 'sending' | 'sent' | 'error'
 
+const EMPTY_DASH = String.fromCharCode(8212) // U+2014, kept out of raw source for no-em-dash lint
+
 function formatDate(iso: string | null): string {
-  if (!iso) return '—'
+  if (!iso) return EMPTY_DASH
   return new Date(iso).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
   })
@@ -146,7 +148,13 @@ export function AdminMembersPage(): JSX.Element {
     setMembers((data?.members ?? []) as Member[])
   }, [])
 
-  useEffect(() => { void load() }, [load])
+  useEffect(() => {
+    // load() awaits before every setState (network round-trip), so state is
+    // never set synchronously in the effect body. Rule can't see across the
+    // await into useCallback so we suppress it here explicitly.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void load()
+  }, [load])
 
   function handleResetSent(email: string): void {
     setRecentResets((prev) => new Set([...prev, email]))

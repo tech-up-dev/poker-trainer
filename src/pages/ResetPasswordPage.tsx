@@ -24,7 +24,7 @@ export function ResetPasswordPage(): JSX.Element {
 
     // Supabase fires PASSWORD_RECOVERY during client init (before this component
     // mounts), so the listener above often misses it. As a fallback, check
-    // getSession() — if the session is already established, show the form.
+    // getSession() - if the session is already established, show the form.
     void supabaseProd.auth.getSession().then(({ data: { session } }) => {
       if (session) setReady(true)
     })
