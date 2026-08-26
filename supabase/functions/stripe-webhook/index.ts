@@ -145,6 +145,7 @@ async function cancel(prod: Client, userId: string, sub: StripeSubscription, cus
 }
 
 const SUBSCRIBER_TAG = (): string => Deno.env.get("GHL_SUBSCRIBER_TAG") ?? "app_subscriber_active";
+const PAST_DUE_TAG = (): string => Deno.env.get("GHL_PAST_DUE_TAG") ?? "app_subscriber_past_due";
 
 // Land the in-app buyer in GHL and (un)apply the subscriber tag so the client's
 // CRM and email workflows fire (M3-06). Best-effort: it never breaks the
@@ -156,6 +157,20 @@ async function syncGhlTag(email: string, add: boolean): Promise<void> {
     if (!contactId) return;
     if (add) await addContactTag(contactId, SUBSCRIBER_TAG());
     else await removeContactTag(contactId, SUBSCRIBER_TAG());
+  } catch (_err) {
+    // CRM sync is best-effort.
+  }
+}
+
+// Toggle the past-due tag on the member's GHL contact (Round-2 #8c). Steve
+// wires his GHL automation off this tag (dunning email, admin alert, etc);
+// GHL auto-creates the tag on first apply. Best-effort like syncGhlTag.
+async function syncGhlPastDueTag(email: string, add: boolean): Promise<void> {
+  try {
+    const contactId = await upsertContact(email);
+    if (!contactId) return;
+    if (add) await addContactTag(contactId, PAST_DUE_TAG());
+    else await removeContactTag(contactId, PAST_DUE_TAG());
   } catch (_err) {
     // CRM sync is best-effort.
   }
@@ -275,13 +290,17 @@ Deno.serve(async (req) => {
         if (!customerId) break;
         const userId = await resolveUserId(prod, stripeKey, customerId);
         if (!userId) break; // bought before signup / no match: the GHL path or resync covers it
+        // Round-2 #8c: keep the past-due GHL tag in sync with the current status,
+        // regardless of the grant/cancel branch below. Idempotent so this can
+        // fire on every subscription.updated without harm.
+        const email = await userEmail(prod, userId);
+        if (email) await syncGhlPastDueTag(email, sub.status === "past_due");
         if (GRANT_STATUSES.has(sub.status)) await grant(prod, userId, sub, customerId);
         else if (CANCEL_STATUSES.has(sub.status)) {
           await cancel(prod, userId, sub, customerId);
-          const email = await userEmail(prod, userId);
           if (email) await syncGhlTag(email, false);
         }
-        // other statuses (e.g. past_due) are intentionally left as-is
+        // other statuses (e.g. past_due) keep access; #8c tag toggle above still fires
         break;
       }
       case "customer.subscription.deleted": {
@@ -292,7 +311,36 @@ Deno.serve(async (req) => {
         if (userId) {
           await cancel(prod, userId, sub, customerId);
           const email = await userEmail(prod, userId);
-          if (email) await syncGhlTag(email, false);
+          if (email) {
+            await syncGhlTag(email, false);
+            await syncGhlPastDueTag(email, false); // ensure past-due tag is cleared too
+          }
+        }
+        break;
+      }
+      // Round-2 #11: refund or dispute -> revoke access. Charge events don't
+      // include a subscription id; we resolve the user via customer id, cancel
+      // any active quiz_app_access, and clear both GHL tags. Defaults:
+      //  - any refund of the current period (partial or full) revokes
+      //  - dispute revokes at .created (not waiting for outcome; won disputes
+      //    are rare and we'd rather revoke and restore manually than the reverse)
+      //  - won disputes are NOT auto-restored (surface to admin via existing
+      //    entitlement screen)
+      case "charge.refunded":
+      case "charge.dispute.created": {
+        const charge = event.data.object as { customer?: string };
+        const customerId = typeof charge.customer === "string" ? charge.customer : null;
+        if (!customerId) break;
+        const userId = await resolveUserId(prod, stripeKey, customerId);
+        if (!userId) break;
+        // Cancel via a synthetic subscription-shaped record so the existing
+        // cancel() writes an audit trail with the customer id + a note in source.
+        const marker: StripeSubscription = { id: `refund_or_dispute:${event.type}`, status: "canceled", customer: customerId };
+        await cancel(prod, userId, marker, customerId);
+        const email = await userEmail(prod, userId);
+        if (email) {
+          await syncGhlTag(email, false);
+          await syncGhlPastDueTag(email, false);
         }
         break;
       }
