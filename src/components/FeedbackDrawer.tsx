@@ -1,5 +1,5 @@
 import type { JSX } from 'react'
-import { CheckCircle2, XCircle } from 'lucide-react'
+import { CheckCircle2, XCircle, ChevronDown } from 'lucide-react'
 
 import type { Question } from '../../shared/schemas/lesson'
 import { linkifyGlossaryTerms } from '../lib/glossary-text'
@@ -54,31 +54,36 @@ export function FeedbackDrawer({
           </p>
         </div>
 
-        {/* All answers explained */}
-        <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-ink-2">Every answer, explained</h3>
-          {question.answers.map((answer, i) => (
-            <div
-              key={`${answer.text}-${i}`}
-              className="flex gap-3 p-3 rounded-xl bg-surface-overlay border border-line"
-            >
-              <span
-                aria-hidden="true"
-                className={`w-6 h-6 mt-0.5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                  answer.is_correct ? 'bg-success text-on-gold' : 'bg-error text-white'
-                }`}
+        {/* All answers explained — collapsed by default */}
+        <details className="group">
+          <summary className="flex items-center justify-between cursor-pointer list-none select-none py-1">
+            <h3 className="text-sm font-semibold text-ink-2">Every answer, explained</h3>
+            <ChevronDown className="w-4 h-4 text-ink-3 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="mt-3 space-y-3">
+            {question.answers.map((answer, i) => (
+              <div
+                key={`${answer.text}-${i}`}
+                className="flex gap-3 p-3 rounded-xl bg-surface-overlay border border-line"
               >
-                {answer.is_correct ? '✓' : '✕'}
-              </span>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-ink">{answer.text}</p>
-                <p className="text-sm text-ink-2 leading-relaxed">
-                  {linkifyGlossaryTerms(answer.explanation, question.glossary_terms)}
-                </p>
+                <span
+                  aria-hidden="true"
+                  className={`w-6 h-6 mt-0.5 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                    answer.is_correct ? 'bg-success text-on-gold' : 'bg-error text-white'
+                  }`}
+                >
+                  {answer.is_correct ? '✓' : '✕'}
+                </span>
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-ink">{answer.text}</p>
+                  <p className="text-sm text-ink-2 leading-relaxed">
+                    {linkifyGlossaryTerms(answer.explanation, question.glossary_terms)}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        </details>
 
         {/* Actions */}
         <div className="flex gap-3 pt-1">
