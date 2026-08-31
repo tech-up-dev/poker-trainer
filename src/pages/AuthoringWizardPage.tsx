@@ -786,7 +786,9 @@ function StepVocab({
           )
           if (canonical) found.add(canonical)
         }
-        onVocabInput([...found].join(', '))
+        // Only seed from auto-detection when the field is empty — never overwrite
+        // terms the author already typed or that were loaded from a saved lesson.
+        if (!vocabInput.trim()) onVocabInput([...found].join(', '))
       })
       .catch(() => {})
       .finally(() => setDetecting(false))
