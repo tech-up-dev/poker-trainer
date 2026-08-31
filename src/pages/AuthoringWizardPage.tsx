@@ -62,8 +62,11 @@ const INITIAL_TABLE: HandScenarioState = {
   street: 'preflop',
   hero_position: 'BTN',
   pot_size: 0,
-  hero_hole_cards: [],
-  board_cards: [],
+  // hero_hole_cards and board_cards intentionally omitted when empty so they
+  // don't appear as spurious [] keys in the JSON output.
+  // board_cards intentionally omitted: preflop has no board, and an empty []
+  // would appear in the JSON as a spurious key. setStreet() keeps it omitted
+  // for preflop and writes it only when a later street is chosen.
   stack_sizes: { BTN: 500 },
   villain_player_types: {},
 }
