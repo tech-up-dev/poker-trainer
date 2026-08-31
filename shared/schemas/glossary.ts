@@ -15,9 +15,13 @@ export const GlossaryEntrySchema = z.object({
   definition: z.string({ error: 'definition is required' }).min(1, 'definition is required'),
   // How central the term is to the methodology. Drives the importance indicator
   // shown in the drawer. Optional so authors can omit it and get the default.
+  // Values renamed per Steve M3 QA #42 (2026-08-26): 'core' -> 'general',
+  // 'useful' -> 'controlled_chaos', 'situational' -> removed (existing
+  // situational rows were mapped to 'controlled_chaos' by migration
+  // 20260826000000_glossary_importance_rename.sql).
   importance: z
-    .enum(['core', 'useful'], {
-      error: () => 'importance must be one of: core, useful',
+    .enum(['general', 'controlled_chaos'], {
+      error: () => 'importance must be one of: general, controlled_chaos',
     })
     .optional(),
   // A concrete spot the term shows up at the table.

@@ -6,8 +6,8 @@ import type { GlossaryEntry } from '../../shared/schemas/glossary'
 import { fetchAllGlossaryEntries } from '../lib/glossary'
 
 const IMPORTANCE_LABELS: Record<string, string> = {
-  core:   'General',
-  useful: 'Controlled Chaos',
+  general:          'General',
+  controlled_chaos: 'Controlled Chaos',
 }
 
 const FILTERS = ['All', 'General', 'Controlled Chaos']
