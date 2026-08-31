@@ -16,8 +16,8 @@ export const GlossaryEntrySchema = z.object({
   // How central the term is to the methodology. Drives the importance indicator
   // shown in the drawer. Optional so authors can omit it and get the default.
   importance: z
-    .enum(['core', 'useful', 'situational'], {
-      error: () => 'importance must be one of: core, useful, situational',
+    .enum(['core', 'useful'], {
+      error: () => 'importance must be one of: core, useful',
     })
     .optional(),
   // A concrete spot the term shows up at the table.

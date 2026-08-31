@@ -6,12 +6,11 @@ import type { GlossaryEntry } from '../../shared/schemas/glossary'
 import { fetchAllGlossaryEntries } from '../lib/glossary'
 
 const IMPORTANCE_LABELS: Record<string, string> = {
-  core:        'Core',
-  useful:      'Useful',
-  situational: 'Situational',
+  core:   'General',
+  useful: 'Controlled Chaos',
 }
 
-const FILTERS = ['All', 'Core', 'Useful', 'Situational']
+const FILTERS = ['All', 'General', 'Controlled Chaos']
 
 function TermDrawer({ term, onClose }: { term: GlossaryEntry; onClose: () => void }): JSX.Element {
   return (
@@ -96,8 +95,9 @@ export function GlossaryPage(): JSX.Element {
     const matchesSearch =
       e.term.toLowerCase().includes(search.toLowerCase()) ||
       e.definition.toLowerCase().includes(search.toLowerCase())
+    const importanceLabel = e.importance ? (IMPORTANCE_LABELS[e.importance] ?? '') : ''
     const matchesFilter =
-      activeFilter === 'All' || e.importance === activeFilter.toLowerCase()
+      activeFilter === 'All' || importanceLabel === activeFilter
     return matchesSearch && matchesFilter
   })
 

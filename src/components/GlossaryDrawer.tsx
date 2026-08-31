@@ -18,16 +18,14 @@ type DrawerState = {
 
 const IMPORTANCE_LABEL: Record<NonNullable<GlossaryEntry['importance']>, string> =
   {
-    core: 'Core concept',
-    useful: 'Useful to know',
-    situational: 'Situational',
+    core: 'General',
+    useful: 'Controlled Chaos',
   }
 
 const IMPORTANCE_CLASS: Record<NonNullable<GlossaryEntry['importance']>, string> =
   {
     core: 'bg-gold text-on-gold',
     useful: 'bg-elevated text-ink',
-    situational: 'border border-line text-ink-2',
   }
 
 // Hosts the glossary drawer's nesting/back-stack state and renders the drawer
