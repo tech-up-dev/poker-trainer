@@ -5,11 +5,14 @@ import type { Lesson, Question } from '../schemas/lesson.ts'
 // text and writes them into each question's `glossary_terms` (the explicit
 // allow-list the render layer linkifies).
 //
-// It is a full recompute, not a merge: a question's `glossary_terms` is replaced
-// with exactly the terms that currently match. That is deliberate - a term that
-// has no glossary entry carries no value, and it also makes rename/delete "just
-// work": recomputing a lesson against the current term list drops a removed or
-// renamed term without any special-case logic.
+// Behaviour is a MERGE of (a) terms the author explicitly attached to the
+// question in the wizard and (b) terms auto-detected in the question text.
+// Explicitly-attached terms that no longer exist in the glossary (renamed or
+// deleted) are dropped, so rename/delete still "just works" against the current
+// term list. This replaced the earlier full-recompute behaviour, which silently
+// discarded any manually attached terms whose exact string didn't appear in the
+// question text (reported by wizard user when they attached "c-bet" to a
+// question whose text used "continuation bet" and the field vanished).
 //
 // Used both on lesson save (recompute one lesson) and on glossary save/delete
 // (recompute every lesson in that environment), against the staging term list
@@ -48,17 +51,23 @@ export function matchTermsInText(text: string, terms: string[]): string[] {
   return [...new Set(matched)].sort((a, b) => a.localeCompare(b))
 }
 
-// Returns a copy of the lesson with every question's `glossary_terms` recomputed
-// from `terms`. Questions with no matches have the field removed entirely.
+// Returns a copy of the lesson with every question's `glossary_terms` set to
+// the union of (a) terms the author explicitly attached that still exist in
+// `terms` (i.e. still in the glossary), and (b) terms auto-detected in the
+// question text via `matchTermsInText`. Questions ending up empty have the
+// field removed entirely.
 export function applyGlossaryLinks(lesson: Lesson, terms: string[]): Lesson {
+  const validSet = new Set(terms)
   return {
     ...lesson,
     questions: lesson.questions.map((question) => {
+      const provided = Array.isArray(question.glossary_terms) ? question.glossary_terms : []
+      const preserved = provided.filter((t): t is string => typeof t === 'string' && validSet.has(t))
       const matched = matchTermsInText(questionText(question), terms)
-      // Full recompute: set the fresh list, or drop the field when nothing matches.
+      const merged = [...new Set([...preserved, ...matched])].sort((a, b) => a.localeCompare(b))
       const next: Question = { ...question }
-      if (matched.length > 0) {
-        next.glossary_terms = matched
+      if (merged.length > 0) {
+        next.glossary_terms = merged
       } else {
         delete next.glossary_terms
       }
