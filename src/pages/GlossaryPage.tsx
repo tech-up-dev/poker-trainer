@@ -6,12 +6,11 @@ import type { GlossaryEntry } from '../../shared/schemas/glossary'
 import { fetchAllGlossaryEntries } from '../lib/glossary'
 
 const IMPORTANCE_LABELS: Record<string, string> = {
-  core:        'Core',
-  useful:      'Useful',
-  situational: 'Situational',
+  general:          'General',
+  controlled_chaos: 'Controlled Chaos',
 }
 
-const FILTERS = ['All', 'Core', 'Useful', 'Situational']
+const FILTERS = ['All', 'General', 'Controlled Chaos']
 
 function TermDrawer({ term, onClose }: { term: GlossaryEntry; onClose: () => void }): JSX.Element {
   return (
@@ -53,6 +52,22 @@ function TermDrawer({ term, onClose }: { term: GlossaryEntry; onClose: () => voi
             </div>
           )}
 
+          {term.related_terms && term.related_terms.length > 0 && (
+            <div className="mt-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gold mb-2">Related Terms</p>
+              <div className="flex flex-wrap gap-2">
+                {term.related_terms.map((t) => (
+                  <span
+                    key={t}
+                    className="px-3 py-1 rounded-full text-sm font-medium text-ink-2 border border-line bg-canvas"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           <button type="button" onClick={onClose} className="btn-primary w-full mt-6">
             Got it
           </button>
@@ -80,8 +95,9 @@ export function GlossaryPage(): JSX.Element {
     const matchesSearch =
       e.term.toLowerCase().includes(search.toLowerCase()) ||
       e.definition.toLowerCase().includes(search.toLowerCase())
+    const importanceLabel = e.importance ? (IMPORTANCE_LABELS[e.importance] ?? '') : ''
     const matchesFilter =
-      activeFilter === 'All' || e.importance === activeFilter.toLowerCase()
+      activeFilter === 'All' || importanceLabel === activeFilter
     return matchesSearch && matchesFilter
   })
 

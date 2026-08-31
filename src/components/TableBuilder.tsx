@@ -238,11 +238,18 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
   function setHeroPos(pos: Position): void {
     const types = { ...(value.villain_player_types ?? {}) }
     const stacks = { ...(value.stack_sizes ?? {}) }
-    // The new hero seat can't also be a villain
-    if (types[pos]) {
-      delete types[pos]
-      delete stacks[pos]
-    }
+
+    // Move hero's stack from the old position key to the new one. Without this
+    // the old key (e.g. BTN) stays in stack_sizes as an orphaned entry with no
+    // corresponding player, and the new hero position has no stack at all.
+    const heroStack = stacks[heroPos]
+    delete stacks[heroPos]
+    if (heroStack !== undefined) stacks[pos] = heroStack
+
+    // The new hero seat can't also be a villain - remove it from both maps.
+    delete types[pos]
+    // (villain's stack entry already overwritten above by heroStack)
+
     if (selectedSeat === pos) setSelectedSeat(null)
     patch({ hero_position: pos, villain_player_types: types, stack_sizes: stacks })
   }
