@@ -16,18 +16,19 @@ type DrawerState = {
   errorMessage: string | null
 }
 
+// Renamed per Steve M3 QA #42 (2026-08-26): the two-tier importance model.
+// 'general' replaces 'core'; 'controlled_chaos' replaces 'useful' (and the
+// former 'situational' rows were merged into it by the accompanying migration).
 const IMPORTANCE_LABEL: Record<NonNullable<GlossaryEntry['importance']>, string> =
   {
-    core: 'Core concept',
-    useful: 'Useful to know',
-    situational: 'Situational',
+    general: 'General',
+    controlled_chaos: 'Controlled Chaos',
   }
 
 const IMPORTANCE_CLASS: Record<NonNullable<GlossaryEntry['importance']>, string> =
   {
-    core: 'bg-gold text-on-gold',
-    useful: 'bg-elevated text-ink',
-    situational: 'border border-line text-ink-2',
+    general: 'bg-gold text-on-gold',
+    controlled_chaos: 'bg-elevated text-ink',
   }
 
 // Hosts the glossary drawer's nesting/back-stack state and renders the drawer

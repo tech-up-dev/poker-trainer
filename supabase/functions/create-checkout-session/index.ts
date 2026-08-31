@@ -133,6 +133,10 @@ Deno.serve(async (req) => {
     "line_items[0][quantity]": "1",
     "success_url": `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
     "cancel_url": cancelUrl,
+    // Round-2 #7: require the ToS checkbox. Stripe reads the terms of service
+    // URL from Settings -> Public details on the Stripe account, so the URL is
+    // configured in the dashboard, not here.
+    "consent_collection[terms_of_service]": "required",
   };
   let existingCustomerId: string | null = null;
   if (userId) {
