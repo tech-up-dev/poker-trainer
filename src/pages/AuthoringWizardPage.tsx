@@ -786,9 +786,11 @@ function StepVocab({
           )
           if (canonical) found.add(canonical)
         }
-        // Only seed from auto-detection when the field is empty — never overwrite
-        // terms the author already typed or that were loaded from a saved lesson.
-        if (!vocabInput.trim()) onVocabInput([...found].join(', '))
+        // Only seed from auto-detection when terms were actually found — a scan
+        // that finds nothing must never clear the field. The async callback also
+        // captures a stale vocabInput closure, so using found.size as the guard
+        // is the only safe way to avoid wiping what the author has typed.
+        if (found.size > 0) onVocabInput([...found].join(', '))
       })
       .catch(() => {})
       .finally(() => setDetecting(false))
