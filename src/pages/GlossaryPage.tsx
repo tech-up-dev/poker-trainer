@@ -53,6 +53,22 @@ function TermDrawer({ term, onClose }: { term: GlossaryEntry; onClose: () => voi
             </div>
           )}
 
+          {term.related_terms && term.related_terms.length > 0 && (
+            <div className="mt-4">
+              <p className="text-xs font-semibold uppercase tracking-widest text-gold mb-2">Related Terms</p>
+              <div className="flex flex-wrap gap-2">
+                {term.related_terms.map((t) => (
+                  <span
+                    key={t}
+                    className="px-3 py-1 rounded-full text-sm font-medium text-ink-2 border border-line bg-canvas"
+                  >
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           <button type="button" onClick={onClose} className="btn-primary w-full mt-6">
             Got it
           </button>
