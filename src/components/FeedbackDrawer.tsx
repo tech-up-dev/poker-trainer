@@ -58,7 +58,7 @@ export function FeedbackDrawer({
         <details className="group">
           <summary className="flex items-center justify-between cursor-pointer list-none select-none py-1">
             <h3 className="text-sm font-semibold text-ink-2">Every answer, explained</h3>
-            <ChevronDown className="w-4 h-4 text-ink-3 transition-transform group-open:rotate-180" />
+            <ChevronDown className="w-6 h-6 text-ink-3 transition-transform group-open:rotate-180" />
           </summary>
           <div className="mt-3 space-y-3">
             {question.answers.map((answer, i) => (
