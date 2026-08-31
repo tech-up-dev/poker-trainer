@@ -24,11 +24,17 @@ export function linkifyGlossaryTerms(
   )
   const parts = text.split(pattern)
 
+  // Only link the first occurrence of each term within this content area.
+  const linked = new Set<string>()
+
   return parts.map((part, i) => {
-    const isMatch = sortedTerms.some(
+    const matchedTerm = sortedTerms.find(
       (term) => term.toLowerCase() === part.toLowerCase(),
     )
-    if (!isMatch) return part
+    if (!matchedTerm) return part
+    const key = matchedTerm.toLowerCase()
+    if (linked.has(key)) return part
+    linked.add(key)
     return (
       <GlossaryTerm key={`${part}-${i}`} term={part}>
         {part}
