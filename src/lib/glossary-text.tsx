@@ -14,8 +14,12 @@ export function linkifyGlossaryTerms(
 
   // Longest-first so e.g. "fold equity" matches before "equity" would.
   const sortedTerms = [...terms].sort((a, b) => b.length - a.length)
+  // Use lookahead/lookbehind instead of \b so that terms with hyphens (e.g.
+  // "3-bet") are still bounded correctly. This prevents "3-bet" from matching
+  // inside "3-betting" — the term must not be immediately preceded or followed
+  // by a word character or hyphen.
   const pattern = new RegExp(
-    `(${sortedTerms.map(escapeRegExp).join('|')})`,
+    `(?<![\\w-])(${sortedTerms.map(escapeRegExp).join('|')})(?![\\w-])`,
     'gi',
   )
   const parts = text.split(pattern)
