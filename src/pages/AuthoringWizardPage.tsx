@@ -786,7 +786,7 @@ function StepVocab({
           )
           if (canonical) found.add(canonical)
         }
-        // Only seed from auto-detection when terms were actually found — a scan
+        // Only seed from auto-detection when terms were actually found - a scan
         // that finds nothing must never clear the field. The async callback also
         // captures a stale vocabInput closure, so using found.size as the guard
         // is the only safe way to avoid wiping what the author has typed.

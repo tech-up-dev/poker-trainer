@@ -54,7 +54,7 @@ export function FeedbackDrawer({
           </p>
         </div>
 
-        {/* All answers explained — collapsed by default */}
+        {/* All answers explained - collapsed by default */}
         <details className="group">
           <summary className="flex items-center justify-between cursor-pointer list-none select-none py-1">
             <h3 className="text-sm font-semibold text-ink-2">Every answer, explained</h3>

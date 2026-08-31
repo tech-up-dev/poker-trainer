@@ -246,7 +246,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
     delete stacks[heroPos]
     if (heroStack !== undefined) stacks[pos] = heroStack
 
-    // The new hero seat can't also be a villain — remove it from both maps.
+    // The new hero seat can't also be a villain - remove it from both maps.
     delete types[pos]
     // (villain's stack entry already overwritten above by heroStack)
 

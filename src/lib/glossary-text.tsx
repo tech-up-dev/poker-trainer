@@ -16,7 +16,7 @@ export function linkifyGlossaryTerms(
   const sortedTerms = [...terms].sort((a, b) => b.length - a.length)
   // Use lookahead/lookbehind instead of \b so that terms with hyphens (e.g.
   // "3-bet") are still bounded correctly. This prevents "3-bet" from matching
-  // inside "3-betting" — the term must not be immediately preceded or followed
+  // inside "3-betting" - the term must not be immediately preceded or followed
   // by a word character or hyphen.
   const pattern = new RegExp(
     `(?<![\\w-])(${sortedTerms.map(escapeRegExp).join('|')})(?![\\w-])`,
