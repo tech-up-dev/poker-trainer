@@ -55,7 +55,15 @@ Deno.serve(async (req) => {
   if (!sessionId) {
     return jsonResponse(req, { ok: false, message: "session_id is required" }, 400);
   }
-  const redirectTo = typeof body.redirect_to === "string" ? body.redirect_to : undefined;
+  // Always land the buyer back on /play/checkout/success (no query params). That
+  // page already knows how to react to a fresh recovery-link session: it picks up
+  // the session and polls for the entitlement. Derived from the request Origin so
+  // staging and prod each redirect to their own host; body.redirect_to is honored
+  // only as a fallback when Origin is missing (e.g. curl).
+  const origin = req.headers.get("Origin") ?? "";
+  const redirectTo = origin
+    ? `${origin}/play/checkout/success`
+    : (typeof body.redirect_to === "string" ? body.redirect_to : undefined);
 
   // 1-2. Verify the Stripe session and pull the trusted email.
   const sRes = await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`, {
