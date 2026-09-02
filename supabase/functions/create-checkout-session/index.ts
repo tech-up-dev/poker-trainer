@@ -137,6 +137,21 @@ Deno.serve(async (req) => {
     // URL from Settings -> Public details on the Stripe account, so the URL is
     // configured in the dashboard, not here.
     "consent_collection[terms_of_service]": "required",
+    // #48 name capture: Stripe collects first/last name on the checkout page
+    // and hands them back on checkout.session.completed under session.custom_fields.
+    // No phone (Steve's decision).
+    "custom_fields[0][key]": "first_name",
+    "custom_fields[0][label][type]": "custom",
+    "custom_fields[0][label][custom]": "First name",
+    "custom_fields[0][type]": "text",
+    "custom_fields[0][text][minimum_length]": "1",
+    "custom_fields[0][text][maximum_length]": "50",
+    "custom_fields[1][key]": "last_name",
+    "custom_fields[1][label][type]": "custom",
+    "custom_fields[1][label][custom]": "Last name",
+    "custom_fields[1][type]": "text",
+    "custom_fields[1][text][minimum_length]": "1",
+    "custom_fields[1][text][maximum_length]": "50",
   };
   let existingCustomerId: string | null = null;
   if (userId) {
