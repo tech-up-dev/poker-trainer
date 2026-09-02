@@ -53,6 +53,24 @@ export async function createCheckoutSession(
   return { url: result.url }
 }
 
+export async function postPurchaseSignIn(
+  sessionId: string,
+): Promise<{ url: string }> {
+  const { data, error } = await supabaseProd.functions.invoke(
+    'post-purchase-signin',
+    { body: { session_id: sessionId } },
+  )
+
+  if (error) throw new Error(error.message)
+
+  const result = data as { ok: boolean; action_link?: string; message?: string }
+  if (!result.ok || !result.action_link) {
+    throw new Error(result.message ?? 'Sign-in link could not be generated')
+  }
+
+  return { url: result.action_link }
+}
+
 // Polls entitlements until a grant has written the active row (the stripe-webhook
 // on the in-app path, or the GHL sync on the tag path).
 // Resolves true when entitlement is found, false after timeout.
