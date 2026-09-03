@@ -151,9 +151,13 @@ const PAST_DUE_TAG = (): string => Deno.env.get("GHL_PAST_DUE_TAG") ?? "app_subs
 // CRM and email workflows fire (M3-06). Best-effort: it never breaks the
 // entitlement path. Applying the tag also fires the client's tag workflow ->
 // our ghl-webhook, which idempotently re-grants; that is harmless.
-async function syncGhlTag(email: string, add: boolean): Promise<void> {
+async function syncGhlTag(
+  email: string,
+  add: boolean,
+  extra?: { firstName?: string | null; lastName?: string | null },
+): Promise<void> {
   try {
-    const contactId = await upsertContact(email);
+    const contactId = await upsertContact(email, extra);
     if (!contactId) return;
     if (add) await addContactTag(contactId, SUBSCRIBER_TAG());
     else await removeContactTag(contactId, SUBSCRIBER_TAG());
@@ -222,10 +226,20 @@ Deno.serve(async (req) => {
           customer_email?: string;
           customer_details?: { email?: string };
           subscription?: string;
+          custom_fields?: Array<{ key?: string; text?: { value?: string } }>;
         };
         const email = session.customer_details?.email ?? session.customer_email ?? null;
         const customerId = typeof session.customer === "string" ? session.customer : null;
         const subId = typeof session.subscription === "string" ? session.subscription : null;
+        // #48 name capture: Stripe returns each custom field as { key, text: { value } }.
+        // Absent or blank values become null so GHL is not updated with empty strings.
+        const cf = (session.custom_fields ?? []) as Array<{ key?: string; text?: { value?: string } }>;
+        const findCF = (k: string) => {
+          const v = cf.find((f) => f.key === k)?.text?.value;
+          return typeof v === "string" && v.trim() ? v.trim() : null;
+        };
+        const firstName = findCF("first_name");
+        const lastName = findCF("last_name");
         // Fetch the subscription to get current_period_end so the entitlement's
         // expires_at is set at grant time (Round-2 #12 fix). The checkout session
         // object itself does not include the period end; only the subscription
@@ -278,7 +292,7 @@ Deno.serve(async (req) => {
               },
               { onConflict: "user_id,entitlement_key" },
             );
-            await syncGhlTag(email, true);
+            await syncGhlTag(email, true, { firstName, lastName });
           }
         }
         break;

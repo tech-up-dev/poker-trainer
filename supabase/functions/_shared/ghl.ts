@@ -98,11 +98,20 @@ export async function updateContactFields(contactId: string, fields: ContactFiel
 
 // Upsert a contact by email (create if new, else return the existing one) so an
 // in-app Stripe buyer lands in GHL. Returns the contact id, or null on failure.
-export async function upsertContact(email: string): Promise<string | null> {
+// Optional firstName/lastName fold in Steve's #48: capture the buyer's name at
+// checkout and land it on the GHL contact. Absent fields are simply omitted from
+// the upsert body so existing callers stay identical.
+export async function upsertContact(
+  email: string,
+  extra?: { firstName?: string | null; lastName?: string | null },
+): Promise<string | null> {
+  const body: Record<string, unknown> = { locationId: locationId(), email };
+  if (extra?.firstName) body.firstName = extra.firstName;
+  if (extra?.lastName) body.lastName = extra.lastName;
   const res = await fetch(`${BASE}/contacts/upsert`, {
     method: "POST",
     headers: { ...ghlHeaders(), "Content-Type": "application/json" },
-    body: JSON.stringify({ locationId: locationId(), email }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) return null;
   const data = (await res.json().catch(() => ({}))) as Record<string, unknown>;
