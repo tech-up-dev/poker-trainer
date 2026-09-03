@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { JSX } from 'react'
 import { CheckCircle2, Loader2 } from 'lucide-react'
@@ -12,7 +12,13 @@ export function CheckoutSuccessPage(): JSX.Element {
   const { session } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const [phase, setPhase] = useState<Phase>('polling')
+  // Derive the starting phase during render so we do not call setState
+  // synchronously inside the effect: an anon buyer arrives with a Stripe
+  // session_id but no auth session yet, so start on 'signing-in'; everyone
+  // else starts on 'polling'.
+  const [phase, setPhase] = useState<Phase>(() =>
+    !session && searchParams.get('session_id') ? 'signing-in' : 'polling',
+  )
   const [errorMsg, setErrorMsg] = useState<string>('')
 
   useEffect(() => {
@@ -21,7 +27,6 @@ export function CheckoutSuccessPage(): JSX.Element {
     // Anon buyer: no auth session yet, but we have a Stripe session_id.
     // Call post-purchase-signin to get a one-time recovery link, then redirect.
     if (!session && sessionId) {
-      setPhase('signing-in')
       postPurchaseSignIn(sessionId)
         .then(({ url }) => { window.location.href = url })
         .catch((err: unknown) => {
