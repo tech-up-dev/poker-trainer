@@ -88,28 +88,34 @@ Deno.serve(async (req) => {
   }
 
   // Resolve the buyer's identity in one of two modes:
-  //   (a) Authed: caller passes a Bearer token; buyer is that member (reactivate
-  //       or re-check-out for an authed user).
-  //   (b) Anon:   no auth; caller passes `email` in the body; a brand-new buyer
-  //       who does not have an account yet (item 1 pay-first flow).
+  //   (a) Authed: caller passes a Bearer token that resolves to a real user;
+  //       buyer is that member (reactivate or re-check-out for an authed user).
+  //   (b) Anon:   caller passes `email` in the body; a brand-new buyer who does
+  //       not have an account yet (pay-first flow, #50).
+  // Note: supabase-js auto-injects the anon key as `Authorization: Bearer`
+  // whenever no user session exists, so a "Bearer" header is NOT proof the caller
+  // is authed. We only treat the token as authoritative if getUser resolves it to
+  // a real user; otherwise fall through to the anon body.email path.
   const token = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
   let email = "";
   let userId: string | null = null;
   if (token) {
-    const { data: { user }, error: authErr } = await prod.auth.getUser(token);
-    if (authErr || !user) {
-      return jsonResponse(req, { ok: false, message: "Invalid or expired token" }, 401);
+    const { data: { user } } = await prod.auth.getUser(token);
+    if (user) {
+      email = user.email ?? "";
+      userId = user.id;
     }
-    email = user.email ?? "";
-    userId = user.id;
-  } else if (typeof body.email === "string" && body.email.trim()) {
-    email = body.email.trim().toLowerCase();
-  } else {
-    return jsonResponse(
-      req,
-      { ok: false, message: "Missing Authorization header or email in body" },
-      400,
-    );
+  }
+  if (!email) {
+    if (typeof body.email === "string" && body.email.trim()) {
+      email = body.email.trim().toLowerCase();
+    } else {
+      return jsonResponse(
+        req,
+        { ok: false, message: "Missing user session or email in body" },
+        400,
+      );
+    }
   }
 
   // Double-purchase guard: refuse if this email already has an active
