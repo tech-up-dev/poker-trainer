@@ -34,12 +34,14 @@ import { ConceptsAdminPage } from './pages/ConceptsAdminPage'
 import { EntitlementsAdminPage } from './pages/EntitlementsAdminPage'
 import { AdminMembersPage } from './pages/AdminMembersPage'
 import { DrillSessionPage } from './pages/DrillSessionPage'
+import { SubscribePage } from './pages/SubscribePage'
 
 // /login is public. /admin/* is Content Ops, gated by RequireAuth (admin only).
 // /play/* is the member-facing app (table, quiz, glossary) gated by
 // RequireSession (any signed-in account, since member entitlements land in M3).
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  { path: '/subscribe', element: <SubscribePage /> },
   { path: '/signup', element: <SignupPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },

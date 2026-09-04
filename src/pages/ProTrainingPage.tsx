@@ -17,6 +17,7 @@ type Course = {
   member_price: number
   tone: Tone
   sales_url: string
+  cta_text?: string
   sort_order: number
 }
 
@@ -44,7 +45,7 @@ function ExternalIcon(): JSX.Element {
   )
 }
 
-function CourseCard({ course, isMember, onSubscribe }: { course: Course; isMember: boolean; onSubscribe: () => void }): JSX.Element {
+function CourseCard({ course, isMember, onSubscribe }: { course: Course; isMember: boolean; onSubscribe: () => void  }): JSX.Element {
   const t = TONE[course.tone]
   const discount = Math.round((1 - course.member_price / course.list_price) * 100)
 
@@ -94,7 +95,7 @@ function CourseCard({ course, isMember, onSubscribe }: { course: Course; isMembe
               className="inline-flex items-center justify-center gap-2 font-bold text-[14px] whitespace-nowrap transition-opacity hover:opacity-90 w-full sm:w-auto"
               style={{ background: t.accent, color: '#04121e', borderRadius: 10, padding: '11px 18px', textDecoration: 'none' }}
             >
-              Order Now <ExternalIcon />
+              {course.cta_text || 'Order Now'} <ExternalIcon />
             </a>
           ) : (
             <button
@@ -139,12 +140,12 @@ export function ProTrainingPage(): JSX.Element {
     <div style={{ maxWidth: 860, margin: '0 auto', paddingBottom: 48 }}>
       {/* Page header */}
       <div style={{ marginBottom: 22 }}>
-        <p className="text-[12px] font-bold tracking-[0.9px] uppercase text-gold">Pro Training</p>
+        <p className="text-[12px] font-bold tracking-[0.9px] uppercase text-gold">{upsell?.page_eyebrow ?? 'Pro Training'}</p>
         <h1 className="text-[30px] font-extrabold text-ink" style={{ margin: '6px 0 8px' }}>
-          Take your game to the next level
+          {upsell?.page_title ?? 'Take your game to the next level'}
         </h1>
         <p className="text-[14.5px] text-ink-2 leading-relaxed" style={{ maxWidth: 620, margin: 0 }}>
-          Advanced courses hand-picked to build on what you're learning here - each one goes deeper than the core trainer.
+          {upsell?.page_subtitle ?? "Advanced courses hand-picked to build on what you're learning here - each one goes deeper than the core trainer."}
         </p>
       </div>
 

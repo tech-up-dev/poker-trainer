@@ -37,10 +37,13 @@ export const PRICING_PLANS: PricingPlan[] = [
 
 export async function createCheckoutSession(
   priceId: string,
+  email?: string,
 ): Promise<{ url: string }> {
+  const body: Record<string, string> = { price_id: priceId }
+  if (email) body.email = email
   const { data, error } = await supabaseProd.functions.invoke(
     'create-checkout-session',
-    { body: { price_id: priceId } },
+    { body },
   )
 
   if (error) throw new Error(error.message)

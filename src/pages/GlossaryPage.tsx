@@ -12,7 +12,21 @@ const IMPORTANCE_LABELS: Record<string, string> = {
 
 const FILTERS = ['All', 'General', 'Controlled Chaos']
 
-function TermDrawer({ term, onClose }: { term: GlossaryEntry; onClose: () => void }): JSX.Element {
+function TermDrawer({
+  term,
+  allEntries,
+  onSelect,
+  onClose,
+}: {
+  term: GlossaryEntry
+  allEntries: GlossaryEntry[]
+  onSelect: (entry: GlossaryEntry) => void
+  onClose: () => void
+}): JSX.Element {
+  const relatedEntries = (term.related_terms ?? [])
+    .map((id) => allEntries.find((e) => e.term_id === id))
+    .filter((e): e is GlossaryEntry => e !== undefined)
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center px-3 lg:items-center lg:px-4 bg-black/60 backdrop-blur-sm animate-fade-in"
@@ -52,17 +66,19 @@ function TermDrawer({ term, onClose }: { term: GlossaryEntry; onClose: () => voi
             </div>
           )}
 
-          {term.related_terms && term.related_terms.length > 0 && (
+          {relatedEntries.length > 0 && (
             <div className="mt-4">
               <p className="text-xs font-semibold uppercase tracking-widest text-gold mb-2">Related Terms</p>
               <div className="flex flex-wrap gap-2">
-                {term.related_terms.map((t) => (
-                  <span
-                    key={t}
-                    className="px-3 py-1 rounded-full text-sm font-medium text-ink-2 border border-line bg-canvas"
+                {relatedEntries.map((related) => (
+                  <button
+                    key={related.term_id ?? related.term}
+                    type="button"
+                    onClick={() => onSelect(related)}
+                    className="px-3 py-1 rounded-full text-sm font-medium text-ink-2 border border-line bg-canvas hover:bg-surface-raised transition-colors"
                   >
-                    {t}
-                  </span>
+                    {related.term}
+                  </button>
                 ))}
               </div>
             </div>
@@ -160,7 +176,14 @@ export function GlossaryPage(): JSX.Element {
         ))}
       </div>
 
-      {selected && <TermDrawer term={selected} onClose={() => setSelected(null)} />}
+      {selected && (
+        <TermDrawer
+          term={selected}
+          allEntries={entries}
+          onSelect={setSelected}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   )
 }

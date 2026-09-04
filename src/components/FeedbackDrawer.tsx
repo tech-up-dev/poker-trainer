@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import type { JSX } from 'react'
 import { CheckCircle2, XCircle, ChevronDown } from 'lucide-react'
 
@@ -22,14 +23,34 @@ export function FeedbackDrawer({
   const selected = question.answers[selectedIndex]
   const isCorrect = selected.is_correct
 
+  // Lock body scroll while open. On iOS Safari, leaving the background
+  // scrollable causes the OS to route taps to the scroll system for several
+  // seconds, which swallows button taps. position:fixed is required for iOS
+  // to actually honour the lock (overflow:hidden alone is ignored there).
+  useEffect(() => {
+    const scrollY = window.scrollY
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
+
   return (
     <div className="fixed inset-0 z-40 flex items-end justify-center">
-      <div className="overlay" onClick={onContinue} aria-hidden="true" />
+      {/* touch-none prevents touch events bleeding through to the background */}
+      <div className="overlay touch-none" onClick={onContinue} aria-hidden="true" />
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Answer feedback"
-        className="fixed inset-x-0 bottom-0 bg-surface-overlay rounded-t-3xl shadow-overlay z-50 animate-slide-up w-full max-w-lg mx-auto max-h-[95vh] overflow-y-auto p-5 pb-8 space-y-5"
+        className="fixed inset-x-0 bottom-0 bg-surface-overlay rounded-t-3xl shadow-overlay z-50 animate-slide-up w-full max-w-lg mx-auto max-h-[95vh] overflow-y-auto overscroll-contain p-5 pb-8 space-y-5"
       >
         {/* Result banner */}
         <div
@@ -90,14 +111,14 @@ export function FeedbackDrawer({
           <button
             type="button"
             onClick={onSaveForLater}
-            className="btn-secondary btn-sm flex-1"
+            className="btn-secondary btn-sm flex-1 touch-manipulation"
           >
             {isSaved ? 'Saved ✓' : 'Save for later'}
           </button>
           <button
             type="button"
             onClick={onContinue}
-            className="btn-primary btn-sm flex-1"
+            className="btn-primary btn-sm flex-1 touch-manipulation"
           >
             Continue
           </button>

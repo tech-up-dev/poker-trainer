@@ -154,9 +154,9 @@ export function LoginPage(): JSX.Element {
           </button>
 
           <p className="text-center text-sm text-ink-3">
-            No account?{' '}
-            <Link to="/signup" className="text-gold hover:text-gold transition-colors font-medium">
-              Sign up
+            Not yet a member?{' '}
+            <Link to="/subscribe" className="text-gold hover:text-gold transition-colors font-medium">
+              Sign up here
             </Link>
           </p>
         </form>

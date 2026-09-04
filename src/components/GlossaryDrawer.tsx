@@ -251,7 +251,7 @@ function RelatedTermLink({ termId }: { termId: string }): JSX.Element {
     <button
       type="button"
       onClick={() => pushRelatedTerm(termId)}
-      className="min-h-11 px-3.5 rounded-full text-sm font-medium text-link border border-line bg-canvas hover:bg-elevated underline decoration-dotted underline-offset-2"
+      className="min-h-11 px-3.5 rounded-full text-sm font-medium text-link border border-line bg-canvas hover:bg-elevated"
     >
       {label}
     </button>
