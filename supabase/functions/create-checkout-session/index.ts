@@ -72,7 +72,11 @@ Deno.serve(async (req) => {
   }
   const priceId = body.price_id;
   const origin = req.headers.get("Origin") ?? "";
-  const successUrl = body.success_url ?? `${origin}/play/checkout/success`;
+  // success_url is BE-owned so anon buyers always land on the page that runs
+  // post-purchase-signin (the auto sign-in step). Any body.success_url is
+  // intentionally IGNORED - passing anything else broke the pay-first flow
+  // by landing the buyer on /login and forcing a manual password reset.
+  const successUrl = `${origin}/play/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
   const cancelUrl = body.cancel_url ?? `${origin}/play/profile`;
 
   // Verify the price is in our catalog and enabled. This blocks arbitrary
@@ -88,28 +92,34 @@ Deno.serve(async (req) => {
   }
 
   // Resolve the buyer's identity in one of two modes:
-  //   (a) Authed: caller passes a Bearer token; buyer is that member (reactivate
-  //       or re-check-out for an authed user).
-  //   (b) Anon:   no auth; caller passes `email` in the body; a brand-new buyer
-  //       who does not have an account yet (item 1 pay-first flow).
+  //   (a) Authed: caller passes a Bearer token that resolves to a real user;
+  //       buyer is that member (reactivate or re-check-out for an authed user).
+  //   (b) Anon:   caller passes `email` in the body; a brand-new buyer who does
+  //       not have an account yet (pay-first flow, #50).
+  // Note: supabase-js auto-injects the anon key as `Authorization: Bearer`
+  // whenever no user session exists, so a "Bearer" header is NOT proof the caller
+  // is authed. We only treat the token as authoritative if getUser resolves it to
+  // a real user; otherwise fall through to the anon body.email path.
   const token = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
   let email = "";
   let userId: string | null = null;
   if (token) {
-    const { data: { user }, error: authErr } = await prod.auth.getUser(token);
-    if (authErr || !user) {
-      return jsonResponse(req, { ok: false, message: "Invalid or expired token" }, 401);
+    const { data: { user } } = await prod.auth.getUser(token);
+    if (user) {
+      email = user.email ?? "";
+      userId = user.id;
     }
-    email = user.email ?? "";
-    userId = user.id;
-  } else if (typeof body.email === "string" && body.email.trim()) {
-    email = body.email.trim().toLowerCase();
-  } else {
-    return jsonResponse(
-      req,
-      { ok: false, message: "Missing Authorization header or email in body" },
-      400,
-    );
+  }
+  if (!email) {
+    if (typeof body.email === "string" && body.email.trim()) {
+      email = body.email.trim().toLowerCase();
+    } else {
+      return jsonResponse(
+        req,
+        { ok: false, message: "Missing user session or email in body" },
+        400,
+      );
+    }
   }
 
   // Double-purchase guard: refuse if this email already has an active
@@ -131,7 +141,7 @@ Deno.serve(async (req) => {
     "mode": "subscription",
     "line_items[0][price]": priceId,
     "line_items[0][quantity]": "1",
-    "success_url": `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+    "success_url": successUrl,
     "cancel_url": cancelUrl,
     // Round-2 #7: require the ToS checkbox. Stripe reads the terms of service
     // URL from Settings -> Public details on the Stripe account, so the URL is

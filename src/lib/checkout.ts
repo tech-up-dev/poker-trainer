@@ -37,13 +37,25 @@ export const PRICING_PLANS: PricingPlan[] = [
 
 export async function createCheckoutSession(
   priceId: string,
+  email?: string,
 ): Promise<{ url: string }> {
+  const body: Record<string, string> = { price_id: priceId }
+  if (email) body.email = email
   const { data, error } = await supabaseProd.functions.invoke(
     'create-checkout-session',
-    { body: { price_id: priceId } },
+    { body },
   )
 
-  if (error) throw new Error(error.message)
+  if (error) {
+    // Try to parse a structured error body (e.g. already_subscribed 400)
+    try {
+      const body = await (error as { context?: Response }).context?.json() as { code?: string; message?: string } | undefined
+      if (body?.code) throw Object.assign(new Error(body.message ?? error.message), { code: body.code })
+    } catch (inner) {
+      if ((inner as { code?: string }).code) throw inner
+    }
+    throw new Error(error.message)
+  }
 
   const result = data as { ok: boolean; url?: string; message?: string }
   if (!result.ok || !result.url) {

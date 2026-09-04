@@ -28,7 +28,10 @@ export function CheckoutSuccessPage(): JSX.Element {
     // Call post-purchase-signin to get a one-time recovery link, then redirect.
     if (!session && sessionId) {
       postPurchaseSignIn(sessionId)
-        .then(({ url }) => { window.location.href = url })
+        .then(({ url }) => {
+          localStorage.setItem('bss_new_member', '1')
+          window.location.href = url
+        })
         .catch((err: unknown) => {
           setErrorMsg(err instanceof Error ? err.message : 'Something went wrong')
           setPhase('error')
