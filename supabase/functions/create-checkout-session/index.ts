@@ -72,7 +72,11 @@ Deno.serve(async (req) => {
   }
   const priceId = body.price_id;
   const origin = req.headers.get("Origin") ?? "";
-  const successUrl = body.success_url ?? `${origin}/play/checkout/success`;
+  // success_url is BE-owned so anon buyers always land on the page that runs
+  // post-purchase-signin (the auto sign-in step). Any body.success_url is
+  // intentionally IGNORED - passing anything else broke the pay-first flow
+  // by landing the buyer on /login and forcing a manual password reset.
+  const successUrl = `${origin}/play/checkout/success?session_id={CHECKOUT_SESSION_ID}`;
   const cancelUrl = body.cancel_url ?? `${origin}/play/profile`;
 
   // Verify the price is in our catalog and enabled. This blocks arbitrary
@@ -137,7 +141,7 @@ Deno.serve(async (req) => {
     "mode": "subscription",
     "line_items[0][price]": priceId,
     "line_items[0][quantity]": "1",
-    "success_url": `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+    "success_url": successUrl,
     "cancel_url": cancelUrl,
     // Round-2 #7: require the ToS checkbox. Stripe reads the terms of service
     // URL from Settings -> Public details on the Stripe account, so the URL is
