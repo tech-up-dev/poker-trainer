@@ -23,7 +23,10 @@ export function CheckoutSuccessPage(): JSX.Element {
     if (!session && sessionId) {
       setPhase('signing-in')
       postPurchaseSignIn(sessionId)
-        .then(({ url }) => { window.location.href = url })
+        .then(({ url }) => {
+          localStorage.setItem('bss_new_member', '1')
+          window.location.href = url
+        })
         .catch((err: unknown) => {
           setErrorMsg(err instanceof Error ? err.message : 'Something went wrong')
           setPhase('error')

@@ -24,7 +24,12 @@ export function SubscribePage(): JSX.Element {
       const { url } = await createCheckoutSession(plan.priceId, email.trim())
       window.location.assign(url)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not start checkout. Please try again.')
+      const code = (err as { code?: string }).code
+      setError(
+        code === 'already_subscribed'
+          ? 'This email already has an active subscription. Sign in to access your account.'
+          : err instanceof Error ? err.message : 'Could not start checkout. Please try again.',
+      )
       setCheckoutLoading(null)
     }
   }

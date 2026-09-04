@@ -96,7 +96,7 @@ export function QuestionCard({ question, lessonId, onContinue }: QuestionCardPro
             disabled={locked}
             onClick={() => handleSelect(i)}
             aria-pressed={selectedIndex === i}
-            className={getButtonClass(i)}
+            className={`touch-manipulation ${getButtonClass(i)}`}
           >
             <div className="flex items-center gap-2">
               <span className={getLetterBadgeClass(i)}>

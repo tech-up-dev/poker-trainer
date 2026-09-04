@@ -42,6 +42,7 @@ import { SubscribePage } from './pages/SubscribePage'
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/subscribe', element: <SubscribePage /> },
+  { path: '/play/checkout/success', element: <CheckoutSuccessPage /> },
   { path: '/signup', element: <SignupPage /> },
   { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { path: '/reset-password', element: <ResetPasswordPage /> },
@@ -89,7 +90,6 @@ export const router = createBrowserRouter([
           { path: '/play/saved-tips',       element: <SavedTipsPage /> },
           { path: '/play/references',       element: <GlossaryDrawerProvider><ReferencesLibraryPage /></GlossaryDrawerProvider> },
           { path: '/play/pro-training',      element: <ProTrainingPage /> },
-          { path: '/play/checkout/success', element: <CheckoutSuccessPage /> },
           { path: '/play/drill',            element: <GlossaryDrawerProvider><DrillSessionPage /></GlossaryDrawerProvider> },
         ],
       },

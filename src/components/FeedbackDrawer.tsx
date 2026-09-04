@@ -43,14 +43,14 @@ export function FeedbackDrawer({
   }, [])
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center">
-      {/* touch-none prevents touch events bleeding through to the background */}
-      <div className="overlay touch-none" onClick={onContinue} aria-hidden="true" />
+    <div className="fixed inset-0 z-40 flex items-end justify-center touch-none">
+      {/* touch-none on container + overlay prevents iOS routing taps to scroll system */}
+      <div className="overlay" onClick={onContinue} aria-hidden="true" />
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Answer feedback"
-        className="fixed inset-x-0 bottom-0 bg-surface-overlay rounded-t-3xl shadow-overlay z-50 animate-slide-up w-full max-w-lg mx-auto max-h-[95vh] overflow-y-auto overscroll-contain p-5 pb-8 space-y-5"
+        className="fixed inset-x-0 bottom-0 bg-surface-overlay rounded-t-3xl shadow-overlay z-50 animate-slide-up w-full max-w-lg mx-auto max-h-[95vh] overflow-y-auto overscroll-contain p-5 pb-8 space-y-5 touch-pan-y"
       >
         {/* Result banner */}
         <div
@@ -77,7 +77,7 @@ export function FeedbackDrawer({
 
         {/* All answers explained - collapsed by default */}
         <details className="group">
-          <summary className="flex items-center justify-between cursor-pointer list-none select-none py-1">
+          <summary className="flex items-center justify-between cursor-pointer list-none select-none py-1 touch-manipulation">
             <h3 className="text-sm font-semibold text-ink-2">Every answer, explained</h3>
             <ChevronDown className="w-6 h-6 text-ink-3 transition-transform group-open:rotate-180" />
           </summary>
