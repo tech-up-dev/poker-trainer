@@ -42,72 +42,86 @@ function UpsellButtonSection(): JSX.Element {
         <p className="text-sm text-ink-3 mt-0.5">Configure the "Unlock Pro Training" button shown to members in the sidebar.</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-3xl">
-        {/* Left - sidebar button fields */}
+      <div className="space-y-6 max-w-3xl">
+        {/* Page header */}
         <div className="space-y-3">
-          <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Sidebar button</p>
+          <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Page header</p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Eyebrow</label>
+              <input
+                type="text"
+                value={config.page_eyebrow}
+                onChange={(e) => update('page_eyebrow', e.target.value)}
+                className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Heading</label>
+              <input
+                type="text"
+                value={config.page_title}
+                onChange={(e) => update('page_title', e.target.value)}
+                className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
+              />
+            </div>
+          </div>
           <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Button title</label>
+            <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Subtext</label>
             <input
               type="text"
-              value={config.title}
-              onChange={(e) => update('title', e.target.value)}
+              value={config.page_subtitle}
+              onChange={(e) => update('page_subtitle', e.target.value)}
               className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
             />
           </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Subtitle</label>
-            <input
-              type="text"
-              value={config.subtitle}
-              onChange={(e) => update('subtitle', e.target.value)}
-              className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
-            />
-          </div>
-          <label className="flex items-center gap-3 cursor-pointer select-none pt-1">
-            <input
-              type="checkbox"
-              checked={config.enabled}
-              onChange={(e) => update('enabled', e.target.checked)}
-              className="w-4 h-4 accent-gold cursor-pointer"
-            />
-            <span className="text-sm text-ink">Show button to members</span>
-          </label>
         </div>
 
-        {/* Right - banner fields */}
-        <div className="space-y-3">
-          <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Member banner</p>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Banner text</label>
-            <input
-              type="text"
-              value={config.member_banner}
-              onChange={(e) => update('member_banner', e.target.value)}
-              className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
-            />
-            <p className="text-xs text-ink-3">Shown in the banner to logged-in members on the Pro Training page.</p>
+        {/* Member banner + sidebar button */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Member banner</p>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Banner text</label>
+              <input
+                type="text"
+                value={config.member_banner}
+                onChange={(e) => update('member_banner', e.target.value)}
+                className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
+              />
+              <p className="text-xs text-ink-3">Shown in the banner to logged-in members on the Pro Training page.</p>
+            </div>
           </div>
-          <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide pt-2">Non-member banner</p>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Banner text</label>
-            <input
-              type="text"
-              value={config.non_member_banner}
-              onChange={(e) => update('non_member_banner', e.target.value)}
-              className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
-            />
-            <p className="text-xs text-ink-3">Shown in the banner to non-members on the Pro Training page.</p>
-          </div>
-          <div className="flex flex-col gap-1">
-            <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">CTA link text</label>
-            <input
-              type="text"
-              value={config.non_member_cta}
-              onChange={(e) => update('non_member_cta', e.target.value)}
-              className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
-            />
-            <p className="text-xs text-ink-3">The clickable link that follows the banner - always links to the subscribe page.</p>
+
+          <div className="space-y-3">
+            <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Sidebar button</p>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Button title</label>
+              <input
+                type="text"
+                value={config.title}
+                onChange={(e) => update('title', e.target.value)}
+                className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Subtitle</label>
+              <input
+                type="text"
+                value={config.subtitle}
+                onChange={(e) => update('subtitle', e.target.value)}
+                className="px-3 py-2 text-sm rounded-lg border border-line bg-canvas text-ink focus:outline-none focus:border-gold"
+              />
+            </div>
+            <label className="flex items-center gap-3 cursor-pointer select-none pt-1">
+              <input
+                type="checkbox"
+                checked={config.enabled}
+                onChange={(e) => update('enabled', e.target.checked)}
+                className="w-4 h-4 accent-gold cursor-pointer"
+              />
+              <span className="text-sm text-ink">Show button to members</span>
+            </label>
           </div>
         </div>
       </div>
@@ -144,6 +158,7 @@ type Course = {
   member_price: number
   tone: Tone
   sales_url: string
+  cta_text: string
   sort_order: number
   enabled: boolean
 }
@@ -167,6 +182,7 @@ const EMPTY_FORM: CourseForm = {
   member_price: 119,
   tone: 'amber',
   sales_url: '',
+  cta_text: 'Order Now',
   sort_order: 0,
 }
 
@@ -311,6 +327,18 @@ function CourseFormModal({
             />
           </div>
 
+          {/* CTA button text */}
+          <div>
+            <label className="block text-xs font-semibold text-ink-3 mb-1.5 uppercase tracking-wide">CTA button text</label>
+            <input
+              className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-gold"
+              value={form.cta_text}
+              onChange={(e) => set('cta_text', e.target.value)}
+              placeholder="Order Now"
+              required
+            />
+          </div>
+
           {/* Sort order */}
           <div>
             <label className="block text-xs font-semibold text-ink-3 mb-1.5 uppercase tracking-wide">Sort order</label>
@@ -388,16 +416,20 @@ export function ProTrainingAdminPage(): JSX.Element {
   }, [])
 
   async function handleSave(form: CourseForm): Promise<void> {
+    // cta_text is omitted until the DB column is added by the BE developer.
+    // Remove this destructure once pro_training_courses.cta_text exists.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { cta_text: _cta, ...dbPayload } = form
     if (editingCourse) {
       const { error: err } = await supabaseProd
         .from('pro_training_courses')
-        .update(form)
+        .update(dbPayload)
         .eq('id', editingCourse.id)
       if (err) throw new Error(err.message)
     } else {
       const { error: err } = await supabaseProd
         .from('pro_training_courses')
-        .insert({ ...form, enabled: true })
+        .insert({ ...dbPayload, enabled: true })
       if (err) throw new Error(err.message)
     }
     setModalOpen(false)
@@ -457,6 +489,7 @@ export function ProTrainingAdminPage(): JSX.Element {
         member_price: editingCourse.member_price,
         tone: editingCourse.tone,
         sales_url: editingCourse.sales_url,
+        cta_text: editingCourse.cta_text ?? 'Order Now',
         sort_order: editingCourse.sort_order,
       }
     : null

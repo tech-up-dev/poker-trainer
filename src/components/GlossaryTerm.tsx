@@ -18,7 +18,7 @@ export function GlossaryTerm({ term, children }: GlossaryTermProps): JSX.Element
     <button
       type="button"
       onClick={() => openTerm(term)}
-      className="font-medium text-link underline decoration-dotted underline-offset-2"
+      className="font-medium text-link"
     >
       {children ?? term}
     </button>
