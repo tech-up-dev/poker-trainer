@@ -127,7 +127,33 @@ function GlossaryDrawer({
   onBack: () => void
   onClose: () => void
 }): JSX.Element | null {
-  if (state.status === 'closed') return null
+  const isOpen = state.status !== 'closed'
+
+  // #53: lock body scroll while the drawer is open. On iOS Safari a scrollable
+  // background causes the OS to route taps to the scroll system for several
+  // seconds, which swallows the drawer's button taps (same root cause as the
+  // #51 FeedbackDrawer fix). position:fixed is required for iOS to honour it.
+  // Guard: if an outer drawer (the feedback drawer, when a glossary term is
+  // tapped inside an explanation) has already locked the body, do nothing, so
+  // closing this drawer does not release the outer lock or reset its scroll.
+  useEffect(() => {
+    if (!isOpen) return
+    if (document.body.style.position === 'fixed') return
+    const scrollY = window.scrollY
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [isOpen])
+
+  if (!isOpen) return null
 
   const depth = state.stack.length
   const current = depth > 0 ? state.stack[depth - 1] : null
