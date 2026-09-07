@@ -9,9 +9,11 @@ import { jsonResponse, preflight } from "../_shared/responses.ts";
 import { assertAdmin, AdminError } from "../_shared/admin.ts";
 import { revalidateContent } from "../_shared/validate-content.ts";
 import { applyGlossaryLinks } from "../../../shared/utils/glossary-linking.ts";
+import { normalizeAllRelatedTerms } from "../../../shared/utils/glossary-related.ts";
 import { unknownConceptIssues } from "../../../shared/utils/concept-validation.ts";
 import { relinkChangedLessons } from "../_shared/glossary-backfill.ts";
 import { fetchValidConcepts } from "../_shared/concepts.ts";
+import type { GlossaryEntry } from "../../../shared/schemas/glossary.ts";
 import type { Lesson } from "../../../shared/schemas/lesson.ts";
 
 type ProdClient = ReturnType<typeof createClient>;
@@ -226,10 +228,53 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { ok: false, message: upsertErr.message }, 500);
   }
 
-  // Promoting a glossary term re-links every published lesson (Feature 2).
-  const relinked = content_type === "glossary" ? await backfillPublishedLessons(prod) : 0;
+  // Promoting a glossary term re-links every published lesson (Feature 2) AND
+  // normalises related_terms across every published glossary entry (mirror of
+  // the same pass in save-to-staging). #41 retest fix. Best-effort so a
+  // backfill hiccup never fails the glossary promote itself.
+  let relinked = 0;
+  let relatedFixed = 0;
+  if (content_type === "glossary") {
+    relinked = await backfillPublishedLessons(prod);
+    relatedFixed = await backfillPublishedGlossaryRelated(prod);
+  }
 
   const warnings = content_type === "lesson" ? majorityConceptWarnings(contentToPublish as Lesson) : [];
 
-  return jsonResponse(req, { ok: true, content_id, content_type, version_number: nextVersion, relinked, warnings });
+  return jsonResponse(req, {
+    ok: true,
+    content_id,
+    content_type,
+    version_number: nextVersion,
+    relinked,
+    related_fixed: relatedFixed,
+    warnings,
+  });
 });
+
+// Normalise every published glossary entry's related_terms after any glossary
+// promote. Updates content_published in place (derived data; no new version
+// snapshot per entry).
+async function backfillPublishedGlossaryRelated(prod: ProdClient): Promise<number> {
+  try {
+    const { data } = await prod
+      .from("content_published")
+      .select("content_id, content")
+      .eq("content_type", "glossary");
+    const rows = ((data ?? []) as { content_id: string; content: GlossaryEntry }[]).map((r) => ({
+      content_id: r.content_id,
+      content: r.content,
+    }));
+    const changed = normalizeAllRelatedTerms(rows);
+    for (const row of changed) {
+      await prod
+        .from("content_published")
+        .update({ content: row.content, updated_at: new Date().toISOString() })
+        .eq("content_id", row.content_id)
+        .eq("content_type", "glossary");
+    }
+    return changed.length;
+  } catch {
+    return 0;
+  }
+}
