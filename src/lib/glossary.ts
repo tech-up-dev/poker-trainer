@@ -54,9 +54,13 @@ export async function getGlossaryEntryByTerm(
 }
 
 // related_terms (shared/schemas/glossary.ts) holds term_ids for nested linking.
+// Falls back to slug-matching on term text so that JSON authors can write either
+// the auto-generated slug ("3-bet") or the display name ("3-Bet") in related_terms.
 export async function getGlossaryEntryById(
   termId: string,
 ): Promise<GlossaryEntry | null> {
   const cache = await getCache()
-  return cache.byId.get(termId) ?? null
+  return cache.byId.get(termId)
+    ?? cache.byTerm.get(termId.toLowerCase())
+    ?? null
 }
