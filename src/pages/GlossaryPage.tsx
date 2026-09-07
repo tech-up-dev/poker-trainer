@@ -24,7 +24,7 @@ function TermDrawer({
   onClose: () => void
 }): JSX.Element {
   const relatedEntries = (term.related_terms ?? [])
-    .map((id) => allEntries.find((e) => e.term_id === id))
+    .map((id) => allEntries.find((e) => e.term_id === id || e.term.toLowerCase() === id.toLowerCase()))
     .filter((e): e is GlossaryEntry => e !== undefined)
 
   return (
