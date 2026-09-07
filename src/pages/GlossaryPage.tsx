@@ -23,6 +23,27 @@ function TermDrawer({
   onSelect: (entry: GlossaryEntry) => void
   onClose: () => void
 }): JSX.Element {
+  // #53: lock body scroll while the drawer is open. On iOS Safari a scrollable
+  // background causes the OS to swallow the drawer's button taps for several
+  // seconds (same root cause as the in-lesson GlossaryDrawer fix). position:fixed
+  // is required for iOS to honour it. Guarded so it is a no-op if an outer
+  // overlay has already locked the body.
+  useEffect(() => {
+    if (document.body.style.position === 'fixed') return
+    const scrollY = window.scrollY
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${scrollY}px`
+    document.body.style.width = '100%'
+    return () => {
+      document.body.style.overflow = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.width = ''
+      window.scrollTo(0, scrollY)
+    }
+  }, [])
+
   const relatedEntries = (term.related_terms ?? [])
     .map((id) => allEntries.find((e) => e.term_id === id || e.term.toLowerCase() === id.toLowerCase()))
     .filter((e): e is GlossaryEntry => e !== undefined)
