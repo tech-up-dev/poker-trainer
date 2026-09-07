@@ -22,9 +22,14 @@ import {
 } from "../../../shared/schemas/content.ts";
 import { slugify, stableStringify } from "../../../shared/utils/slug.ts";
 import { applyGlossaryLinks } from "../../../shared/utils/glossary-linking.ts";
+import {
+  normalizeAllRelatedTerms,
+  normalizeRelatedTerms,
+} from "../../../shared/utils/glossary-related.ts";
 import { unknownConceptIssues } from "../../../shared/utils/concept-validation.ts";
 import { relinkChangedLessons } from "../_shared/glossary-backfill.ts";
 import { fetchValidConcepts } from "../_shared/concepts.ts";
+import type { GlossaryEntry } from "../../../shared/schemas/glossary.ts";
 import type { Lesson } from "../../../shared/schemas/lesson.ts";
 
 type StagingRow = { content_id: string; content: unknown };
@@ -50,6 +55,35 @@ async function backfillStagingLessons(staging: StagingClient): Promise<number> {
       await staging.from("content_staging").upsert({
         content_id: row.content_id,
         content_type: "lesson",
+        content: row.content,
+        updated_at: new Date().toISOString(),
+      });
+    }
+    return changed.length;
+  } catch {
+    return 0;
+  }
+}
+
+// Normalise every staging glossary entry's related_terms after any glossary
+// save (mirror of backfillStagingLessons). Turns author-written term text into
+// the target's term_id so the FE by-id lookup resolves. Best-effort: a
+// backfill hiccup must not fail the save. Returns how many entries changed.
+async function backfillStagingGlossaryRelated(staging: StagingClient): Promise<number> {
+  try {
+    const { data } = await staging
+      .from("content_staging")
+      .select("content_id, content")
+      .eq("content_type", "glossary");
+    const rows = ((data ?? []) as { content_id: string; content: GlossaryEntry }[]).map((r) => ({
+      content_id: r.content_id,
+      content: r.content,
+    }));
+    const changed = normalizeAllRelatedTerms(rows);
+    for (const row of changed) {
+      await staging.from("content_staging").upsert({
+        content_id: row.content_id,
+        content_type: "glossary",
         content: row.content,
         updated_at: new Date().toISOString(),
       });
@@ -254,8 +288,22 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { ok: false, message: error.message }, 500);
   }
 
-  // Saving a glossary term re-links every staging lesson (Feature 2).
-  const relinked = content_type === "glossary" ? await backfillStagingLessons(staging) : 0;
+  // Saving a glossary term re-links every staging lesson (Feature 2) AND
+  // normalises related_terms across every glossary entry so links keep
+  // resolving even when the author wrote term text ("Old Man Coffee") instead
+  // of the term_id slug ("old-man-coffee"). #41 retest fix.
+  let relinked = 0;
+  let relatedFixed = 0;
+  if (content_type === "glossary") {
+    relinked = await backfillStagingLessons(staging);
+    relatedFixed = await backfillStagingGlossaryRelated(staging);
+  }
 
-  return jsonResponse(req, { ok: true, content_id: finalId, content_type, relinked });
+  return jsonResponse(req, {
+    ok: true,
+    content_id: finalId,
+    content_type,
+    relinked,
+    related_fixed: relatedFixed,
+  });
 });
