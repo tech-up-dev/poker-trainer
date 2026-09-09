@@ -167,7 +167,7 @@ export function MemberDashboardPage(): JSX.Element {
             {topLeaks.map((leak) => {
               const name = concepts.find((c) => c.slug === leak.concept)?.name ?? leak.concept
               const pct = Math.round(leak.accuracy * 100)
-              const prevPct = leak.prevAccuracy !== undefined ? Math.round(leak.prevAccuracy * 100) : null
+              const prevPct = leak.prevAccuracy != null ? Math.round(leak.prevAccuracy * 100) : null
               const delta = prevPct !== null ? pct - prevPct : null
               return (
                 <div key={leak.concept} className="flex items-center gap-2">
