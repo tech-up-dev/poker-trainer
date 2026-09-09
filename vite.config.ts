@@ -11,7 +11,7 @@ export default defineConfig({
     include: ['react', 'react-dom', 'react/jsx-runtime'],
   },
   server: {
-    port: process.env.PORT ? Number(process.env.PORT) : 5173,
+    port: process.env.PORT ? Number(process.env.PORT) : 5174,
     strictPort: true,
   },
 })

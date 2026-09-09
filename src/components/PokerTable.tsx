@@ -204,7 +204,7 @@ function PodActionTag({ action, amount, flush = false }: { action: string; amoun
         boxShadow: `0 0 0 2px ${C.canvas}`,
         whiteSpace: 'nowrap',
       }}>
-        {action}{amount !== undefined ? ` $${amount}` : ''}
+        {action}{amount !== undefined && amount > 0 ? ` $${amount}` : ''}
       </span>
     </div>
   );

@@ -222,22 +222,18 @@ function GlossaryDrawer({
             </p>
 
             {current.example ? (
-              <div>
-                <h3 className="text-sm font-semibold text-ink-2 mb-1">
-                  Example
-                </h3>
-                <p className="text-base text-ink leading-relaxed">
+              <div className="p-4 rounded-xl bg-surface-overlay border border-line">
+                <p className="text-xs font-semibold uppercase tracking-widest text-gold mb-1">Example</p>
+                <p className="text-sm text-ink-2 leading-relaxed">
                   {current.example}
                 </p>
               </div>
             ) : null}
 
             {current.usage ? (
-              <div>
-                <h3 className="text-sm font-semibold text-ink-2 mb-1">
-                  Usage
-                </h3>
-                <p className="text-base text-ink leading-relaxed">
+              <div className="p-4 rounded-xl bg-surface-overlay border border-line">
+                <p className="text-xs font-semibold uppercase tracking-widest text-gold mb-1">Usage</p>
+                <p className="text-sm text-ink-2 leading-relaxed">
                   {current.usage}
                 </p>
               </div>
@@ -245,9 +241,9 @@ function GlossaryDrawer({
 
             {current.related_terms && current.related_terms.length > 0 ? (
               <div>
-                <h3 className="text-sm font-semibold text-ink-2 mb-2">
-                  Related terms
-                </h3>
+                <p className="text-xs font-semibold uppercase tracking-widest text-gold mb-2">
+                  Related Terms
+                </p>
                 <div className="flex flex-wrap gap-2">
                   {current.related_terms.map((termId) => (
                     <RelatedTermLink key={termId} termId={termId} />
