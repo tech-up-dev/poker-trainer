@@ -125,7 +125,15 @@ export function TipEditor({ onPublishedContextChange, initialText }: TipEditorPr
       body: { content_id: tip.tip_id, content_type: 'tip', content: tip },
     })
     if (error) {
-      setSaveStatus({ error: error.message })
+      let message = error.message
+      try {
+        type ErrBody = { message?: string; errors?: string[] }
+        const body = await (error as { context?: Response }).context?.json?.() as ErrBody | undefined
+        if (body?.message) {
+          message = body.errors?.length ? `${body.message}: ${body.errors.join(', ')}` : body.message
+        }
+      } catch { /* fall back to generic message */ }
+      setSaveStatus({ error: message })
       return
     }
     const result = data as { ok: boolean; content_id?: string; message?: string }

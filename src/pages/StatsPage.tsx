@@ -299,76 +299,83 @@ export function StatsPage(): JSX.Element {
         </div>
       </div>
 
-      {/* Accuracy by difficulty */}
-      {!loading && difficultyStats.length > 0 && (
-        <div className="card">
-          <h2 className="text-xl font-semibold text-ink mb-4">Accuracy by Difficulty</h2>
-          <div className="grid grid-cols-3 gap-6">
-            {difficultyStats.map((s) => {
-              const accuracy = s.questionsAnswered > 0
-                ? Math.round((s.questionsCorrect / s.questionsAnswered) * 100)
-                : 0
-              const ringColor = accuracy >= 75 ? 'success' : accuracy >= 50 ? 'warning' : 'error'
-              return (
-                <div key={s.difficulty} className="flex flex-col items-center text-center">
-                  <ProgressRing value={accuracy} color={ringColor} />
-                  <p className="text-base font-medium text-ink mt-2">
-                    {DIFFICULTY_LABEL[s.difficulty]}
-                  </p>
-                  <p className="text-xs text-ink-3 mt-0.5">
-                    {s.completed}/{s.total} lessons
-                  </p>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
+      {/* Accuracy by difficulty + Recent lessons — side by side on large screens */}
+      {!loading && (difficultyStats.length > 0 || recentLessons.length > 0) && (
+        <div className="lg:flex lg:gap-6 space-y-6 lg:space-y-0 lg:items-stretch">
 
-      {/* Recent lessons */}
-      {!loading && recentLessons.length > 0 && (
-        <div className="card">
-          <h2 className="text-xl font-semibold text-ink mb-4">Recent Lessons</h2>
-          <div className="space-y-3">
-            {recentLessons.map(({ lesson, progress }) => {
-              const accuracy = progress && progress.questionsAnswered > 0
-                ? Math.round((progress.questionsCorrect / progress.questionsAnswered) * 100)
-                : null
-              const isComplete = progress?.completed ?? false
-              return (
-                <div
-                  key={lesson.lesson_id ?? lesson.title}
-                  className="flex items-center justify-between p-3 rounded-xl bg-surface-overlay"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                      isComplete ? 'bg-success/20' : 'bg-gold/10'
-                    }`}>
-                      {isComplete
-                        ? <CheckCircle className="w-6 h-6 text-success" />
-                        : <XCircle className="w-6 h-6 text-gold" />
-                      }
+          {difficultyStats.length > 0 && (
+            <div className="card lg:w-[35%] lg:shrink-0">
+              <h2 className="text-xl font-semibold text-ink mb-4">Accuracy by Difficulty</h2>
+              <div className="flex flex-col items-center gap-6 lg:flex-col lg:items-start lg:gap-4">
+                {difficultyStats.map((s) => {
+                  const accuracy = s.questionsAnswered > 0
+                    ? Math.round((s.questionsCorrect / s.questionsAnswered) * 100)
+                    : 0
+                  const ringColor = accuracy >= 75 ? 'success' : accuracy >= 50 ? 'warning' : 'error'
+                  return (
+                    <div key={s.difficulty} className="flex flex-col items-center text-center lg:flex-row lg:text-left lg:gap-4">
+                      <ProgressRing value={accuracy} color={ringColor} />
+                      <div>
+                        <p className="text-base font-medium text-ink mt-2 lg:mt-0">
+                          {DIFFICULTY_LABEL[s.difficulty]}
+                        </p>
+                        <p className="text-xs text-ink-3 mt-0.5">
+                          {s.completed}/{s.total} lessons
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-ink">{lesson.title}</p>
-                      <p className="text-sm text-ink-3">
-                        {lesson.difficulty ?? 'General'} · {lesson.questions.length} questions
-                      </p>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {recentLessons.length > 0 && (
+            <div className="card lg:flex-1">
+              <h2 className="text-xl font-semibold text-ink mb-4">Recent Lessons</h2>
+              <div className="space-y-3">
+                {recentLessons.map(({ lesson, progress }) => {
+                  const accuracy = progress && progress.questionsAnswered > 0
+                    ? Math.round((progress.questionsCorrect / progress.questionsAnswered) * 100)
+                    : null
+                  const isComplete = progress?.completed ?? false
+                  return (
+                    <div
+                      key={lesson.lesson_id ?? lesson.title}
+                      className="flex items-center justify-between p-3 rounded-xl bg-surface-overlay"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
+                          isComplete ? 'bg-success/20' : 'bg-gold/10'
+                        }`}>
+                          {isComplete
+                            ? <CheckCircle className="w-6 h-6 text-success" />
+                            : <XCircle className="w-6 h-6 text-gold" />
+                          }
+                        </div>
+                        <div>
+                          <p className="font-medium text-ink">{lesson.title}</p>
+                          <p className="text-sm text-ink-3">
+                            {lesson.difficulty ?? 'General'} · {lesson.questions.length} questions
+                          </p>
+                        </div>
+                      </div>
+                      {accuracy !== null && (
+                        <span className={`text-sm font-semibold ${
+                          accuracy >= 75 ? 'text-success'
+                          : accuracy >= 50 ? 'text-warning'
+                          : 'text-error'
+                        }`}>
+                          {accuracy}%
+                        </span>
+                      )}
                     </div>
-                  </div>
-                  {accuracy !== null && (
-                    <span className={`text-sm font-semibold ${
-                      accuracy >= 75 ? 'text-success'
-                      : accuracy >= 50 ? 'text-warning'
-                      : 'text-error'
-                    }`}>
-                      {accuracy}%
-                    </span>
-                  )}
-                </div>
-              )
-            })}
-          </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
         </div>
       )}
 
