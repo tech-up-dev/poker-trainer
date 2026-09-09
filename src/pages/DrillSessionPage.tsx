@@ -11,7 +11,7 @@ import { logAnswerEvent } from '../lib/answer-events'
 import { upsertProgress } from '../lib/progress'
 import { supabaseProd } from '../lib/supabase-prod'
 
-// Virtual lesson ID used for progress + GHL push — drills count as training sessions.
+// Virtual lesson ID used for progress + GHL push - drills count as training sessions.
 const DRILL_LESSON_ID = 'drill-session'
 
 type Phase =

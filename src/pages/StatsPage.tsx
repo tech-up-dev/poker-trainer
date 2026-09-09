@@ -1,6 +1,6 @@
 ﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
-import { TrendingUp, CheckCircle2, Flame, BookOpen, CheckCircle, XCircle, TrendingDown, Minus, Zap } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Flame, CheckCircle, XCircle, TrendingDown, Minus, Zap } from 'lucide-react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
@@ -299,7 +299,7 @@ export function StatsPage(): JSX.Element {
         </div>
       </div>
 
-      {/* Accuracy by difficulty + Recent lessons — side by side on large screens */}
+      {/* Accuracy by difficulty + Recent lessons - side by side on large screens */}
       {!loading && (difficultyStats.length > 0 || recentLessons.length > 0) && (
         <div className="lg:flex lg:gap-6 space-y-6 lg:space-y-0 lg:items-stretch">
 

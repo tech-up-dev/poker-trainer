@@ -5,7 +5,7 @@ export type UserBadge = {
   earnedAt: string
 }
 
-// Badge catalogue — all milestone badges the app can award.
+// Badge catalogue - all milestone badges the app can award.
 // slug matches what BE writes to user_badges.badge_slug.
 export const BADGE_CATALOGUE: {
   slug: string

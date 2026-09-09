@@ -82,7 +82,6 @@ export function MemberDashboardPage(): JSX.Element {
       : null
 
   const topLeaks = leaks && leaks.length > 0 ? leaks.slice(0, 3) : []
-  const topLeak = topLeaks[0] ?? null
 
   return (
     <>
@@ -185,7 +184,7 @@ export function MemberDashboardPage(): JSX.Element {
             })}
           </div>
         ) : leaks !== null && leaks.length === 0 ? (
-          <p className="text-sm text-ink-2">No leaks — above 75% on all concepts.</p>
+          <p className="text-sm text-ink-2">No leaks - above 75% on all concepts.</p>
         ) : leaks === null ? (
           <p className="text-sm text-ink-3">Answer 8+ questions on a concept to see weak spots.</p>
         ) : (
