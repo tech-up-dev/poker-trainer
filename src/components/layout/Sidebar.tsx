@@ -26,8 +26,8 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { to: '/play',            icon: Home,     label: 'Trainer' },
-  { to: '/play/lessons',    icon: BookOpen, label: 'Path' },
+  { to: '/play',            icon: Home,     label: 'Home' },
+  { to: '/play/lessons',    icon: BookOpen, label: 'Lessons' },
   { to: '/play/glossary',   icon: BookText, label: 'Glossary' },
   { to: '/play/library',    icon: Library,  label: 'Library' },
   { to: '/play/stats',      icon: BarChart3,label: 'Stats' },
@@ -152,7 +152,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
           <button
             type="button"
             onClick={handleLogout}
-            className="nav-item w-full text-error hover:bg-error/10"
+            className="nav-item w-full text-ink-3 hover:bg-surface-overlay"
           >
             <LogOut className="w-5 h-5 shrink-0" />
             <span>Sign Out</span>

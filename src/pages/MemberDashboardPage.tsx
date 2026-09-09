@@ -81,10 +81,7 @@ export function MemberDashboardPage(): JSX.Element {
         )
       : null
 
-  const topLeak = leaks && leaks.length > 0 ? leaks[0] : null
-  const topLeakName = topLeak
-    ? (concepts.find((c) => c.slug === topLeak.concept)?.name ?? topLeak.concept)
-    : null
+  const topLeaks = leaks && leaks.length > 0 ? leaks.slice(0, 3) : []
 
   return (
     <>
@@ -153,36 +150,46 @@ export function MemberDashboardPage(): JSX.Element {
       {/* Block 2 - Where you're leaking + Drill button */}
       <div className="card space-y-3">
         <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-1.5">
-              Where you're leaking
-            </p>
-            {topLeak && topLeakName ? (
-              <div className="flex items-center gap-2 flex-wrap">
-                <TrendingDown className="w-4 h-4 text-error shrink-0" />
-                <span className="text-base font-semibold text-ink">{topLeakName}</span>
-                <span className="text-sm font-medium text-error">
-                  {Math.round(topLeak.accuracy * 100)}% correct
-                </span>
-              </div>
-            ) : leaks !== null && leaks.length === 0 ? (
-              <p className="text-sm text-ink-2">No leaks - above 75% on all concepts.</p>
-            ) : leaks === null ? (
-              <p className="text-sm text-ink-3">
-                Answer 8+ questions on a concept to see weak spots.
-              </p>
-            ) : (
-              <p className="text-sm text-ink-3">Analysing your history…</p>
-            )}
-          </div>
+          <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">
+            Where you're leaking
+          </p>
           <Link
             to="/play/stats"
-            className="text-xs text-ink-3 hover:text-ink flex items-center gap-0.5 shrink-0 pt-0.5"
+            className="text-xs text-ink-3 hover:text-ink flex items-center gap-0.5 shrink-0"
           >
             See all
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
+
+        {topLeaks.length > 0 ? (
+          <div className="space-y-2">
+            {topLeaks.map((leak) => {
+              const name = concepts.find((c) => c.slug === leak.concept)?.name ?? leak.concept
+              const pct = Math.round(leak.accuracy * 100)
+              const prevPct = leak.prevAccuracy != null ? Math.round(leak.prevAccuracy * 100) : null
+              const delta = prevPct !== null ? pct - prevPct : null
+              return (
+                <div key={leak.concept} className="flex items-center gap-2">
+                  <TrendingDown className="w-4 h-4 text-error shrink-0" />
+                  <span className="text-sm font-medium text-ink flex-1 min-w-0 truncate">{name}</span>
+                  <span className="text-sm font-semibold text-error shrink-0">{pct}%</span>
+                  {delta !== null && delta !== 0 && (
+                    <span className={`text-xs shrink-0 ${delta > 0 ? 'text-success' : 'text-error'}`}>
+                      {delta > 0 ? `+${delta}` : delta}
+                    </span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        ) : leaks !== null && leaks.length === 0 ? (
+          <p className="text-sm text-ink-2">No leaks - above 75% on all concepts.</p>
+        ) : leaks === null ? (
+          <p className="text-sm text-ink-3">Answer 8+ questions on a concept to see weak spots.</p>
+        ) : (
+          <p className="text-sm text-ink-3">Analysing your history…</p>
+        )}
 
         <button
           type="button"
