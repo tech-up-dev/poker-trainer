@@ -27,20 +27,60 @@ export function linkifyGlossaryTerms(
   // Only link the first occurrence of each term within this content area.
   const linked = new Set<string>()
 
-  return parts.map((part, i) => {
+  const result: ReactNode[] = []
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i]
     const matchedTerm = sortedTerms.find(
       (term) => term.toLowerCase() === part.toLowerCase(),
     )
-    if (!matchedTerm) return part
+    if (!matchedTerm) {
+      result.push(part)
+      continue
+    }
     const key = matchedTerm.toLowerCase()
-    if (linked.has(key)) return part
+    if (linked.has(key)) {
+      result.push(part)
+      continue
+    }
     linked.add(key)
-    return (
-      <GlossaryTerm key={`${part}-${i}`} term={part}>
-        {part}
-      </GlossaryTerm>
+
+    // Steal any opening punctuation from the already-rendered previous text node
+    // and any closing punctuation from the next part, so they stay on the same
+    // line as the linked term (prevents orphaned "(" or ")" on mobile).
+    let leading = ''
+    const prev = result[result.length - 1]
+    if (typeof prev === 'string' && /[(\["']$/.test(prev)) {
+      leading = prev.slice(-1)
+      result[result.length - 1] = prev.slice(0, -1)
+    }
+
+    let trailing = ''
+    const next = parts[i + 1]
+    if (next !== undefined) {
+      const m = /^[)\].,;:!?"']/.exec(next)
+      if (m) {
+        trailing = m[0]
+        parts[i + 1] = next.slice(trailing.length)
+      }
+    }
+
+    result.push(
+      leading || trailing
+        ? (
+          <span key={`${part}-${i}`} style={{ whiteSpace: 'nowrap' }}>
+            {leading}
+            <GlossaryTerm term={part}>{part}</GlossaryTerm>
+            {trailing}
+          </span>
+        )
+        : (
+          <GlossaryTerm key={`${part}-${i}`} term={part}>
+            {part}
+          </GlossaryTerm>
+        ),
     )
-  })
+  }
+  return result
 }
 
 function escapeRegExp(value: string): string {
