@@ -9,7 +9,7 @@ import { CardPicker } from './CardPicker'
 const POSITIONS = ['BTN', 'SB', 'BB', 'UTG', 'UTG+1', 'UTG+2', 'LJ', 'HJ', 'CO'] as const
 type Position = (typeof POSITIONS)[number]
 
-const PLAYER_TYPE_CODES = ['OMC', 'PLF', 'Y2K', 'GTO', 'DWM', 'STP'] as const
+const PLAYER_TYPE_CODES = ['OMC', 'PLF', 'Y2K', 'GTO', 'DWM', 'STP', '???'] as const
 
 const SEAT_ACTIONS = ['Fold', 'Check', 'Limp', 'Call', 'Bet', 'Raise', '3-bet', '4-bet', 'All-in'] as const
 type SeatAction = (typeof SEAT_ACTIONS)[number]
