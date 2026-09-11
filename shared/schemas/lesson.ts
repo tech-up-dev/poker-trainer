@@ -5,13 +5,15 @@ import { z } from 'zod'
 // `concepts` table, and is validated against the DB in the content pipeline,
 // not here.
 //
-// UNK is Steve's "unknown player type" (#58): a scenario where the villain's
-// type is deliberately unknown (usually for "what type is this?" questions).
-// The badge display shows "???" for this code; see PLAYER_TYPE_LABELS below.
-export const PLAYER_TYPE_CODES = ['OMC', 'PLF', 'Y2K', 'GTO', 'DWM', 'STP', 'UNK'] as const
+// "???" is Steve's seventh player-type option (#58): the villain's type is
+// deliberately unknown, typically for "what type of player is this?" questions
+// where identifying the type is the answer, not the setup. The literal "???"
+// travels through JSON, dropdown and badge unchanged so no code<->display map
+// is needed anywhere.
+export const PLAYER_TYPE_CODES = ['OMC', 'PLF', 'Y2K', 'GTO', 'DWM', 'STP', '???'] as const
 
 // Full display labels for the six Character Mapping player types (spec §5)
-// plus Steve's UNK "unknown" option (#58). Keys are the stored codes; values are
+// plus Steve's "???" unknown option (#58). Keys are the stored codes; values are
 // the dropdown labels shown in the CMS.
 export const PLAYER_TYPE_LABELS: Record<string, string> = {
   OMC: 'Old Man Coffee (OMC)',
@@ -20,7 +22,7 @@ export const PLAYER_TYPE_LABELS: Record<string, string> = {
   GTO: 'GTO Boy (GTO)',
   DWM: 'Drunk Whale Maniac (DWM)',
   STP: 'Smart Thinking Player (STP)',
-  UNK: 'Unknown (???)',
+  '???': '???',
 }
 
 export const STREETS = ['preflop', 'flop', 'turn', 'river', 'multi-street'] as const
