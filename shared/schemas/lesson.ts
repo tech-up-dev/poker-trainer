@@ -4,10 +4,15 @@ import { z } from 'zod'
 // (M3-09). `concept` is the one OPEN, admin-managed taxonomy stored in the
 // `concepts` table, and is validated against the DB in the content pipeline,
 // not here.
-export const PLAYER_TYPE_CODES = ['OMC', 'PLF', 'Y2K', 'GTO', 'DWM', 'STP'] as const
+//
+// UNK is Steve's "unknown player type" (#58): a scenario where the villain's
+// type is deliberately unknown (usually for "what type is this?" questions).
+// The badge display shows "???" for this code; see PLAYER_TYPE_LABELS below.
+export const PLAYER_TYPE_CODES = ['OMC', 'PLF', 'Y2K', 'GTO', 'DWM', 'STP', 'UNK'] as const
 
-// Full display labels for the six Character Mapping player types (spec §5).
-// Keys are the stored codes; values are the dropdown labels shown in the CMS.
+// Full display labels for the six Character Mapping player types (spec §5)
+// plus Steve's UNK "unknown" option (#58). Keys are the stored codes; values are
+// the dropdown labels shown in the CMS.
 export const PLAYER_TYPE_LABELS: Record<string, string> = {
   OMC: 'Old Man Coffee (OMC)',
   PLF: 'Passive Loose Fish (PLF)',
@@ -15,6 +20,7 @@ export const PLAYER_TYPE_LABELS: Record<string, string> = {
   GTO: 'GTO Boy (GTO)',
   DWM: 'Drunk Whale Maniac (DWM)',
   STP: 'Smart Thinking Player (STP)',
+  UNK: 'Unknown (???)',
 }
 
 export const STREETS = ['preflop', 'flop', 'turn', 'river', 'multi-street'] as const
