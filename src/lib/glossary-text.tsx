@@ -49,7 +49,7 @@ export function linkifyGlossaryTerms(
     // line as the linked term (prevents orphaned "(" or ")" on mobile).
     let leading = ''
     const prev = result[result.length - 1]
-    if (typeof prev === 'string' && /[(\["']$/.test(prev)) {
+    if (typeof prev === 'string' && /[(["']$/.test(prev)) {
       leading = prev.slice(-1)
       result[result.length - 1] = prev.slice(0, -1)
     }
