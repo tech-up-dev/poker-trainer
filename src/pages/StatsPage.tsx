@@ -130,6 +130,7 @@ function SessionsTab(): JSX.Element {
     setLoading(false)
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { void load() }, [])
 
   function set<K extends keyof SessionForm>(key: K, value: string): void {

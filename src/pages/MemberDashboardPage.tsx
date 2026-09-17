@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { FormEvent, JSX } from 'react'
-import { PlayCircle, Zap, TrendingDown, ChevronRight, BarChart3, Lock, CalendarDays, Target, Snowflake, Flame } from 'lucide-react'
+import { PlayCircle, Zap, TrendingDown, ChevronRight, Lock, CalendarDays, Target, Snowflake, Flame } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
 
@@ -220,7 +220,7 @@ export function MemberDashboardPage(): JSX.Element {
       {/* Block 3 - This week (M5-01) + This month (M5-02) */}
       <div className="grid grid-cols-2 gap-3">
 
-        {/* Weekly goal — primary; streak + freeze count secondary */}
+        {/* Weekly goal - primary; streak + freeze count secondary */}
         <div className="card">
           <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
             This week
@@ -244,7 +244,7 @@ export function MemberDashboardPage(): JSX.Element {
               />
             </div>
           )}
-          {/* Streak + freeze — secondary */}
+          {/* Streak + freeze - secondary */}
           <div className="flex items-center gap-3 mt-3 pt-3 border-t border-line">
             <span className="flex items-center gap-1 text-xs text-ink-3">
               <Flame className="w-3.5 h-3.5 text-orange-500" />
