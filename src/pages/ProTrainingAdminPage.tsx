@@ -647,18 +647,18 @@ export function ProTrainingAdminPage(): JSX.Element {
                     dragIndexRef.current = null
                   }}
                   onDragEnd={() => { setDragOverId(null); dragIndexRef.current = null }}
-                  className="flex items-center gap-4 bg-surface border rounded-xl px-4 py-3 transition-colors"
+                  className="flex items-center gap-2 sm:gap-4 bg-surface border rounded-xl px-4 py-3 transition-colors"
                   style={{
                     opacity: course.enabled ? 1 : 0.5,
                     borderColor: isDragOver ? 'var(--color-gold)' : 'var(--color-line)',
                     cursor: 'grab',
                   }}
                 >
-                  {/* Drag handle */}
-                  <GripVertical className="w-4 h-4 text-ink-3 shrink-0 cursor-grab" />
+                  {/* Drag handle - hidden on mobile (touch drag not supported) */}
+                  <GripVertical className="hidden sm:block w-4 h-4 text-ink-3 shrink-0 cursor-grab" />
 
-                  {/* Tone dot */}
-                  <div className="w-3 h-3 rounded-full shrink-0" style={{ background: accent }} />
+                  {/* Tone dot - hidden on mobile */}
+                  <div className="hidden sm:block w-3 h-3 rounded-full shrink-0" style={{ background: accent }} />
 
                   {/* Content */}
                   <div className="flex-1 min-w-0">
@@ -682,8 +682,8 @@ export function ProTrainingAdminPage(): JSX.Element {
                     }
                   >
                     {course.enabled
-                      ? <><Check className="w-3 h-3" /> Enabled</>
-                      : <>Hidden</>
+                      ? <><Check className="w-3 h-3" /><span className="hidden sm:inline">Enabled</span></>
+                      : <span className="hidden sm:inline">Hidden</span>
                     }
                   </button>
 
