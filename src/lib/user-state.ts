@@ -1,43 +1,57 @@
 import { supabaseProd } from './supabase-prod'
 
-export type UserBadge = {
-  slug: string
+export type BadgeSlug = 'first_lesson' | 'streak_7' | 'streak_30' | 'questions_100'
+
+export type BadgeMeta = {
+  slug: BadgeSlug
+  name: string
+  label: string
+  description: string
+  emoji: string
+  icon: string
+}
+
+export const BADGE_CATALOGUE: BadgeMeta[] = [
+  { slug: 'first_lesson',  name: 'First Lesson',  label: 'First Lesson',  description: 'Complete your first lesson',   emoji: '🎓', icon: '🎓' },
+  { slug: 'streak_7',      name: '7-Day Streak',  label: '7-Day Streak',  description: 'Log in 7 days in a row',       emoji: '🔥', icon: '🔥' },
+  { slug: 'streak_30',     name: '30-Day Streak', label: '30-Day Streak', description: 'Log in 30 days in a row',      emoji: '💎', icon: '💎' },
+  { slug: 'questions_100', name: '100 Questions', label: '100 Questions', description: 'Answer 100 questions total',   emoji: '💯', icon: '💯' },
+]
+
+export type UserStateRow = {
+  totalPoints: number
+  currentStreak: number
+}
+
+export async function fetchUserStateRow(): Promise<UserStateRow> {
+  const { data } = await supabaseProd
+    .from('user_streaks')
+    .select('total_points, current_streak')
+    .maybeSingle()
+  return {
+    totalPoints:   (data?.total_points   as number | null) ?? 0,
+    currentStreak: (data?.current_streak as number | null) ?? 0,
+  }
+}
+
+export async function fetchFreezeCount(): Promise<number> {
+  const { data: { user } } = await supabaseProd.auth.getUser()
+  if (!user) return 0
+  const { data } = await supabaseProd
+    .from('streak_freezes')
+    .select('freezes_available')
+    .eq('user_id', user.id)
+    .maybeSingle()
+  return (data?.freezes_available as number | null) ?? 0
+}
+
+export type EarnedBadge = {
+  slug: BadgeSlug
   earnedAt: string
 }
 
-// Badge catalogue - all milestone badges the app can award.
-// slug matches what BE writes to user_badges.badge_slug.
-export const BADGE_CATALOGUE: {
-  slug: string
-  name: string
-  description: string
-  emoji: string
-}[] = [
-  { slug: 'first_lesson',  name: 'First Lesson',   description: 'Completed your first lesson',        emoji: '🎓' },
-  { slug: 'streak_7',      name: '7-Day Streak',    description: 'Kept a 7-day training streak',       emoji: '🔥' },
-  { slug: 'streak_30',     name: '30-Day Streak',   description: 'Kept a 30-day training streak',      emoji: '💎' },
-  { slug: 'questions_100', name: '100 Questions',   description: 'Answered 100 questions total',       emoji: '💯' },
-]
+export type UserBadge = EarnedBadge
 
-// Reads the fast-read state row from user_streaks.
-// Returns null when the row doesn't exist yet (BE award logic not run yet).
-export async function fetchUserStateRow(): Promise<{
-  totalPoints: number
-} | null> {
-  const { data: { user } } = await supabaseProd.auth.getUser()
-  if (!user) return null
-
-  const { data, error } = await supabaseProd
-    .from('user_streaks')
-    .select('total_points')
-    .eq('user_id', user.id)
-    .maybeSingle()
-
-  if (error || !data) return null
-  return { totalPoints: (data.total_points as number) ?? 0 }
-}
-
-// Reads all earned badges for the current user.
 export async function fetchUserBadges(): Promise<UserBadge[]> {
   const { data: { user } } = await supabaseProd.auth.getUser()
   if (!user) return []
@@ -50,7 +64,7 @@ export async function fetchUserBadges(): Promise<UserBadge[]> {
 
   if (error || !data) return []
   return data.map((r) => ({
-    slug: r.badge_slug as string,
+    slug: r.badge_slug as BadgeSlug,
     earnedAt: r.earned_at as string,
   }))
 }

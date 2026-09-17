@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { FormEvent, JSX } from 'react'
-import { PlayCircle, Zap, TrendingDown, ChevronRight, BarChart3, Lock } from 'lucide-react'
+import { PlayCircle, Zap, TrendingDown, ChevronRight, Lock, CalendarDays, Target, Snowflake, Flame } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
 
@@ -14,6 +14,9 @@ import type { LeakConcept } from '../lib/leaks'
 import { fetchConcepts } from '../lib/concepts'
 import type { Concept } from '../lib/concepts'
 import { TodaysTip } from '../components/TodaysTip'
+import { fetchActivitySummary } from '../lib/activity'
+import type { ActivitySummary } from '../lib/activity'
+import { fetchUserStateRow, fetchFreezeCount } from '../lib/user-state'
 
 export function MemberDashboardPage(): JSX.Element {
   const navigate = useNavigate()
@@ -29,6 +32,9 @@ export function MemberDashboardPage(): JSX.Element {
   const [pwSaving, setPwSaving] = useState(false)
   const pwInputRef = useRef<HTMLInputElement>(null)
   const [concepts, setConcepts] = useState<Concept[]>([])
+  const [activity, setActivity] = useState<ActivitySummary | null>(null)
+  const [currentStreak, setCurrentStreak] = useState(0)
+  const [freezeCount, setFreezeCount] = useState(0)
 
   useEffect(() => {
     Promise.all([fetchAllPublishedLessons(), fetchLessonProgress()])
@@ -49,6 +55,16 @@ export function MemberDashboardPage(): JSX.Element {
         setConcepts(conceptData)
       })
       .catch(() => setLeaks([]))
+  }, [])
+
+  useEffect(() => {
+    Promise.all([fetchActivitySummary(), fetchUserStateRow(), fetchFreezeCount()])
+      .then(([activityData, stateRow, freezes]) => {
+        setActivity(activityData)
+        setCurrentStreak(stateRow.currentStreak)
+        setFreezeCount(freezes)
+      })
+      .catch(() => {})
   }, [])
 
   async function handleSetPassword(e: FormEvent): Promise<void> {
@@ -201,20 +217,74 @@ export function MemberDashboardPage(): JSX.Element {
         </button>
       </div>
 
-      {/* Block 3 - This month (days progress, wired up in M5-02) */}
-      <div className="card">
-        <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
-          This month
-        </p>
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
-            <BarChart3 className="w-5 h-5 text-gold" />
+      {/* Block 3 - This week (M5-01) + This month (M5-02) */}
+      <div className="grid grid-cols-2 gap-3">
+
+        {/* Weekly goal - primary; streak + freeze count secondary */}
+        <div className="card">
+          <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
+            This week
+          </p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
+              <Target className="w-5 h-5 text-gold" />
+            </div>
+            <div>
+              <p className="text-base font-semibold text-ink">
+                {activity !== null ? activity.weeklyActiveDays : '-'} of {activity?.weeklyGoalDays ?? '-'} days
+              </p>
+              <p className="text-xs text-ink-3">Weekly goal</p>
+            </div>
           </div>
-          <div>
-            <p className="text-base font-semibold text-ink">- of - training days</p>
-            <p className="text-xs text-ink-3">Monthly goal coming soon</p>
+          {activity !== null && (
+            <div className="progress-bar mt-3">
+              <div
+                className="progress-fill"
+                style={{ width: `${Math.min(100, Math.round((activity.weeklyActiveDays / activity.weeklyGoalDays) * 100))}%` }}
+              />
+            </div>
+          )}
+          {/* Streak + freeze - secondary */}
+          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-line">
+            <span className="flex items-center gap-1 text-xs text-ink-3">
+              <Flame className="w-3.5 h-3.5 text-orange-500" />
+              {currentStreak}d streak
+            </span>
+            {freezeCount > 0 && (
+              <span className="flex items-center gap-1 text-xs text-ink-3">
+                <Snowflake className="w-3.5 h-3.5 text-blue-400" />
+                {freezeCount} {freezeCount === 1 ? 'freeze' : 'freezes'}
+              </span>
+            )}
           </div>
         </div>
+
+        {/* Monthly training days */}
+        <div className="card">
+          <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
+            This month
+          </p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
+              <CalendarDays className="w-5 h-5 text-gold" />
+            </div>
+            <div>
+              <p className="text-base font-semibold text-ink">
+                {activity !== null ? activity.monthlyActiveDays : '-'} of {activity?.monthlyGoalDays ?? '-'} days
+              </p>
+              <p className="text-xs text-ink-3">Training days</p>
+            </div>
+          </div>
+          {activity !== null && (
+            <div className="progress-bar mt-3">
+              <div
+                className="progress-fill"
+                style={{ width: `${Math.min(100, Math.round((activity.monthlyActiveDays / activity.monthlyGoalDays) * 100))}%` }}
+              />
+            </div>
+          )}
+        </div>
+
       </div>
 
       {/* Block 4 - Today's Tip (full-width) */}
