@@ -22,6 +22,7 @@ import { LessonSessionPage } from './pages/LessonSessionPage'
 import { GlossaryPage } from './pages/GlossaryPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { StatsPage } from './pages/StatsPage'
+import { SkillsPathPage } from './pages/SkillsPathPage'
 import { SavedQuestionsPage } from './pages/SavedQuestionsPage'
 import { SavedTipsPage } from './pages/SavedTipsPage'
 import { ReferencesLibraryPage } from './pages/ReferencesLibraryPage'
@@ -82,6 +83,7 @@ export const router = createBrowserRouter([
         children: [
           { path: '/play',                  element: <MemberDashboardPage /> },
           { path: '/play/lessons',          element: <LessonsPage /> },
+          { path: '/play/skills-path',      element: <SkillsPathPage /> },
           { path: '/play/glossary',         element: <GlossaryPage /> },
           { path: '/play/library',          element: <GlossaryDrawerProvider><ReferencesLibraryPage /></GlossaryDrawerProvider> },
           { path: '/play/stats',            element: <StatsPage /> },
