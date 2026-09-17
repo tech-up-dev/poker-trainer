@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { JSX } from 'react'
 import { Search, ChevronRight, CheckCircle2, Clock } from 'lucide-react'
 
@@ -21,6 +21,7 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 
 export function LessonsPage(): JSX.Element {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [concepts, setConcepts] = useState<Concept[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
@@ -28,7 +29,9 @@ export function LessonsPage(): JSX.Element {
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState<Difficulty | null>(null)
-  const [activeConcept, setActiveConcept] = useState<string | null>(null)
+  const [activeConcept, setActiveConcept] = useState<string | null>(
+    searchParams.get('concept'),
+  )
 
   useEffect(() => {
     Promise.all([fetchAllPublishedLessons(), fetchLessonProgress(), fetchConcepts()])
