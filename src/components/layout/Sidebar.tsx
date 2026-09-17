@@ -7,6 +7,7 @@ import {
   BookText,
   Library,
   BarChart3,
+  Map,
   LogOut,
   X,
   User,
@@ -26,11 +27,12 @@ interface SidebarProps {
 }
 
 const NAV_ITEMS = [
-  { to: '/play',            icon: Home,     label: 'Home' },
-  { to: '/play/lessons',    icon: BookOpen, label: 'Lessons' },
-  { to: '/play/glossary',   icon: BookText, label: 'Glossary' },
-  { to: '/play/library',    icon: Library,  label: 'Library' },
-  { to: '/play/stats',      icon: BarChart3,label: 'Stats' },
+  { to: '/play',                icon: Home,     label: 'Home' },
+  { to: '/play/lessons',        icon: BookOpen, label: 'Lessons' },
+  { to: '/play/skills-path',    icon: Map,      label: 'Skills Path' },
+  { to: '/play/glossary',       icon: BookText, label: 'Glossary' },
+  { to: '/play/library',        icon: Library,  label: 'Library' },
+  { to: '/play/stats',          icon: BarChart3,label: 'Stats' },
 ]
 
 export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {

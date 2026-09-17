@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import type { JSX } from 'react'
 import { Search, ChevronRight, CheckCircle2, Clock } from 'lucide-react'
 
@@ -21,6 +21,7 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 
 export function LessonsPage(): JSX.Element {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [concepts, setConcepts] = useState<Concept[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
@@ -28,7 +29,9 @@ export function LessonsPage(): JSX.Element {
   const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState<Difficulty | null>(null)
-  const [activeConcept, setActiveConcept] = useState<string | null>(null)
+  const [activeConcept, setActiveConcept] = useState<string | null>(
+    searchParams.get('concept'),
+  )
 
   useEffect(() => {
     Promise.all([fetchAllPublishedLessons(), fetchLessonProgress(), fetchConcepts()])
@@ -63,7 +66,7 @@ export function LessonsPage(): JSX.Element {
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-ink mb-2">Path</h1>
+        <h1 className="text-3xl font-bold text-ink mb-2">Lessons</h1>
         <p className="text-lg text-ink-2">Build your poker knowledge one hand at a time</p>
       </div>
 
