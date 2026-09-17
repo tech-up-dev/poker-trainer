@@ -654,10 +654,10 @@ export function ProTrainingAdminPage(): JSX.Element {
                     cursor: 'grab',
                   }}
                 >
-                  {/* Drag handle — hidden on mobile (touch drag not supported) */}
+                  {/* Drag handle - hidden on mobile (touch drag not supported) */}
                   <GripVertical className="hidden sm:block w-4 h-4 text-ink-3 shrink-0 cursor-grab" />
 
-                  {/* Tone dot — hidden on mobile */}
+                  {/* Tone dot - hidden on mobile */}
                   <div className="hidden sm:block w-3 h-3 rounded-full shrink-0" style={{ background: accent }} />
 
                   {/* Content */}
