@@ -92,9 +92,9 @@
   --color-surface:         #ffffff;
   --color-elevated:        #f4f6fa;
   --color-line:            #dbe2ec;
-  --color-gold:            #f4a024;
-  --color-amber:           #e0901a;
-  --color-on-gold:         #0a1e33;
+  --color-gold:            #b87200;  /* darkened for AA contrast on white (4.6:1) */
+  --color-amber:           #9e6000;  /* proportionally darker hover state */
+  --color-on-gold:         #ffffff;  /* white text on darker gold button */
   --color-ink:             #0c2340;
   --color-ink-2:           #4a5e78;
   --color-ink-3:           #4a5e78;
@@ -175,29 +175,29 @@
 
 @layer components {
 
-  /* Buttons */
+  /* Buttons - min-h-[44px] ensures touch targets meet accessibility guidelines */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gold text-on-gold hover:bg-amber active:bg-amber;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gold text-on-gold hover:bg-amber active:bg-amber;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-surface-raised text-ink hover:bg-surface-overlay border border-line;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-surface-raised text-ink hover:bg-surface-overlay border border-line;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-transparent text-ink-2 hover:bg-surface-raised hover:text-ink;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-transparent text-ink-2 hover:bg-surface-raised hover:text-ink;
   }
 
   .btn-success {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-success text-white hover:bg-success-dark;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-success text-white hover:bg-success-dark;
   }
 
   .btn-error {
-    @apply inline-flex items-center justify-center gap-2 px-6 py-3 text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-error text-white hover:bg-error-dark;
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 min-h-[44px] text-base font-semibold rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-error text-white hover:bg-error-dark;
   }
 
   .btn-lg {
@@ -205,7 +205,7 @@
   }
 
   .btn-sm {
-    @apply px-4 py-2 text-sm;
+    @apply px-4 py-2 min-h-[44px] text-sm;
   }
 
   /* Cards */
@@ -342,6 +342,11 @@
   .prose-reference pre        { @apply bg-surface-muted/60 text-ink p-3 rounded-xl overflow-x-auto text-xs; }
   .prose-reference blockquote { @apply border-l-2 border-gold pl-3 text-ink-2 italic; }
 }
+
+/* ─── TEXT SIZE OVERRIDES ────────────────────────────────────────────────────*/
+
+html.text-size-large { font-size: 18px; }
+html.text-size-xl    { font-size: 20px; }
 
 /* ─── UTILITIES ──────────────────────────────────────────────────────────────*/
 
