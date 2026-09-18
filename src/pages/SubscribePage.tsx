@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import type { FormEvent, JSX } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Mail, ArrowRight } from 'lucide-react'
 
 import { PRICING_PLANS, createCheckoutSession } from '../lib/checkout'
 import type { PricingPlan } from '../lib/checkout'
+import { supabaseProd } from '../lib/supabase-prod'
 
 export function SubscribePage(): JSX.Element {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [emailConfirmed, setEmailConfirmed] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
@@ -122,6 +124,16 @@ export function SubscribePage(): JSX.Element {
           <Link to="/login" className="text-gold font-medium transition-colors">
             Sign in
           </Link>
+        </p>
+
+        <p className="text-center text-sm text-ink-3">
+          <button
+            type="button"
+            onClick={() => void supabaseProd.auth.signOut().then(() => navigate('/login'))}
+            className="text-ink-3 hover:text-ink transition-colors underline underline-offset-2"
+          >
+            Sign out
+          </button>
         </p>
       </div>
     </div>
