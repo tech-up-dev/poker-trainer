@@ -259,7 +259,7 @@ export function LessonSessionPage(): JSX.Element {
           </div>
           <button
             type="button"
-            onClick={() => navigate('/play')}
+            onClick={() => navigate('/play/lessons')}
             className="btn-primary btn-sm"
           >
             Browse all lessons
@@ -279,7 +279,7 @@ export function LessonSessionPage(): JSX.Element {
         <div className="max-w-md mx-auto space-y-6">
           <button
             type="button"
-            onClick={() => navigate('/play')}
+            onClick={() => navigate('/play/lessons')}
             className="flex items-center gap-2 text-sm text-ink-2 hover:text-zinc-200 transition-colors"
           >
             <X className="w-4 h-4" />
@@ -348,7 +348,7 @@ export function LessonSessionPage(): JSX.Element {
                     completed: false,
                   }).catch(() => {})
                 }
-                navigate('/play')
+                navigate('/play/lessons')
               }}
               aria-label="Exit lesson"
               className="w-8 h-8 flex items-center justify-center rounded-full bg-surface hover:bg-elevated text-ink-2 transition-colors shrink-0"
@@ -453,7 +453,7 @@ export function LessonSessionPage(): JSX.Element {
             </button>
             <button
               type="button"
-              onClick={() => navigate('/play')}
+              onClick={() => navigate('/play/lessons')}
               className="btn-primary w-full"
             >
               Back to lessons
@@ -527,7 +527,7 @@ export function LessonSessionPage(): JSX.Element {
           </button>
           <button
             type="button"
-            onClick={() => navigate('/play')}
+            onClick={() => navigate('/play/lessons')}
             className="btn-primary w-full"
           >
             Back to lessons

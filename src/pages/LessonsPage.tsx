@@ -83,7 +83,8 @@ export function LessonsPage(): JSX.Element {
       </div>
 
       {/* Difficulty filter chips */}
-      <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
+      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
+        <span className="text-sm text-ink-3 shrink-0">Difficulty</span>
         <button
           type="button"
           onClick={() => setActiveFilter(null)}
@@ -110,21 +111,38 @@ export function LessonsPage(): JSX.Element {
         })}
       </div>
 
-      {/* Concept filter — dropdown for discoverability */}
+      {/* Concept filter — dropdown + active chip */}
       {concepts.length > 0 && (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <label htmlFor="topic-filter" className="text-sm text-ink-3 shrink-0">Topic</label>
           <select
             id="topic-filter"
             value={activeConcept ?? ''}
             onChange={(e) => setActiveConcept(e.target.value || null)}
-            className="flex-1 rounded-lg border border-line bg-canvas text-ink text-sm px-3 py-2 outline-none focus:border-gold"
+            className="rounded-lg border border-line bg-canvas text-ink text-sm px-3 py-1.5 outline-none focus:border-gold"
           >
             <option value="">All topics</option>
             {concepts.map((c) => (
               <option key={c.slug} value={c.slug}>{c.name}</option>
             ))}
           </select>
+          {activeConcept && (() => {
+            const name = concepts.find((c) => c.slug === activeConcept)?.name ?? activeConcept
+            const count = filtered.length
+            return (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setActiveConcept(null)}
+                  className="chip-active flex items-center gap-1"
+                >
+                  Topic: {name}
+                  <span className="text-xs opacity-70">×</span>
+                </button>
+                <span className="text-sm text-ink-3">{count} lesson{count !== 1 ? 's' : ''}</span>
+              </>
+            )
+          })()}
         </div>
       )}
 

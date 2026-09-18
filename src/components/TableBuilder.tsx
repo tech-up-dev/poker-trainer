@@ -745,10 +745,14 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                             setEditingSlot(null)
                           }
                         }}
-                        className="text-[10px] text-ink-3 hover:text-ink transition-colors leading-none"
+                        className={`text-[10px] px-1.5 py-0.5 rounded border transition-colors leading-none ${
+                          holeCards[i] === '??'
+                            ? 'border-gold/60 text-gold hover:border-gold'
+                            : 'border-line text-ink-3 hover:border-ink-2 hover:text-ink'
+                        }`}
                         title={holeCards[i] === '??' ? 'Clear unknown' : 'Set as unknown'}
                       >
-                        {holeCards[i] === '??' ? 'clear' : '??'}
+                        {holeCards[i] === '??' ? 'clear' : 'unknown'}
                       </button>
                     </div>
                   ))}
