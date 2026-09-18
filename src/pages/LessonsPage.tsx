@@ -110,27 +110,21 @@ export function LessonsPage(): JSX.Element {
         })}
       </div>
 
-      {/* Concept filter chips - only rendered when there are tagged lessons */}
+      {/* Concept filter — dropdown for discoverability */}
       {concepts.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
-          <button
-            type="button"
-            onClick={() => setActiveConcept(null)}
-            className={activeConcept === null ? 'chip-active' : 'chip-inactive'}
+        <div className="flex items-center gap-2">
+          <label htmlFor="topic-filter" className="text-sm text-ink-3 shrink-0">Topic</label>
+          <select
+            id="topic-filter"
+            value={activeConcept ?? ''}
+            onChange={(e) => setActiveConcept(e.target.value || null)}
+            className="flex-1 rounded-lg border border-line bg-canvas text-ink text-sm px-3 py-2 outline-none focus:border-gold"
           >
-            All topics
-          </button>
-          {concepts.map((c) => (
-            <button
-              key={c.slug}
-              type="button"
-              onClick={() => setActiveConcept(c.slug)}
-              title={c.description}
-              className={activeConcept === c.slug ? 'chip-active' : 'chip-inactive'}
-            >
-              {c.name}
-            </button>
-          ))}
+            <option value="">All topics</option>
+            {concepts.map((c) => (
+              <option key={c.slug} value={c.slug}>{c.name}</option>
+            ))}
+          </select>
         </div>
       )}
 

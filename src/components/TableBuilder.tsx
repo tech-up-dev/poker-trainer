@@ -115,6 +115,20 @@ function EmptyCardSlot(): JSX.Element {
   )
 }
 
+function UnknownCardSlot(): JSX.Element {
+  return (
+    <div
+      className="w-[30px] h-[42px] rounded flex items-center justify-center"
+      style={{
+        border: '2px solid rgba(42,80,121,0.8)',
+        background: 'repeating-linear-gradient(45deg,#1b4068,#1b4068 2px,#16395C 2px,#16395C 4px)',
+      }}
+    >
+      <span className="text-[10px] font-bold" style={{ color: 'rgba(91,147,214,0.9)' }}>??</span>
+    </div>
+  )
+}
+
 // Two overlapping face-down cards - mirrors PokerTable's MiniCards
 function MiniCards(): JSX.Element {
   const cardStyle: React.CSSProperties = {
@@ -212,7 +226,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
     return [
       ...holeCards,
       ...boardCards.slice(0, boardSlotCount),
-    ].filter((c): c is string => c !== null && c !== editCard)
+    ].filter((c): c is string => c !== null && c !== '??' && c !== editCard)
   })()
 
   const pickerValue =
@@ -698,20 +712,45 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                 <p className="text-[11px] font-semibold text-ink-2 uppercase tracking-widest">
                   Hole cards
                 </p>
-                <div className="flex gap-2">
+                <div className="flex gap-3 items-start">
                   {([0, 1] as const).map((i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => toggleEditSlot({ kind: 'hole', index: i })}
-                      className={`rounded outline-none transition-shadow ${
-                        editingSlot?.kind === 'hole' && editingSlot.index === i
-                          ? 'ring-2 ring-gold'
-                          : 'ring-1 ring-line hover:ring-link'
-                      }`}
-                    >
-                      {holeCards[i] ? <Card card={holeCards[i] as string} /> : <EmptyCardSlot />}
-                    </button>
+                    <div key={i} className="flex flex-col items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (holeCards[i] === '??') return
+                          toggleEditSlot({ kind: 'hole', index: i })
+                        }}
+                        className={`rounded outline-none transition-shadow ${
+                          editingSlot?.kind === 'hole' && editingSlot.index === i
+                            ? 'ring-2 ring-gold'
+                            : 'ring-1 ring-line hover:ring-link'
+                        }`}
+                      >
+                        {holeCards[i] === '??' ? (
+                          <UnknownCardSlot />
+                        ) : holeCards[i] ? (
+                          <Card card={holeCards[i] as string} />
+                        ) : (
+                          <EmptyCardSlot />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (holeCards[i] === '??') {
+                            pickHoleCard(i, null)
+                          } else {
+                            pickHoleCard(i, '??')
+                            setEditingSlot(null)
+                          }
+                        }}
+                        className="text-[10px] text-ink-3 hover:text-ink transition-colors leading-none"
+                        title={holeCards[i] === '??' ? 'Clear unknown' : 'Set as unknown'}
+                      >
+                        {holeCards[i] === '??' ? 'clear' : '??'}
+                      </button>
+                    </div>
                   ))}
                 </div>
               </div>
