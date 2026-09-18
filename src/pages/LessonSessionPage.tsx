@@ -338,7 +338,18 @@ export function LessonSessionPage(): JSX.Element {
           <div className="max-w-md mx-auto flex items-center gap-3">
             <button
               type="button"
-              onClick={() => navigate('/play')}
+              onClick={() => {
+                const answered = Object.keys(answeredMap).length
+                if (answered > 0) {
+                  void upsertProgress({
+                    lessonId: lessonId ?? '',
+                    questionsAnswered: answered,
+                    questionsCorrect: Object.values(correctMap).filter(Boolean).length,
+                    completed: false,
+                  }).catch(() => {})
+                }
+                navigate('/play')
+              }}
               aria-label="Exit lesson"
               className="w-8 h-8 flex items-center justify-center rounded-full bg-surface hover:bg-elevated text-ink-2 transition-colors shrink-0"
             >
