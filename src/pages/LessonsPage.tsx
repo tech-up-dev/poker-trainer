@@ -111,7 +111,7 @@ export function LessonsPage(): JSX.Element {
         })}
       </div>
 
-      {/* Concept filter — dropdown + active chip */}
+      {/* Concept filter - dropdown + active chip */}
       {concepts.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
           <label htmlFor="topic-filter" className="text-sm text-ink-3 shrink-0">Topic</label>
