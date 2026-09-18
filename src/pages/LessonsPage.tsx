@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import type { JSX } from 'react'
 import { Search, ChevronRight, CheckCircle2, Clock } from 'lucide-react'
 
@@ -21,6 +21,7 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 
 export function LessonsPage(): JSX.Element {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams] = useSearchParams()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [concepts, setConcepts] = useState<Concept[]>([])
@@ -48,7 +49,7 @@ export function LessonsPage(): JSX.Element {
         setError(err instanceof Error ? err.message : 'Failed to load lessons.')
       })
       .finally(() => setLoading(false))
-  }, [])
+  }, [location.key])
 
   const filtered = lessons.filter((l) => {
     const matchesSearch = l.title.toLowerCase().includes(search.toLowerCase())
