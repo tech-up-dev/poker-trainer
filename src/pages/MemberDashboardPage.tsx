@@ -151,7 +151,7 @@ export function MemberDashboardPage(): JSX.Element {
             <button
               type="button"
               onClick={() => void navigate('/play/lessons')}
-              className="btn-secondary shrink-0"
+              className="btn-primary shrink-0"
             >
               Review lessons
             </button>
@@ -165,21 +165,27 @@ export function MemberDashboardPage(): JSX.Element {
 
       {/* Block 2 - Where you're leaking + Drill button */}
       <div className="card space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">
-            Where you're leaking
-          </p>
-          <Link
-            to="/play/stats"
-            className="text-xs text-ink-3 hover:text-ink flex items-center gap-0.5 shrink-0"
-          >
-            See all
-            <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
+        <div>
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">
+              Where you're leaking
+            </p>
+            <Link
+              to="/play/stats"
+              className="text-xs text-ink-3 hover:text-ink flex items-center gap-0.5 shrink-0"
+            >
+              See all stats
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+          <p className="text-xs text-ink-3 mt-0.5">Your three weakest areas · last 90 days</p>
         </div>
 
         {topLeaks.length > 0 ? (
           <div className="space-y-2">
+            <div className="flex justify-end">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-ink-3">Accuracy</span>
+            </div>
             {topLeaks.map((leak) => {
               const name = concepts.find((c) => c.slug === leak.concept)?.name ?? leak.concept
               const pct = Math.round(leak.accuracy * 100)
@@ -189,12 +195,16 @@ export function MemberDashboardPage(): JSX.Element {
                 <div key={leak.concept} className="flex items-center gap-2">
                   <TrendingDown className="w-4 h-4 text-error shrink-0" />
                   <span className="text-sm font-medium text-ink flex-1 min-w-0 truncate">{name}</span>
-                  <span className="text-sm font-semibold text-error shrink-0">{pct}%</span>
-                  {delta !== null && delta !== 0 && (
-                    <span className={`text-xs shrink-0 ${delta > 0 ? 'text-success' : 'text-error'}`}>
-                      {delta > 0 ? `+${delta}` : delta}
-                    </span>
-                  )}
+                  <div className="flex flex-col items-end shrink-0">
+                    <span className="text-sm font-semibold text-error">{pct}%</span>
+                    {prevPct === null ? (
+                      <span className="text-[10px] text-ink-3">new</span>
+                    ) : delta !== 0 ? (
+                      <span className={`text-[10px] ${delta! > 0 ? 'text-success' : 'text-error'}`}>
+                        {delta! > 0 ? `up from ${prevPct}%` : `down from ${prevPct}%`}
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
               )
             })}

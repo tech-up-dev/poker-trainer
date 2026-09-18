@@ -143,12 +143,23 @@ function PodCardBacks(): JSX.Element {
 }
 
 // Hero hole cards sit higher (top:-16px) and have a gap between them.
+// A card value of "??" renders as a card-back (unknown hero hand).
 function PodHeroCards({ cards }: { cards: string[] }): JSX.Element {
+  const unknownBack: React.CSSProperties = {
+    width: 17, height: 28, borderRadius: 4,
+    border: `2px solid ${C.cardbackBorder}`,
+    backgroundColor: C.cardbackBg,
+    backgroundImage: [
+      'repeating-linear-gradient(45deg,rgba(255,255,255,.16) 0 1px,transparent 1px 5px)',
+      'repeating-linear-gradient(-45deg,rgba(255,255,255,.16) 0 1px,transparent 1px 5px)',
+    ].join(','),
+    flexShrink: 0,
+  };
   return (
     <div style={{ position: 'absolute', left: '50%', top: -16, transform: 'translateX(-50%)', zIndex: 0, display: 'flex', gap: 4 }}>
-      {cards.slice(0, 2).map((c, i) => (
-        <Card key={i} card={c} />
-      ))}
+      {cards.slice(0, 2).map((c, i) =>
+        c === '??' ? <div key={i} style={unknownBack} /> : <Card key={i} card={c} />
+      )}
     </div>
   );
 }
