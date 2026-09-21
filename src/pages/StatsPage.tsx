@@ -379,13 +379,17 @@ export function StatsPage(): JSX.Element {
   }, [])
 
   useEffect(() => {
-    supabaseProd.rpc('get_all_concept_scores')
-      .then(({ data, error }) => {
+    void (async () => {
+      try {
+        const { data, error } = await supabaseProd.rpc('get_all_concept_scores')
         if (error) { setConceptScores([]); return }
         setConceptScores((data ?? []) as ConceptScore[])
-      })
-      .catch(() => setConceptScores([]))
-      .finally(() => setConceptScoresLoading(false))
+      } catch {
+        setConceptScores([])
+      } finally {
+        setConceptScoresLoading(false)
+      }
+    })()
   }, [])
 
   useEffect(() => {
