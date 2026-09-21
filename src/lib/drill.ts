@@ -8,17 +8,19 @@ export type DrillQuestion = Question & {
   conceptSlug: string
 }
 
+export type DrillResult = { questions: DrillQuestion[]; hasLeaks: boolean }
+
 // Returns up to 10 drill questions weighted 4/3/3 across the top 3 weak concepts.
 // Priority within each concept: recent misses first, then unseen questions.
 // Excludes any question answered in the last 7 days.
-export async function buildDrill(): Promise<DrillQuestion[]> {
+export async function buildDrill(): Promise<DrillResult> {
   const [leaks, allLessons, user] = await Promise.all([
     fetchLeaks(),
     fetchAllPublishedLessons(),
     supabaseProd.auth.getUser(),
   ])
 
-  if (leaks.length === 0 || !user.data.user) return []
+  if (leaks.length === 0 || !user.data.user) return { questions: [], hasLeaks: false }
 
   const userId = user.data.user.id
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
@@ -102,5 +104,5 @@ export async function buildDrill(): Promise<DrillQuestion[]> {
     }
   }
 
-  return selected.slice(0, 10)
+  return { questions: selected.slice(0, 10), hasLeaks: true }
 }

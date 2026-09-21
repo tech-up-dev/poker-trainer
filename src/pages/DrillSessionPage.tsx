@@ -16,7 +16,8 @@ const DRILL_LESSON_ID = 'drill-session'
 
 type Phase =
   | { kind: 'loading' }
-  | { kind: 'empty' }
+  | { kind: 'empty'; reason: 'no-leaks' | 'no-questions' }
+  | { kind: 'error'; message: string }
   | { kind: 'quiz'; questionIndex: number }
   | { kind: 'complete'; correct: number; total: number }
 
@@ -29,16 +30,18 @@ export function DrillSessionPage(): JSX.Element {
 
   useEffect(() => {
     buildDrill()
-      .then((qs) => {
+      .then(({ questions: qs, hasLeaks }) => {
         if (qs.length === 0) {
-          setPhase({ kind: 'empty' })
+          setPhase({ kind: 'empty', reason: hasLeaks ? 'no-questions' : 'no-leaks' })
         } else {
           setQuestions(qs)
           questionStartedAt.current = Date.now()
           setPhase({ kind: 'quiz', questionIndex: 0 })
         }
       })
-      .catch(() => setPhase({ kind: 'empty' }))
+      .catch((err: unknown) => {
+        setPhase({ kind: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
+      })
   }, [])
 
   function handleContinue(
@@ -95,16 +98,43 @@ export function DrillSessionPage(): JSX.Element {
     )
   }
 
+  if (phase.kind === 'error') {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center px-4">
+        <div className="max-w-sm w-full text-center space-y-5">
+          <div className="text-5xl">⚠️</div>
+          <div className="space-y-2">
+            <h2 className="text-lg font-bold text-ink">Something went wrong</h2>
+            <p className="text-sm text-ink-2 leading-relaxed">
+              We couldn't build your drill right now. Please try again in a moment.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => void navigate('/play')}
+            className="btn-primary btn-sm"
+          >
+            Back to home
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   if (phase.kind === 'empty') {
+    const noLeaks = phase.reason === 'no-leaks'
     return (
       <div className="min-h-screen bg-canvas flex items-center justify-center px-4">
         <div className="max-w-sm w-full text-center space-y-5">
           <div className="text-5xl">🎯</div>
           <div className="space-y-2">
-            <h2 className="text-lg font-bold text-ink">No drill available yet</h2>
+            <h2 className="text-lg font-bold text-ink">
+              {noLeaks ? 'No weak spots found yet' : 'You\'re all caught up'}
+            </h2>
             <p className="text-sm text-ink-2 leading-relaxed">
-              Answer at least 8 questions on a concept before a targeted drill can be built.
-              Complete a few lessons first.
+              {noLeaks
+                ? 'Answer at least 8 questions on a concept before a targeted drill can be built. Complete a few lessons first.'
+                : 'You\'ve recently answered all the drill questions for your weak areas. Come back tomorrow for fresh questions.'}
             </p>
           </div>
           <button
