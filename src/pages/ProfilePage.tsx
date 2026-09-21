@@ -1,5 +1,7 @@
 ﻿import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { LogOut } from 'lucide-react'
 
 import { useAuth } from '../lib/auth-context'
 import { supabaseProd } from '../lib/supabase-prod'
@@ -16,6 +18,7 @@ type Entitlement = {
 
 export function ProfilePage(): JSX.Element {
   const { session } = useAuth()
+  const navigate = useNavigate()
   const [entitlement, setEntitlement] = useState<Entitlement | null>(null)
   const [loading, setLoading] = useState(true)
   const [portalLoading, setPortalLoading] = useState(false)
@@ -237,6 +240,15 @@ export function ProfilePage(): JSX.Element {
           )}
         </div>
       )}
+
+      <button
+        type="button"
+        onClick={() => void supabaseProd.auth.signOut().then(() => navigate('/login'))}
+        className="flex items-center gap-2 text-sm text-ink-3 hover:text-ink transition-colors mt-2"
+      >
+        <LogOut className="w-4 h-4" />
+        Sign out
+      </button>
     </div>
   )
 }
