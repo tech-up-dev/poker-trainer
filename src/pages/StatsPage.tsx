@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react'
 import type { JSX } from 'react'
-import { TrendingUp, CheckCircle2, Flame, CheckCircle, XCircle, TrendingDown, Minus, Zap, Plus, Trash2, DollarSign, Clock, Calendar } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Flame, CheckCircle, XCircle, Zap, Plus, Trash2, DollarSign, Clock, Calendar, ArrowUp, ArrowDown } from 'lucide-react'
 import { supabaseProd } from '../lib/supabase-prod'
 
 import type { Lesson } from '../../shared/schemas/lesson'
@@ -8,10 +8,16 @@ import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
 import type { LessonProgress } from '../lib/progress'
 import { fetchStreak } from '../lib/streak'
-import { fetchLeaks } from '../lib/leaks'
-import type { LeakConcept } from '../lib/leaks'
-import { fetchConcepts } from '../lib/concepts'
-import type { Concept } from '../lib/concepts'
+
+type ConceptScore = {
+  concept: string
+  name: string
+  attempts: number
+  correct: number
+  accuracy: number
+  prev_accuracy: number | null
+  band: 'not_enough' | 'needs_work' | 'getting_there' | 'solid'
+}
 import { fetchUserStateRow, fetchUserBadges, BADGE_CATALOGUE } from '../lib/user-state'
 import type { UserBadge } from '../lib/user-state'
 
@@ -354,9 +360,8 @@ export function StatsPage(): JSX.Element {
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
   const [streak, setStreak] = useState(0)
   const [loading, setLoading] = useState(true)
-  const [leaks, setLeaks] = useState<LeakConcept[] | null>(null)
-  const [leaksLoading, setLeaksLoading] = useState(true)
-  const [concepts, setConcepts] = useState<Concept[]>([])
+  const [conceptScores, setConceptScores] = useState<ConceptScore[] | null>(null)
+  const [conceptScoresLoading, setConceptScoresLoading] = useState(true)
   const [totalPoints, setTotalPoints] = useState<number | null>(null)
   const [badges, setBadges] = useState<UserBadge[]>([])
 
@@ -374,13 +379,13 @@ export function StatsPage(): JSX.Element {
   }, [])
 
   useEffect(() => {
-    Promise.all([fetchLeaks(), fetchConcepts()])
-      .then(([leakData, conceptData]) => {
-        setLeaks(leakData)
-        setConcepts(conceptData)
+    supabaseProd.rpc('get_all_concept_scores')
+      .then(({ data, error }) => {
+        if (error) { setConceptScores([]); return }
+        setConceptScores((data ?? []) as ConceptScore[])
       })
-      .catch(() => setLeaks([]))
-      .finally(() => setLeaksLoading(false))
+      .catch(() => setConceptScores([]))
+      .finally(() => setConceptScoresLoading(false))
   }, [])
 
   useEffect(() => {
@@ -477,81 +482,121 @@ export function StatsPage(): JSX.Element {
         </div>
       )}
 
-      {/* Where you're leaking */}
+      {/* How you're doing */}
       <div className="card space-y-4">
         <div>
-          <h2 className="text-xl font-semibold text-ink">Where you're leaking</h2>
-          <p className="text-xs text-ink-3 mt-0.5">
-            Concepts below 75% accuracy · last 90 days · min. 8 attempts
+          <h2 className="text-xl font-semibold text-ink">How you're doing</h2>
+          <p className="text-xs text-ink-3 mt-1 leading-relaxed">
+            Your weakest concepts are listed first. Each score comes from your last 50 answers in that concept, over the past 90 days. Hit 75% or higher to mark a concept Solid - your goal is to get every one there. Start at the top.
           </p>
         </div>
 
-        {leaksLoading && (
-          <p className="text-sm text-ink-3">Analysing your answer history…</p>
+        {conceptScoresLoading && (
+          <p className="text-sm text-ink-3">Analyzing your answer history…</p>
         )}
 
-        {/* No data yet - brand new member */}
-        {!leaksLoading && leaks === null && (
-          <p className="text-sm text-ink-3">
-            Not enough data yet. Answer at least 8 questions on a concept to see your weakest areas.
-          </p>
-        )}
+        {!conceptScoresLoading && conceptScores !== null && (() => {
+          const measured = conceptScores.filter((s) => s.band !== 'not_enough')
+          const solidCount = conceptScores.filter((s) => s.band === 'solid').length
+          const totalMeasured = measured.length
 
-        {/* Nothing leaking - all above threshold */}
-        {!leaksLoading && leaks !== null && leaks.length === 0 && (
-          <div className="flex items-center gap-3 py-2">
-            <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
-            <p className="text-sm text-ink-2">No leaks detected - you're above 75% on every concept. Keep it up!</p>
-          </div>
-        )}
+          const bandSections: { band: ConceptScore['band']; label: string; color: string; barColor: string; textColor: string }[] = [
+            { band: 'needs_work',    label: 'Needs the most work', color: 'text-error',   barColor: 'bg-error',   textColor: 'text-error' },
+            { band: 'getting_there', label: 'Getting there',        color: 'text-warning', barColor: 'bg-warning', textColor: 'text-warning' },
+            { band: 'solid',         label: 'Solid',                color: 'text-success', barColor: 'bg-success', textColor: 'text-success' },
+            { band: 'not_enough',    label: 'Not enough answers yet', color: 'text-ink-3', barColor: 'bg-elevated', textColor: 'text-ink-3' },
+          ]
 
-        {/* Leak rows */}
-        {!leaksLoading && leaks !== null && leaks.length > 0 && (
-          <div className="space-y-3">
-            {leaks.map((leak, i) => {
-              const pct      = Math.round(leak.accuracy * 100)
-              const prevPct  = leak.prevAccuracy != null ? Math.round(leak.prevAccuracy * 100) : null
-              const delta    = prevPct != null ? pct - prevPct : null
-              const name     = concepts.find((c) => c.slug === leak.concept)?.name ?? leak.concept
-              const barColor = pct < 50 ? 'bg-error' : 'bg-warning'
+          let rank = 0
 
-              return (
-                <div key={leak.concept} className="space-y-1.5">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-xs font-bold text-ink-3 w-4 shrink-0">{i + 1}</span>
-                      <span className="text-sm font-medium text-ink truncate">{name}</span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {delta !== null && delta !== 0 && (
-                        <span className={`flex items-center gap-0.5 text-xs font-medium ${delta > 0 ? 'text-success' : 'text-error'}`}>
-                          {delta > 0
-                            ? <TrendingUp className="w-3.5 h-3.5" />
-                            : <TrendingDown className="w-3.5 h-3.5" />
-                          }
-                          {delta > 0 ? '+' : ''}{delta}% from {prevPct}%
-                        </span>
-                      )}
-                      {delta === 0 && prevPct !== null && (
-                        <span className="flex items-center gap-0.5 text-xs text-ink-3">
-                          <Minus className="w-3.5 h-3.5" />
-                          no change
-                        </span>
-                      )}
-                      <span className={`text-base font-bold ${pct < 50 ? 'text-error' : 'text-warning'}`}>
-                        {pct}%
-                      </span>
-                    </div>
+          return (
+            <div className="space-y-5">
+              {/* Running count */}
+              <p className="text-sm font-medium text-ink">
+                Right now: <span className="text-success font-bold">{solidCount}</span> of {totalMeasured > 0 ? totalMeasured : 0} concepts Solid
+              </p>
+
+              {/* Legend */}
+              <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-3">
+                <span><span className="text-error font-semibold">Weak</span> 0–49%</span>
+                <span><span className="text-warning font-semibold">Needs work</span> 50–74%</span>
+                <span><span className="text-success font-semibold">Solid</span> 75%+</span>
+              </div>
+
+              {bandSections.map(({ band, label, color, barColor, textColor }) => {
+                const rows = conceptScores.filter((s) => s.band === band)
+                if (rows.length === 0) return null
+                return (
+                  <div key={band} className="space-y-3">
+                    <p className={`text-xs font-bold uppercase tracking-widest ${color}`}>{label}</p>
+                    {rows.map((s) => {
+                      const pct = Math.round(s.accuracy * 100)
+                      const prevPct = s.prev_accuracy != null ? Math.round(s.prev_accuracy * 100) : null
+                      const delta = prevPct !== null ? pct - prevPct : null
+                      const isMeasured = band !== 'not_enough'
+                      if (isMeasured) rank++
+                      const rowRank = isMeasured ? rank : null
+
+                      return (
+                        <div key={s.concept} className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            {rowRank !== null
+                              ? <span className="text-xs font-bold text-ink-3 w-5 shrink-0 tabular-nums">{rowRank}</span>
+                              : <span className="w-5 shrink-0" />
+                            }
+                            <span className="text-sm font-medium text-ink flex-1 min-w-0 truncate">{s.name}</span>
+                            {isMeasured && (
+                              <span className={`text-base font-bold shrink-0 ${textColor}`}>{pct}%</span>
+                            )}
+                          </div>
+
+                          {isMeasured && (
+                            <div className="ml-7 space-y-1">
+                              {/* Score bar with 75% tick */}
+                              <div className="relative h-2 bg-elevated rounded-full overflow-visible">
+                                <div
+                                  className={`h-full rounded-full ${barColor}`}
+                                  style={{ width: `${pct}%` }}
+                                />
+                                {/* 75% tick mark */}
+                                <div
+                                  className="absolute top-[-2px] bottom-[-2px] w-[2px] bg-ink-3/60 rounded-full"
+                                  style={{ left: '75%' }}
+                                />
+                              </div>
+
+                              {/* Delta + answer count row */}
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <span className="text-[13px] text-ink-3">
+                                  {s.correct} right in your last {s.attempts} answers
+                                </span>
+                                {delta === null ? (
+                                  <span className="text-[13px] text-ink-3">first score</span>
+                                ) : delta > 0 ? (
+                                  <span className="flex items-center gap-0.5 text-[13px] text-success">
+                                    <ArrowUp className="w-3 h-3" />
+                                    up from {prevPct}%
+                                  </span>
+                                ) : delta < 0 ? (
+                                  <span className="flex items-center gap-0.5 text-[13px] text-error">
+                                    <ArrowDown className="w-3 h-3" />
+                                    down from {prevPct}%
+                                  </span>
+                                ) : (
+                                  <span className="text-[13px] text-ink-3">no change</span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
-                  <div className="h-1.5 bg-elevated rounded-full overflow-hidden ml-6">
-                    <div className={`h-full rounded-full ${barColor}`} style={{ width: `${pct}%` }} />
-                  </div>
-                  <p className="text-xs text-ink-3 ml-6">{leak.correct}/{leak.attempts} correct</p>
-                </div>
-              )
-            })}
-          </div>
-        )}
+                )
+              })}
+            </div>
+          )
+        })()}
       </div>
 
       {/* Badges */}

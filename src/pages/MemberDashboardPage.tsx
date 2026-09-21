@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { FormEvent, JSX } from 'react'
-import { PlayCircle, Zap, TrendingDown, ChevronRight, Lock, CalendarDays, Target, Snowflake, Flame } from 'lucide-react'
+import { PlayCircle, Zap, AlertTriangle, ChevronRight, Lock, CalendarDays, Target, Snowflake, Flame } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
 
@@ -189,22 +189,11 @@ export function MemberDashboardPage(): JSX.Element {
             {topLeaks.map((leak) => {
               const name = concepts.find((c) => c.slug === leak.concept)?.name ?? leak.concept
               const pct = Math.round(leak.accuracy * 100)
-              const prevPct = leak.prevAccuracy != null ? Math.round(leak.prevAccuracy * 100) : null
-              const delta = prevPct !== null ? pct - prevPct : null
               return (
                 <div key={leak.concept} className="flex items-center gap-2">
-                  <TrendingDown className="w-4 h-4 text-error shrink-0" />
+                  <AlertTriangle className="w-4 h-4 text-error shrink-0" />
                   <span className="text-sm font-medium text-ink flex-1 min-w-0 truncate">{name}</span>
-                  <div className="flex flex-col items-end shrink-0">
-                    <span className="text-sm font-semibold text-error">{pct}%</span>
-                    {prevPct === null ? (
-                      <span className="text-[10px] text-ink-3">new</span>
-                    ) : delta !== 0 ? (
-                      <span className={`text-[10px] ${delta! > 0 ? 'text-success' : 'text-error'}`}>
-                        {delta! > 0 ? `up from ${prevPct}%` : `down from ${prevPct}%`}
-                      </span>
-                    ) : null}
-                  </div>
+                  <span className="text-base font-bold text-error shrink-0">{pct}%</span>
                 </div>
               )
             })}
@@ -220,7 +209,7 @@ export function MemberDashboardPage(): JSX.Element {
         <button
           type="button"
           onClick={() => void navigate('/play/drill')}
-          className="btn-secondary w-full flex items-center justify-center gap-2"
+          className="btn-primary w-full flex items-center justify-center gap-2"
         >
           <Zap className="w-4 h-4" />
           Drill my weak spots
