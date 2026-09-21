@@ -526,6 +526,7 @@ export function StatsPage(): JSX.Element {
                 <span><span className="text-warning font-semibold">Needs work</span> 50–74%</span>
                 <span><span className="text-success font-semibold">Solid</span> 75%+</span>
               </div>
+              <p className="text-xs text-ink-3">Score changes compare to your accuracy a day ago.</p>
 
               {bandSections.map(({ band, label, color, barColor, textColor }) => {
                 const rows = conceptScores.filter((s) => s.band === band)
