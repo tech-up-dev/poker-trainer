@@ -40,10 +40,14 @@ export function CardBack({ size = 'md' }: { size?: 'sm' | 'md' }): JSX.Element {
   const isSmall = size === 'sm';
   return (
     <div
-      className={`rounded border border-[#2a5079] ${isSmall ? 'w-[22px] h-[30px]' : 'w-[28px] h-[40px]'}`}
+      className={`rounded shrink-0 ${isSmall ? 'w-[22px] h-[30px]' : 'w-[28px] h-[40px]'}`}
       style={{
-        background:
-          'repeating-linear-gradient(45deg,#1b4068,#1b4068 3px,#16395C 3px,#16395C 6px)',
+        border: '2px solid #5B93D6',
+        backgroundColor: '#1E3E8C',
+        backgroundImage: [
+          'repeating-linear-gradient(45deg,rgba(255,255,255,.16) 0 1px,transparent 1px 5px)',
+          'repeating-linear-gradient(-45deg,rgba(255,255,255,.16) 0 1px,transparent 1px 5px)',
+        ].join(','),
       }}
     />
   );
