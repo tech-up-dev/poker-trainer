@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import type { JSX } from 'react'
-import { Search, ChevronRight, CheckCircle2, Clock } from 'lucide-react'
+import { Search, ChevronRight, CheckCircle2 } from 'lucide-react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
@@ -17,6 +17,25 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
   beginner:     'Beginner',
   intermediate: 'Intermediate',
   advanced:     'Advanced',
+}
+
+function PartialRing({ answered, total }: { answered: number; total: number }): JSX.Element {
+  const r = 8
+  const circumference = 2 * Math.PI * r
+  const progress = total > 0 ? Math.min(answered / total, 1) : 0
+  const dash = progress * circumference
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" className="shrink-0 -rotate-90">
+      <circle cx="10" cy="10" r={r} fill="none" stroke="currentColor" strokeWidth="2" className="text-line" />
+      <circle
+        cx="10" cy="10" r={r} fill="none"
+        stroke="currentColor" strokeWidth="2"
+        strokeDasharray={`${dash} ${circumference}`}
+        strokeLinecap="round"
+        className="text-gold"
+      />
+    </svg>
+  )
 }
 
 export function LessonsPage(): JSX.Element {
@@ -84,7 +103,7 @@ export function LessonsPage(): JSX.Element {
       </div>
 
       {/* Difficulty filter chips */}
-      <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide pb-2 -mx-4 px-4">
+      <div className="flex items-center gap-2 flex-wrap">
         <span className="text-sm text-ink-3 shrink-0">Difficulty</span>
         <button
           type="button"
@@ -120,7 +139,7 @@ export function LessonsPage(): JSX.Element {
             id="topic-filter"
             value={activeConcept ?? ''}
             onChange={(e) => setActiveConcept(e.target.value || null)}
-            className="rounded-lg border border-line bg-canvas text-ink text-sm px-3 py-1.5 outline-none focus:border-gold"
+            className="appearance-none rounded-lg border border-line bg-canvas text-ink text-sm px-3 py-1.5 pr-8 outline-none focus:border-gold bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22%3E%3Cpath d=%22M1 1l5 5 5-5%22 stroke=%22%2364748b%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E')] bg-no-repeat bg-[right_10px_center]"
           >
             <option value="">All topics</option>
             {concepts.map((c) => (
@@ -192,7 +211,7 @@ export function LessonsPage(): JSX.Element {
                           {p?.completed ? (
                             <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
                           ) : p ? (
-                            <Clock className="w-5 h-5 text-gold shrink-0" />
+                            <PartialRing answered={p.questionsAnswered} total={lesson.questions.length} />
                           ) : (
                             <div className="w-5 h-5 rounded-full border-2 border-line shrink-0" />
                           )}
@@ -244,7 +263,7 @@ export function LessonsPage(): JSX.Element {
                         {p?.completed ? (
                           <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
                         ) : p ? (
-                          <Clock className="w-5 h-5 text-gold shrink-0" />
+                          <PartialRing answered={p.questionsAnswered} total={lesson.questions.length} />
                         ) : (
                           <div className="w-5 h-5 rounded-full border-2 border-line shrink-0" />
                         )}
