@@ -383,7 +383,7 @@ export function StatsPage(): JSX.Element {
       try {
         const { data, error } = await supabaseProd.rpc('get_all_concept_scores')
         if (error) { setConceptScores([]); return }
-        setConceptScores((data ?? []) as ConceptScore[])
+        setConceptScores(((data ?? []) as ConceptScore[]).filter((s) => s.concept !== 'test'))
       } catch {
         setConceptScores([])
       } finally {
