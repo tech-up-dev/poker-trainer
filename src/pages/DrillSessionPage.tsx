@@ -186,16 +186,18 @@ export function DrillSessionPage(): JSX.Element {
                 setCorrectMap({})
                 setPhase({ kind: 'loading' })
                 buildDrill()
-                  .then((qs) => {
+                  .then(({ questions: qs, hasLeaks }) => {
                     if (qs.length === 0) {
-                      setPhase({ kind: 'empty' })
+                      setPhase({ kind: 'empty', reason: hasLeaks ? 'no-questions' : 'no-leaks' })
                     } else {
                       setQuestions(qs)
                       questionStartedAt.current = Date.now()
                       setPhase({ kind: 'quiz', questionIndex: 0 })
                     }
                   })
-                  .catch(() => setPhase({ kind: 'empty' }))
+                  .catch((err: unknown) => {
+                    setPhase({ kind: 'error', message: err instanceof Error ? err.message : 'Unknown error' })
+                  })
               }}
               className="btn-secondary w-full flex items-center justify-center gap-2"
             >
