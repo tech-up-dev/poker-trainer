@@ -192,7 +192,7 @@ export function MemberDashboardPage(): JSX.Element {
               return (
                 <div key={leak.concept} className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-error shrink-0" />
-                  <span className="text-sm font-medium text-ink flex-1 min-w-0 truncate">{name}</span>
+                  <span className="text-base font-medium text-ink flex-1 min-w-0 truncate">{name}</span>
                   <span className="text-base font-bold text-error shrink-0">{pct}%</span>
                 </div>
               )
