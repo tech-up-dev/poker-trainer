@@ -241,14 +241,16 @@ export function ProfilePage(): JSX.Element {
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => void supabaseProd.auth.signOut().then(() => navigate('/login'))}
-        className="flex items-center gap-2 text-sm text-ink-3 hover:text-ink transition-colors mt-2"
-      >
-        <LogOut className="w-4 h-4" />
-        Sign out
-      </button>
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => void supabaseProd.auth.signOut().then(() => navigate('/login'))}
+          className="flex items-center gap-2 text-sm text-ink-3 hover:text-ink transition-colors"
+        >
+          <LogOut className="w-4 h-4" />
+          Sign out
+        </button>
+      </div>
     </div>
   )
 }
