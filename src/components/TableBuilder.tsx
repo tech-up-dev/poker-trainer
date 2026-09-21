@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { JSX, ReactNode } from 'react'
 import type { HandScenarioState } from '../../shared/schemas/lesson'
-import { Card } from './Card'
+import { Card, CardBack } from './Card'
 import { CardPicker } from './CardPicker'
 
 // --- Constants (mirrors PokerTable) -----------------------------------------
@@ -115,19 +115,6 @@ function EmptyCardSlot(): JSX.Element {
   )
 }
 
-function UnknownCardSlot(): JSX.Element {
-  return (
-    <div
-      className="w-[30px] h-[42px] rounded flex items-center justify-center"
-      style={{
-        border: '2px solid rgba(42,80,121,0.8)',
-        background: 'repeating-linear-gradient(45deg,#1b4068,#1b4068 2px,#16395C 2px,#16395C 4px)',
-      }}
-    >
-      <span className="text-[10px] font-bold" style={{ color: 'rgba(91,147,214,0.9)' }}>??</span>
-    </div>
-  )
-}
 
 // Two overlapping face-down cards - mirrors PokerTable's MiniCards
 function MiniCards(): JSX.Element {
@@ -728,7 +715,7 @@ export function TableBuilder({ value, onChange, livePreviewSlot }: TableBuilderP
                         }`}
                       >
                         {holeCards[i] === '??' ? (
-                          <UnknownCardSlot />
+                          <CardBack />
                         ) : holeCards[i] ? (
                           <Card card={holeCards[i] as string} />
                         ) : (
