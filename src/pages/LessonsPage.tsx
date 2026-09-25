@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import type { JSX } from 'react'
-import { Search, ChevronRight, CheckCircle2 } from 'lucide-react'
+import { Search, ChevronRight, CheckCircle2, ChevronDown } from 'lucide-react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
@@ -135,17 +135,20 @@ export function LessonsPage(): JSX.Element {
       {concepts.length > 0 && (
         <div className="flex items-center gap-2 flex-wrap">
           <label htmlFor="topic-filter" className="text-sm text-ink-3 shrink-0">Topic</label>
-          <select
-            id="topic-filter"
-            value={activeConcept ?? ''}
-            onChange={(e) => setActiveConcept(e.target.value || null)}
-            className="appearance-none rounded-lg border border-line bg-canvas text-ink text-sm px-3 py-1.5 pr-8 outline-none focus:border-gold bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2212%22 height=%228%22 viewBox=%220 0 12 8%22%3E%3Cpath d=%22M1 1l5 5 5-5%22 stroke=%22%2364748b%22 stroke-width=%221.5%22 fill=%22none%22 stroke-linecap=%22round%22/%3E%3C/svg%3E')] bg-no-repeat bg-[right_10px_center]"
-          >
-            <option value="">All topics</option>
-            {concepts.map((c) => (
-              <option key={c.slug} value={c.slug}>{c.name}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <select
+              id="topic-filter"
+              value={activeConcept ?? ''}
+              onChange={(e) => setActiveConcept(e.target.value || null)}
+              className="appearance-none rounded-lg border border-line bg-canvas text-ink text-sm px-3 py-1.5 pr-8 outline-none focus:border-gold"
+            >
+              <option value="">All topics</option>
+              {concepts.map((c) => (
+                <option key={c.slug} value={c.slug}>{c.name}</option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
+          </div>
           {activeConcept && (() => {
             const name = concepts.find((c) => c.slug === activeConcept)?.name ?? activeConcept
             const count = filtered.length

@@ -105,11 +105,17 @@ export async function buildDrill(): Promise<DrillResult> {
     return selected
   }
 
-  // Try with 7-day exclusion first; fall back to full pool if nothing available
-  let selected = selectQuestions(buildPool(true))
-  if (selected.length === 0) {
-    selected = selectQuestions(buildPool(false))
+  // Try with 7-day exclusion first; fall back per-concept when a leak concept's
+  // filtered pool is empty (e.g. user just answered their first set).
+  const filteredPool = buildPool(true)
+  const fullPool = buildPool(false)
+  const mergedPool: Record<string, DrillQuestion[]> = { ...filteredPool }
+  for (const slug of conceptSlugs) {
+    if (!mergedPool[slug] || mergedPool[slug].length === 0) {
+      mergedPool[slug] = fullPool[slug] ?? []
+    }
   }
+  const selected = selectQuestions(mergedPool)
 
   return { questions: selected.slice(0, 10), hasLeaks: true }
 }
