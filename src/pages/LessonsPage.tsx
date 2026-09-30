@@ -59,7 +59,16 @@ export function LessonsPage(): JSX.Element {
         setLessons(allLessons)
         // Only show concepts that actually appear on at least one published lesson
         const usedSlugs = new Set(allLessons.map((l) => l.concept).filter(Boolean))
-        setConcepts(allConcepts.filter((c) => usedSlugs.has(c.slug)))
+        setConcepts(
+          allConcepts
+            .filter((c) => usedSlugs.has(c.slug))
+            .sort((a, b) => {
+              const aNum = /^\d/.test(a.name)
+              const bNum = /^\d/.test(b.name)
+              if (aNum !== bNum) return aNum ? -1 : 1
+              return a.name.localeCompare(b.name)
+            })
+        )
         const map: Record<string, LessonProgress> = {}
         for (const row of progressRows) map[row.lessonId] = row
         setProgressMap(map)
