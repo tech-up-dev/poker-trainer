@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import type { JSX } from 'react'
-import { TrendingUp, CheckCircle2, Flame, CheckCircle, XCircle, Zap, Plus, Trash2, DollarSign, Clock, Calendar } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { TrendingUp, CheckCircle2, Flame, CheckCircle, XCircle, Zap, Plus, Trash2, DollarSign, Clock, Calendar, ChevronRight } from 'lucide-react'
 import { supabaseProd } from '../lib/supabase-prod'
 
 import type { Lesson } from '../../shared/schemas/lesson'
@@ -505,9 +506,9 @@ export function StatsPage(): JSX.Element {
           const totalMeasured = measured.length
 
           const bandSections: { band: ConceptScore['band']; label: string; sub: string; color: string; barColor: string }[] = [
-            { band: 'needs_work',    label: 'Needs the most work', sub: 'Start here. These leaks are costing you the most.',    color: 'text-error',   barColor: 'bg-error'   },
-            { band: 'getting_there', label: 'Getting there',        sub: 'Close. Keep practicing and improving.',               color: 'text-warning', barColor: 'bg-warning' },
-            { band: 'solid',         label: 'Solid',                sub: 'Keep practicing to stay sharp.',                      color: 'text-success', barColor: 'bg-success' },
+            { band: 'needs_work',    label: 'Needs the most work', sub: 'Start here. Click a concept to practice it now.',      color: 'text-error',   barColor: 'bg-error'   },
+            { band: 'getting_there', label: 'Getting there',        sub: 'Close. Click a concept to keep improving.',           color: 'text-warning', barColor: 'bg-warning' },
+            { band: 'solid',         label: 'Solid',                sub: 'Click a concept to keep practicing and stay sharp.',  color: 'text-success', barColor: 'bg-success' },
             { band: 'not_enough',    label: 'Not enough answers yet', sub: 'Answer at least 8 questions in a concept to get a score.', color: 'text-ink-3', barColor: 'bg-elevated' },
           ]
 
@@ -545,8 +546,8 @@ export function StatsPage(): JSX.Element {
                       if (isMeasured) rank++
                       const rowRank = isMeasured ? rank : null
 
-                      return (
-                        <div key={s.concept} className="space-y-1">
+                      const rowContent = (
+                        <div className="space-y-1">
                           <div className="flex items-center gap-2">
                             {rowRank !== null
                               ? <span className="text-xs font-bold text-ink-3 w-5 shrink-0 tabular-nums">{rowRank}</span>
@@ -559,26 +560,26 @@ export function StatsPage(): JSX.Element {
                               </span>
                             )}
                             {isMeasured && (
-                              <span className="text-base font-bold shrink-0 text-ink">{pct}%</span>
+                              <>
+                                <span className="text-base font-bold shrink-0 text-ink">{pct}%</span>
+                                <ChevronRight className="w-4 h-4 text-ink-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                              </>
                             )}
                           </div>
 
                           {isMeasured && (
                             <div className="ml-7 space-y-1">
-                              {/* Score bar with 75% tick */}
                               <div className="relative h-2 bg-elevated rounded-full overflow-visible">
                                 <div
                                   className={`h-full rounded-full ${barColor}`}
                                   style={{ width: `${pct}%` }}
                                 />
-                                {/* 75% tick mark */}
                                 <div
                                   className="absolute top-[-2px] bottom-[-2px] w-[2px] bg-ink-3/60 rounded-full"
                                   style={{ left: '75%' }}
                                 />
                               </div>
 
-                              {/* Delta + answer count row */}
                               <div className="flex items-center gap-3 flex-wrap">
                                 <span className="text-[13px] text-ink-3">
                                   {s.correct} right in your last {s.attempts} answers
@@ -595,6 +596,20 @@ export function StatsPage(): JSX.Element {
                               </div>
                             </div>
                           )}
+                        </div>
+                      )
+
+                      return isMeasured ? (
+                        <Link
+                          key={s.concept}
+                          to={`/lessons?concept=${s.concept}`}
+                          className="group block rounded-lg px-2 py-1.5 -mx-2 hover:bg-elevated transition-colors"
+                        >
+                          {rowContent}
+                        </Link>
+                      ) : (
+                        <div key={s.concept} className="px-2 py-1.5 -mx-2">
+                          {rowContent}
                         </div>
                       )
                     })}
