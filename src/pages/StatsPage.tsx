@@ -602,7 +602,7 @@ export function StatsPage(): JSX.Element {
                       return isMeasured ? (
                         <Link
                           key={s.concept}
-                          to={`/lessons?concept=${s.concept}`}
+                          to={`/play/lessons?concept=${s.concept}`}
                           className="group block rounded-lg px-2 py-1.5 -mx-2 hover:bg-elevated transition-colors"
                         >
                           {rowContent}
