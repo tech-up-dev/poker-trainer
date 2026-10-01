@@ -232,6 +232,10 @@
   /* Forms */
   .input {
     @apply w-full px-4 py-3 bg-surface border border-line rounded-xl text-ink placeholder:text-ink-3 focus:border-gold focus:ring-1 focus:ring-gold transition-colors outline-none;
+    color-scheme: dark;
+  }
+  :root.light .input {
+    color-scheme: light;
   }
 
   .label {

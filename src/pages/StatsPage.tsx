@@ -120,21 +120,22 @@ function RunningTotalGraph({ sessions }: { sessions: SessionLog[] }): JSX.Elemen
   let running = 0
   const points = sorted.map((s) => {
     running += s.result_amount
-    return { result: s.result_amount, total: running }
+    return { result: s.result_amount, total: running, date: s.session_date }
   })
 
   const W = 600
-  const H = 140
-  const pX = 16
-  const pTop = 12
-  const pBot = 12
+  const H = 160
+  const pLeft = 52  // room for y-axis labels
+  const pRight = 16
+  const pTop = 16
+  const pBot = 28  // room for x-axis labels
 
   const totals = points.map((p) => p.total)
   const minVal = Math.min(0, ...totals)
   const maxVal = Math.max(0, ...totals)
   const range = maxVal - minVal || 1
 
-  const toX = (i: number) => pX + (i / (points.length - 1)) * (W - 2 * pX)
+  const toX = (i: number) => pLeft + (i / Math.max(points.length - 1, 1)) * (W - pLeft - pRight)
   const toY = (v: number) => pTop + ((maxVal - v) / range) * (H - pTop - pBot)
   const zeroY = toY(0)
 
@@ -143,20 +144,57 @@ function RunningTotalGraph({ sessions }: { sessions: SessionLog[] }): JSX.Elemen
   const finalTotal = points[points.length - 1]?.total ?? 0
   const fmt = (n: number) => (n >= 0 ? '+' : '') + n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
 
+  // Y-axis labels: $0, midpoint, max
+  const fmtK = (n: number) => {
+    const abs = Math.abs(n)
+    const sign = n < 0 ? '-' : ''
+    return abs >= 1000 ? `${sign}$${(abs / 1000).toFixed(abs % 1000 === 0 ? 0 : 1)}k` : `${sign}$${abs}`
+  }
+
+  // collect distinct y tick values: 0, halfway between min/max if range is big enough, max
+  const yTicks: number[] = []
+  if (minVal < 0) yTicks.push(minVal)
+  yTicks.push(0)
+  if (maxVal > 0) yTicks.push(maxVal)
+
+  // x-axis: first and last date
+  const fmtDate = (d: string) => {
+    const dt = new Date(d + 'T00:00:00')
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+  const firstDate = sorted[0]?.session_date
+  const lastDate = sorted[sorted.length - 1]?.session_date
+
   return (
-    <div className="card space-y-2">
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">Results over time</p>
-        <span className={`text-sm font-bold ${finalTotal >= 0 ? 'text-success' : 'text-error'}`}>{fmt(finalTotal)}</span>
+    <div className="card space-y-1">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-base font-bold text-ink">Results over time</p>
+          <p className="text-xs text-ink-3">Running total · {sessions.length} session{sessions.length !== 1 ? 's' : ''}</p>
+        </div>
+        <span className={`text-sm font-bold mt-0.5 ${finalTotal >= 0 ? 'text-success' : 'text-error'}`}>{fmt(finalTotal)}</span>
       </div>
-      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 120 }} aria-hidden="true">
-        {/* Zero line */}
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 140 }} aria-hidden="true">
+        {/* Y-axis tick labels */}
+        {yTicks.map((v) => (
+          <text
+            key={v}
+            x={pLeft - 6}
+            y={toY(v) + 4}
+            textAnchor="end"
+            fontSize="18"
+            fill="var(--color-ink-3)"
+          >
+            {fmtK(v)}
+          </text>
+        ))}
+        {/* Zero dashed line */}
         <line
-          x1={pX} y1={zeroY} x2={W - pX} y2={zeroY}
-          stroke="var(--color-ink-3)" strokeWidth="1" strokeDasharray="4 3" opacity="0.5"
+          x1={pLeft} y1={zeroY} x2={W - pRight} y2={zeroY}
+          stroke="var(--color-ink-3)" strokeWidth="1" strokeDasharray="5 4" opacity="0.4"
         />
         {/* Running total line */}
-        <path d={linePath} fill="none" stroke="var(--color-gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={linePath} fill="none" stroke="var(--color-gold)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
         {/* Session dots */}
         {points.map((p, i) => (
           <circle
@@ -169,7 +207,25 @@ function RunningTotalGraph({ sessions }: { sessions: SessionLog[] }): JSX.Elemen
             strokeWidth="2"
           />
         ))}
+        {/* X-axis date labels */}
+        {firstDate && (
+          <text x={toX(0)} y={H - 6} textAnchor="middle" fontSize="18" fill="var(--color-ink-3)">{fmtDate(firstDate)}</text>
+        )}
+        {lastDate && lastDate !== firstDate && (
+          <text x={toX(points.length - 1)} y={H - 6} textAnchor="middle" fontSize="18" fill="var(--color-ink-3)">{fmtDate(lastDate)}</text>
+        )}
       </svg>
+      {/* Legend */}
+      <div className="flex items-center gap-4 pt-1">
+        <span className="flex items-center gap-1.5 text-xs text-ink-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-success inline-block" />
+          Winning session
+        </span>
+        <span className="flex items-center gap-1.5 text-xs text-ink-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-error inline-block" />
+          Losing session
+        </span>
+      </div>
     </div>
   )
 }
@@ -703,9 +759,9 @@ export function StatsPage(): JSX.Element {
         <div className="lg:flex lg:gap-6 space-y-6 lg:space-y-0 lg:items-stretch">
 
           {difficultyStats.length > 0 && (
-            <div className="card lg:w-[35%] lg:shrink-0">
+            <div className="card lg:w-[40%] lg:shrink-0">
               <h2 className="text-xl font-semibold text-ink mb-4">Accuracy by Difficulty</h2>
-              <div className="flex flex-col items-center gap-6 lg:flex-col lg:items-start lg:gap-4">
+              <div className="grid grid-cols-3 gap-2">
                 {difficultyStats.map((s) => {
                   const accuracy = s.questionsAnswered > 0
                     ? Math.round((s.questionsCorrect / s.questionsAnswered) * 100)
@@ -713,23 +769,23 @@ export function StatsPage(): JSX.Element {
                   const ringColor = accuracy >= 75 ? 'success' : accuracy >= 50 ? 'warning' : 'error'
                   const notStarted = s.questionsAnswered === 0
                   return (
-                    <div key={s.difficulty} className="flex flex-col items-center text-center lg:flex-row lg:text-left lg:gap-4">
+                    <div key={s.difficulty} className="flex flex-col items-center text-center gap-2">
                       {notStarted ? (
                         <div
-                          className="w-20 h-20 rounded-full flex items-center justify-center shrink-0"
-                          style={{ border: '8px solid var(--color-elevated)' }}
+                          className="w-16 h-16 rounded-full flex items-center justify-center shrink-0"
+                          style={{ border: '7px solid var(--color-elevated)' }}
                         >
-                          <span className="text-[11px] text-ink-3 text-center leading-tight">Not<br/>started</span>
+                          <span className="text-base font-semibold text-ink-3">–</span>
                         </div>
                       ) : (
-                        <ProgressRing value={accuracy} color={ringColor} />
+                        <ProgressRing value={accuracy} color={ringColor} size={64} strokeWidth={7} />
                       )}
                       <div>
-                        <p className="text-base font-medium text-ink mt-2 lg:mt-0">
+                        <p className="text-sm font-medium text-ink">
                           {DIFFICULTY_LABEL[s.difficulty]}
                         </p>
                         <p className="text-xs text-ink-3 mt-0.5">
-                          {s.completed}/{s.total} lessons
+                          {notStarted ? 'Not started' : `${s.completed}/${s.total} lessons`}
                         </p>
                       </div>
                     </div>
@@ -747,38 +803,31 @@ export function StatsPage(): JSX.Element {
                   const accuracy = progress && progress.questionsAnswered > 0
                     ? Math.round((progress.questionsCorrect / progress.questionsAnswered) * 100)
                     : null
+                  const badgeColor = accuracy !== null
+                    ? accuracy >= 75 ? 'bg-success/20 text-success'
+                    : accuracy >= 50 ? 'bg-warning/20 text-warning'
+                    : 'bg-error/20 text-error'
+                    : 'bg-elevated text-ink-3'
                   return (
                     <div
                       key={lesson.lesson_id ?? lesson.title}
-                      className="flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-overlay"
+                      className="flex items-start gap-3 p-3 rounded-xl bg-canvas"
                     >
-                      <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <div className="w-9 h-9 rounded-full bg-success/20 flex items-center justify-center shrink-0">
-                          <CheckCircle className="w-5 h-5 text-success" />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="font-medium text-ink truncate">{lesson.title}</p>
-                          <p className="text-xs text-ink-3">
-                            {lesson.difficulty ? lesson.difficulty.charAt(0).toUpperCase() + lesson.difficulty.slice(1) : 'General'} · {lesson.questions.length} questions
-                          </p>
-                        </div>
+                      {/* Score circle */}
+                      <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 font-bold text-sm ${badgeColor}`}>
+                        {accuracy !== null ? `${accuracy}%` : '–'}
                       </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        {accuracy !== null && (
-                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                            accuracy >= 75 ? 'bg-success/15 text-success'
-                            : accuracy >= 50 ? 'bg-warning/15 text-warning'
-                            : 'bg-error/15 text-error'
-                          }`}>
-                            {accuracy}%
-                          </span>
-                        )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-ink leading-snug line-clamp-2">{lesson.title}</p>
+                        <p className="text-xs text-ink-3 mt-0.5">
+                          {lesson.difficulty ? lesson.difficulty.charAt(0).toUpperCase() + lesson.difficulty.slice(1) : 'General'} · {lesson.questions.length} questions
+                        </p>
                         {lesson.lesson_id && (
                           <Link
                             to={`/play/lessons/${lesson.lesson_id}`}
-                            className="btn-ghost btn-sm text-xs"
+                            className="btn-ghost btn-sm text-xs mt-2 inline-flex"
                           >
-                            Practice again
+                            Practice Again
                           </Link>
                         )}
                       </div>

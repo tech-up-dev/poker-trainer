@@ -308,7 +308,7 @@ export function LessonsPage(): JSX.Element {
                       key={c.slug}
                       type="button"
                       onClick={() => setSearchParams({ concept: c.slug })}
-                      className="flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-overlay border border-line hover:border-gold/40 hover:bg-surface-raised transition-colors group text-left"
+                      className="flex items-center justify-between gap-3 p-3 rounded-xl bg-canvas border border-line hover:border-gold/40 hover:bg-elevated transition-colors group text-left"
                     >
                       <span className="text-sm font-medium text-ink truncate group-hover:text-gold transition-colors">
                         {c.name}
