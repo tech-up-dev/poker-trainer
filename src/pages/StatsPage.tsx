@@ -125,7 +125,7 @@ function RunningTotalGraph({ sessions }: { sessions: SessionLog[] }): JSX.Elemen
 
   const W = 600
   const H = 160
-  const pLeft = 52  // room for y-axis labels
+  const pLeft = 60  // room for y-axis labels
   const pRight = 16
   const pTop = 16
   const pBot = 28  // room for x-axis labels
@@ -194,14 +194,14 @@ function RunningTotalGraph({ sessions }: { sessions: SessionLog[] }): JSX.Elemen
           stroke="var(--color-ink-3)" strokeWidth="1" strokeDasharray="5 4" opacity="0.4"
         />
         {/* Running total line */}
-        <path d={linePath} fill="none" stroke="var(--color-gold)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <path d={linePath} fill="none" stroke="var(--color-ink)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
         {/* Session dots */}
         {points.map((p, i) => (
           <circle
             key={i}
             cx={toX(i).toFixed(1)}
             cy={toY(p.total).toFixed(1)}
-            r="5"
+            r="7"
             fill={p.result >= 0 ? 'var(--color-success)' : 'var(--color-error)'}
             stroke="var(--color-canvas)"
             strokeWidth="2"
@@ -209,7 +209,7 @@ function RunningTotalGraph({ sessions }: { sessions: SessionLog[] }): JSX.Elemen
         ))}
         {/* X-axis date labels */}
         {firstDate && (
-          <text x={toX(0)} y={H - 6} textAnchor="middle" fontSize="18" fill="var(--color-ink-3)">{fmtDate(firstDate)}</text>
+          <text x={toX(0)} y={H - 6} textAnchor="start" fontSize="18" fill="var(--color-ink-3)">{fmtDate(firstDate)}</text>
         )}
         {lastDate && lastDate !== firstDate && (
           <text x={toX(points.length - 1)} y={H - 6} textAnchor="middle" fontSize="18" fill="var(--color-ink-3)">{fmtDate(lastDate)}</text>
