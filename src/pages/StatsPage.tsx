@@ -345,13 +345,13 @@ function SessionsTab(): JSX.Element {
       )}
 
       {/* Log a session */}
-      <div className="card space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-ink">Your Live Sessions</h2>
+      <div className="card space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-xl font-bold text-ink">Your Live Sessions</h2>
           <button
             type="button"
             onClick={() => { setShowForm((v) => !v); setError(null) }}
-            className="btn-primary btn-sm flex items-center gap-1.5"
+            className="btn-primary flex items-center gap-1.5 shrink-0"
           >
             <Plus className="w-4 h-4" />
             Log a session
@@ -457,36 +457,36 @@ function SessionsTab(): JSX.Element {
         {!loading && sessions.length > 0 && (
           <div className="space-y-2">
             {sessions.map((s) => (
-              <div
-                key={s.id}
-                className="flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-overlay"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold text-ink">
-                      {new Date(s.session_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </span>
-                    {s.stakes && <span className="badge-muted">{s.stakes}</span>}
-                    {s.hours != null && (
-                      <span className="text-xs text-ink-3">{s.hours}h</span>
-                    )}
-                  </div>
-                  {s.notes && (
-                    <p className="text-xs text-ink-3 mt-0.5 truncate">{s.notes}</p>
-                  )}
+              <div key={s.id} className="p-3 rounded-xl bg-canvas space-y-1.5">
+                {/* Row 1: date + result */}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-bold text-ink">
+                    {new Date(s.session_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                  <span className={`text-sm font-bold shrink-0 ${s.result_amount >= 0 ? 'text-success' : 'text-error'}`}>
+                    {fmt(s.result_amount)}
+                  </span>
                 </div>
-                <span className={`text-sm font-bold shrink-0 ${s.result_amount >= 0 ? 'text-success' : 'text-error'}`}>
-                  {fmt(s.result_amount)}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => { if (confirm('Delete this session?')) void handleDelete(s.id) }}
-                  disabled={deletingId === s.id}
-                  className="p-1.5 rounded-lg text-ink-3 hover:text-error hover:bg-error/10 transition-colors disabled:opacity-40 shrink-0"
-                  aria-label="Delete session"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {/* Row 2: stakes chip + hours + trash */}
+                <div className="flex items-center gap-2">
+                  {s.stakes && <span className="badge-muted">{s.stakes}</span>}
+                  {s.hours != null && (
+                    <span className="text-xs text-ink-3">{s.hours}h</span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => { if (confirm('Delete this session?')) void handleDelete(s.id) }}
+                    disabled={deletingId === s.id}
+                    className="ml-auto p-1 rounded-lg text-ink-3 hover:text-error hover:bg-error/10 transition-colors disabled:opacity-40"
+                    aria-label="Delete session"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+                {/* Row 3: notes */}
+                {s.notes && (
+                  <p className="text-xs text-ink-3 leading-relaxed">{s.notes}</p>
+                )}
               </div>
             ))}
           </div>
