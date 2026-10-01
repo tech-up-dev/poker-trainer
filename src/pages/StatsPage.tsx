@@ -1,14 +1,13 @@
 import { useEffect, useState, useRef } from 'react'
 import type { JSX } from 'react'
 import { Link } from 'react-router-dom'
-import { TrendingUp, CheckCircle2, Flame, CheckCircle, XCircle, Zap, Plus, Trash2, DollarSign, Clock, Calendar, ChevronRight } from 'lucide-react'
+import { TrendingUp, CheckCircle2, CheckCircle, Plus, Trash2, DollarSign, Clock, Calendar, ChevronRight } from 'lucide-react'
 import { supabaseProd } from '../lib/supabase-prod'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
 import type { LessonProgress } from '../lib/progress'
-import { fetchStreak } from '../lib/streak'
 
 type ConceptScore = {
   concept: string
@@ -19,8 +18,6 @@ type ConceptScore = {
   prev_accuracy: number | null
   band: 'not_enough' | 'needs_work' | 'getting_there' | 'solid'
 }
-import { fetchUserStateRow, fetchUserBadges, BADGE_CATALOGUE } from '../lib/user-state'
-import type { UserBadge } from '../lib/user-state'
 
 const DIFFICULTY_ORDER = ['beginner', 'intermediate', 'advanced'] as const
 const DIFFICULTY_LABEL: Record<string, string> = {
@@ -361,21 +358,17 @@ export function StatsPage(): JSX.Element {
   const [tab, setTab] = useState<StatsTab>('training')
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
-  const [streak, setStreak] = useState(0)
   const [loading, setLoading] = useState(true)
   const [conceptScores, setConceptScores] = useState<ConceptScore[] | null>(null)
   const [conceptScoresLoading, setConceptScoresLoading] = useState(true)
-  const [totalPoints, setTotalPoints] = useState<number | null>(null)
-  const [badges, setBadges] = useState<UserBadge[]>([])
 
   useEffect(() => {
-    Promise.all([fetchAllPublishedLessons(), fetchLessonProgress(), fetchStreak()])
-      .then(([allLessons, progressRows, streakData]) => {
+    Promise.all([fetchAllPublishedLessons(), fetchLessonProgress()])
+      .then(([allLessons, progressRows]) => {
         setLessons(allLessons)
         const map: Record<string, LessonProgress> = {}
         for (const row of progressRows) map[row.lessonId] = row
         setProgressMap(map)
-        setStreak(streakData.current)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -395,14 +388,6 @@ export function StatsPage(): JSX.Element {
     })()
   }, [])
 
-  useEffect(() => {
-    Promise.all([fetchUserStateRow(), fetchUserBadges()])
-      .then(([stateRow, badgeRows]) => {
-        setTotalPoints(stateRow?.totalPoints ?? 0)
-        setBadges(badgeRows)
-      })
-      .catch(() => {})
-  }, [])
 
   const attempted = lessons.filter((l) => l.lesson_id && progressMap[l.lesson_id])
   const completed = attempted.filter((l) => l.lesson_id && progressMap[l.lesson_id]?.completed)
@@ -416,12 +401,8 @@ export function StatsPage(): JSX.Element {
   )
   const overallAccuracy = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0
 
-  const statCards = [
-    { label: 'Streak',    value: `${streak}d`,                                    icon: Flame,        color: 'text-orange-500' },
-    { label: 'Completed', value: String(completed.length),                         icon: CheckCircle2, color: 'text-success'    },
-    { label: 'Accuracy',  value: `${overallAccuracy}%`,                            icon: TrendingUp,   color: 'text-gold'       },
-    { label: 'Points',    value: totalPoints !== null ? String(totalPoints) : '-', icon: Zap,          color: 'text-gold'       },
-  ]
+  const solidCount = conceptScores ? conceptScores.filter((s) => s.band === 'solid').length : null
+  const totalMeasured = conceptScores ? conceptScores.filter((s) => s.band !== 'not_enough').length : null
 
   const difficultyStats: DifficultyStats[] = DIFFICULTY_ORDER.map((diff) => {
     const group = lessons.filter((l) => l.difficulty === diff)
@@ -444,6 +425,7 @@ export function StatsPage(): JSX.Element {
   }).filter((s) => s.total > 0)
 
   const recentLessons = attempted
+    .filter((l) => l.lesson_id && progressMap[l.lesson_id]?.completed)
     .slice(0, 5)
     .map((l) => ({ lesson: l, progress: l.lesson_id ? progressMap[l.lesson_id] : undefined }))
 
@@ -476,18 +458,22 @@ export function StatsPage(): JSX.Element {
 
       {tab === 'training' && (<>
 
-      {/* Stat cards */}
-      {!loading && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {statCards.map((s) => (
-            <div key={s.label} className="stat-card">
-              <s.icon className={`w-6 h-6 ${s.color} mb-2`} />
-              <p className="stat-value">{s.value}</p>
-              <p className="stat-label">{s.label}</p>
-            </div>
-          ))}
+      {/* Top stat cards */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="stat-card">
+          <CheckCircle2 className="w-6 h-6 text-success mb-2" />
+          <p className="stat-value">{solidCount !== null ? solidCount : '-'}</p>
+          <p className="stat-label">Concepts Solid</p>
+          {solidCount !== null && totalMeasured !== null && totalMeasured > 0 && (
+            <p className="text-xs text-ink-3 mt-1">{solidCount} of {totalMeasured}</p>
+          )}
         </div>
-      )}
+        <div className="stat-card">
+          <TrendingUp className="w-6 h-6 text-gold mb-2" />
+          <p className="stat-value">{overallAccuracy > 0 ? `${overallAccuracy}%` : '-'}</p>
+          <p className="stat-label">Overall accuracy</p>
+        </div>
+      </div>
 
       {/* How you're doing */}
       <div className="card space-y-4">
@@ -622,42 +608,6 @@ export function StatsPage(): JSX.Element {
         })()}
       </div>
 
-      {/* Badges */}
-      <div className="card space-y-4">
-        <div>
-          <h2 className="text-xl font-semibold text-ink">Badges</h2>
-          <p className="text-xs text-ink-3 mt-0.5">Milestone achievements</p>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {BADGE_CATALOGUE.map((badge) => {
-            const earned = badges.find((b) => b.slug === badge.slug)
-            return (
-              <div
-                key={badge.slug}
-                className={`flex flex-col items-center text-center gap-2 p-3 rounded-xl border transition-colors ${
-                  earned
-                    ? 'bg-gold/5 border-gold/30'
-                    : 'bg-surface border-line opacity-40'
-                }`}
-              >
-                <span className={`text-3xl ${!earned ? 'grayscale' : ''}`}>{badge.emoji}</span>
-                <div>
-                  <p className={`text-xs font-semibold ${earned ? 'text-ink' : 'text-ink-3'}`}>
-                    {badge.name}
-                  </p>
-                  <p className="text-[11px] text-ink-3 leading-tight mt-0.5">{badge.description}</p>
-                  {earned && (
-                    <p className="text-[10px] text-gold mt-1">
-                      {new Date(earned.earnedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
       {/* Accuracy by difficulty + Recent lessons - side by side on large screens */}
       {!loading && (difficultyStats.length > 0 || recentLessons.length > 0) && (
         <div className="lg:flex lg:gap-6 space-y-6 lg:space-y-0 lg:items-stretch">
@@ -671,9 +621,19 @@ export function StatsPage(): JSX.Element {
                     ? Math.round((s.questionsCorrect / s.questionsAnswered) * 100)
                     : 0
                   const ringColor = accuracy >= 75 ? 'success' : accuracy >= 50 ? 'warning' : 'error'
+                  const notStarted = s.questionsAnswered === 0
                   return (
                     <div key={s.difficulty} className="flex flex-col items-center text-center lg:flex-row lg:text-left lg:gap-4">
-                      <ProgressRing value={accuracy} color={ringColor} />
+                      {notStarted ? (
+                        <div
+                          className="w-20 h-20 rounded-full flex items-center justify-center shrink-0"
+                          style={{ border: '8px solid var(--color-elevated)' }}
+                        >
+                          <span className="text-[11px] text-ink-3 text-center leading-tight">Not<br/>started</span>
+                        </div>
+                      ) : (
+                        <ProgressRing value={accuracy} color={ringColor} />
+                      )}
                       <div>
                         <p className="text-base font-medium text-ink mt-2 lg:mt-0">
                           {DIFFICULTY_LABEL[s.difficulty]}
@@ -697,37 +657,41 @@ export function StatsPage(): JSX.Element {
                   const accuracy = progress && progress.questionsAnswered > 0
                     ? Math.round((progress.questionsCorrect / progress.questionsAnswered) * 100)
                     : null
-                  const isComplete = progress?.completed ?? false
                   return (
                     <div
                       key={lesson.lesson_id ?? lesson.title}
-                      className="flex items-center justify-between p-3 rounded-xl bg-surface-overlay"
+                      className="flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-overlay"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                          isComplete ? 'bg-success/20' : 'bg-gold/10'
-                        }`}>
-                          {isComplete
-                            ? <CheckCircle className="w-6 h-6 text-success" />
-                            : <XCircle className="w-6 h-6 text-gold" />
-                          }
+                      <div className="flex items-center gap-3 flex-1 min-w-0">
+                        <div className="w-9 h-9 rounded-full bg-success/20 flex items-center justify-center shrink-0">
+                          <CheckCircle className="w-5 h-5 text-success" />
                         </div>
-                        <div>
-                          <p className="font-medium text-ink">{lesson.title}</p>
-                          <p className="text-sm text-ink-3">
-                            {lesson.difficulty ?? 'General'} · {lesson.questions.length} questions
+                        <div className="min-w-0">
+                          <p className="font-medium text-ink truncate">{lesson.title}</p>
+                          <p className="text-xs text-ink-3">
+                            {lesson.difficulty ? lesson.difficulty.charAt(0).toUpperCase() + lesson.difficulty.slice(1) : 'General'} · {lesson.questions.length} questions
                           </p>
                         </div>
                       </div>
-                      {accuracy !== null && (
-                        <span className={`text-sm font-semibold ${
-                          accuracy >= 75 ? 'text-success'
-                          : accuracy >= 50 ? 'text-warning'
-                          : 'text-error'
-                        }`}>
-                          {accuracy}%
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2 shrink-0">
+                        {accuracy !== null && (
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                            accuracy >= 75 ? 'bg-success/15 text-success'
+                            : accuracy >= 50 ? 'bg-warning/15 text-warning'
+                            : 'bg-error/15 text-error'
+                          }`}>
+                            {accuracy}%
+                          </span>
+                        )}
+                        {lesson.lesson_id && (
+                          <Link
+                            to={`/play/lessons/${lesson.lesson_id}`}
+                            className="btn-ghost btn-sm text-xs"
+                          >
+                            Practice again
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   )
                 })}
