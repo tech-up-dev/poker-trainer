@@ -273,7 +273,7 @@
   }
 
   .nav-item-active {
-    @apply flex items-center gap-2 px-4 py-3 rounded-xl bg-gold/10 hover:bg-gold/15 transition-colors;
+    @apply flex items-center gap-2 px-4 py-3 rounded-xl bg-elevated font-semibold transition-colors;
     color: var(--color-accent-text);
   }
 

@@ -59,7 +59,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
   return (
     <>
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-surface border-r border-line flex flex-col transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 bg-canvas border-r border-line flex flex-col transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -106,24 +106,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
             <button
               type="button"
               onClick={() => { onClose(); void navigate('/play/pro-training') }}
-              className="w-full flex items-center gap-3 rounded-xl p-[13px_14px] transition-colors cursor-pointer"
-              style={{
-                background: 'rgba(245,166,35,0.12)',
-                border: '1px solid rgba(245,166,35,0.42)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(245,166,35,0.18)'
-                e.currentTarget.style.borderColor = 'rgba(245,166,35,0.6)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(245,166,35,0.12)'
-                e.currentTarget.style.borderColor = 'rgba(245,166,35,0.42)'
-              }}
+              className="w-full flex items-center gap-3 rounded-xl p-[13px_14px] transition-colors cursor-pointer bg-surface hover:bg-elevated"
+              style={{ border: '1px solid var(--color-accent-text)' }}
             >
-              <div
-                className="w-[34px] h-[34px] rounded-lg flex items-center justify-center shrink-0"
-                style={{ background: 'rgba(245,166,35,0.16)' }}
-              >
+              <div className="w-[34px] h-[34px] rounded-lg flex items-center justify-center shrink-0 bg-elevated">
                 <Lock className="w-4 h-4 text-gold" />
               </div>
               <div className="flex-1 text-left">
@@ -142,11 +128,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
             onClick={onClose}
             className={({ isActive }) => isActive ? 'nav-item-active' : 'nav-item'}
           >
-            <div className="w-8 h-8 rounded-full bg-gold/20 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-full bg-elevated flex items-center justify-center shrink-0">
               {initial ? (
-                <span className="text-gold font-semibold text-sm">{initial}</span>
+                <span className="font-semibold text-sm" style={{ color: 'var(--color-accent-text)' }}>{initial}</span>
               ) : (
-                <User className="w-4 h-4 text-gold" />
+                <User className="w-4 h-4" style={{ color: 'var(--color-accent-text)' }} />
               )}
             </div>
             <div className="flex-1 min-w-0">
