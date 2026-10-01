@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import type { JSX } from 'react'
-import { X, CheckCircle2, Sun, Moon, Flame } from 'lucide-react'
+import { X, CheckCircle2, Sun, Moon } from 'lucide-react'
 
 import type { Lesson, Question } from '../../shared/schemas/lesson'
 import { ConfettiCanvas } from '../components/ConfettiCanvas'
@@ -12,24 +12,11 @@ import { upsertProgress } from '../lib/progress'
 import { logAnswerEvent } from '../lib/answer-events'
 import { supabaseProd } from '../lib/supabase-prod'
 import { useTheme } from '../lib/theme-context'
-import { fetchStreak } from '../lib/streak'
-
 function LessonTopControls(): JSX.Element {
   const { theme, toggleTheme } = useTheme()
-  const [streak, setStreak] = useState(0)
-
-  useEffect(() => {
-    fetchStreak().then((s) => setStreak(s.current)).catch(() => {})
-  }, [])
 
   return (
     <div className="hidden lg:flex fixed top-3 right-4 z-30 items-center gap-2">
-      {streak > 0 && (
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gold/10 rounded-full">
-          <Flame className="w-4 h-4 text-gold" />
-          <span className="text-sm font-semibold text-gold">{streak}</span>
-        </div>
-      )}
       <button
         type="button"
         onClick={toggleTheme}
@@ -449,7 +436,7 @@ export function LessonSessionPage(): JSX.Element {
               onClick={startQuiz}
               className="btn-secondary w-full"
             >
-              Try again
+              Practice again
             </button>
             <button
               type="button"
@@ -523,7 +510,7 @@ export function LessonSessionPage(): JSX.Element {
             onClick={startQuiz}
             className="btn-secondary w-full"
           >
-            Try again
+            Practice again
           </button>
           <button
             type="button"
