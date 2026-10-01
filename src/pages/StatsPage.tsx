@@ -20,6 +20,7 @@ type ConceptScore = {
 }
 
 const DIFFICULTY_ORDER = ['beginner', 'intermediate', 'advanced'] as const
+const STAKES_OPTIONS = ['$1/2 NLHE', '$1/3 NLHE', '$2/3 NLHE', '$2/5 NLHE', '$5/5 NLHE', 'Other']
 const DIFFICULTY_LABEL: Record<string, string> = {
   beginner:     'Beginner',
   intermediate: 'Intermediate',
@@ -99,6 +100,7 @@ type SessionLog = {
 type SessionForm = {
   session_date: string
   stakes: string
+  stakesCustom: string
   hours: string
   result_amount: string
   notes: string
@@ -107,9 +109,69 @@ type SessionForm = {
 const EMPTY_SESSION: SessionForm = {
   session_date: new Date().toISOString().slice(0, 10),
   stakes: '',
+  stakesCustom: '',
   hours: '',
   result_amount: '',
   notes: '',
+}
+
+function RunningTotalGraph({ sessions }: { sessions: SessionLog[] }): JSX.Element {
+  const sorted = [...sessions].sort((a, b) => a.session_date.localeCompare(b.session_date))
+  let running = 0
+  const points = sorted.map((s) => {
+    running += s.result_amount
+    return { result: s.result_amount, total: running }
+  })
+
+  const W = 600
+  const H = 140
+  const pX = 16
+  const pTop = 12
+  const pBot = 12
+
+  const totals = points.map((p) => p.total)
+  const minVal = Math.min(0, ...totals)
+  const maxVal = Math.max(0, ...totals)
+  const range = maxVal - minVal || 1
+
+  const toX = (i: number) => pX + (i / (points.length - 1)) * (W - 2 * pX)
+  const toY = (v: number) => pTop + ((maxVal - v) / range) * (H - pTop - pBot)
+  const zeroY = toY(0)
+
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${toX(i).toFixed(1)},${toY(p.total).toFixed(1)}`).join(' ')
+
+  const finalTotal = points[points.length - 1]?.total ?? 0
+  const fmt = (n: number) => (n >= 0 ? '+' : '') + n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+
+  return (
+    <div className="card space-y-2">
+      <div className="flex items-center justify-between">
+        <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">Results over time</p>
+        <span className={`text-sm font-bold ${finalTotal >= 0 ? 'text-success' : 'text-error'}`}>{fmt(finalTotal)}</span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 120 }} aria-hidden="true">
+        {/* Zero line */}
+        <line
+          x1={pX} y1={zeroY} x2={W - pX} y2={zeroY}
+          stroke="var(--color-ink-3)" strokeWidth="1" strokeDasharray="4 3" opacity="0.5"
+        />
+        {/* Running total line */}
+        <path d={linePath} fill="none" stroke="var(--color-gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Session dots */}
+        {points.map((p, i) => (
+          <circle
+            key={i}
+            cx={toX(i).toFixed(1)}
+            cy={toY(p.total).toFixed(1)}
+            r="5"
+            fill={p.result >= 0 ? 'var(--color-success)' : 'var(--color-error)'}
+            stroke="var(--color-canvas)"
+            strokeWidth="2"
+          />
+        ))}
+      </svg>
+    </div>
+  )
 }
 
 function SessionsTab(): JSX.Element {
@@ -149,10 +211,13 @@ function SessionsTab(): JSX.Element {
     setSaving(true)
     const { data: { user } } = await supabaseProd.auth.getUser()
     if (!user) { setSaving(false); return }
+    const stakesValue = form.stakes === 'Other'
+      ? (form.stakesCustom.trim() || null)
+      : (form.stakes || null)
     const { error: err } = await supabaseProd.from('session_logs').insert({
       user_id: user.id,
       session_date: form.session_date,
-      stakes: form.stakes.trim() || null,
+      stakes: stakesValue,
       hours: form.hours ? parseFloat(form.hours) : null,
       result_amount: resultNum,
       notes: form.notes.trim() || null,
@@ -175,10 +240,15 @@ function SessionsTab(): JSX.Element {
   const totalSessions = sessions.length
   const totalHours = sessions.reduce((sum, s) => sum + (s.hours ?? 0), 0)
   const netResult = sessions.reduce((sum, s) => sum + s.result_amount, 0)
-  const winSessions = sessions.filter((s) => s.result_amount > 0).length
+  const hourlyResult = totalHours > 0 ? netResult / totalHours : null
 
   const fmt = (n: number): string =>
     (n >= 0 ? '+' : '') + n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+
+  const fmtHourly = (n: number): string => {
+    const rounded = Math.round(n)
+    return (rounded >= 0 ? '+' : '') + '$' + Math.abs(rounded) + '/hr'
+  }
 
   return (
     <div className="space-y-6">
@@ -201,19 +271,27 @@ function SessionsTab(): JSX.Element {
             <p className="stat-label">Net result</p>
           </div>
           <div className="stat-card">
-            <TrendingUp className="w-6 h-6 text-gold mb-2" />
-            <p className="stat-value">
-              {totalSessions > 0 ? Math.round((winSessions / totalSessions) * 100) : 0}%
+            <TrendingUp className={`w-6 h-6 mb-2 ${hourlyResult !== null && hourlyResult >= 0 ? 'text-success' : hourlyResult !== null ? 'text-error' : 'text-gold'}`} />
+            <p className={`stat-value ${hourlyResult !== null && hourlyResult >= 0 ? 'text-success' : hourlyResult !== null ? 'text-error' : ''}`}>
+              {hourlyResult !== null ? fmtHourly(hourlyResult) : '-'}
             </p>
-            <p className="stat-label">Win rate</p>
+            <p className="stat-label">Hourly result</p>
           </div>
         </div>
+      )}
+
+      {/* Running total graph — shown from 3 sessions (6.7–6.11) */}
+      {!loading && totalSessions >= 3 && <RunningTotalGraph sessions={sessions} />}
+      {!loading && totalSessions > 0 && totalSessions < 3 && (
+        <p className="text-sm text-ink-3 text-center py-2">
+          Log {3 - totalSessions} more session{3 - totalSessions !== 1 ? 's' : ''} to see your results graph.
+        </p>
       )}
 
       {/* Log a session */}
       <div className="card space-y-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-ink">Session log</h2>
+          <h2 className="text-xl font-semibold text-ink">Your Live Sessions</h2>
           <button
             type="button"
             onClick={() => { setShowForm((v) => !v); setError(null) }}
@@ -238,15 +316,27 @@ function SessionsTab(): JSX.Element {
                     required
                   />
                 </div>
-                <div>
-                  <label className="label">Stakes (e.g. NL10)</label>
-                  <input
-                    type="text"
+                <div className="space-y-2">
+                  <label className="label">Stakes</label>
+                  <select
                     className="input"
                     value={form.stakes}
                     onChange={(e) => set('stakes', e.target.value)}
-                    placeholder="NL10"
-                  />
+                  >
+                    <option value="">Select stakes…</option>
+                    {STAKES_OPTIONS.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </select>
+                  {form.stakes === 'Other' && (
+                    <input
+                      type="text"
+                      className="input"
+                      value={form.stakesCustom}
+                      onChange={(e) => set('stakesCustom', e.target.value)}
+                      placeholder="Describe your game…"
+                    />
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
