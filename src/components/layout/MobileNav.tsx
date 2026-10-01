@@ -1,13 +1,13 @@
 import { NavLink } from 'react-router-dom'
 import type { JSX } from 'react'
-import { Home, BookOpen, BookText, Library, User } from 'lucide-react'
+import { Home, BookOpen, BarChart3, Library, User } from 'lucide-react'
 
 const NAV_ITEMS = [
-  { to: '/play',          icon: Home,     label: 'Home'     },
-  { to: '/play/lessons',  icon: BookOpen, label: 'Lessons'  },
-  { to: '/play/glossary', icon: BookText, label: 'Glossary' },
-  { to: '/play/library',  icon: Library,  label: 'Library'  },
-  { to: '/play/profile',  icon: User,     label: 'Profile'  },
+  { to: '/play',         icon: Home,     label: 'Home'    },
+  { to: '/play/lessons', icon: BookOpen, label: 'Lessons' },
+  { to: '/play/stats',   icon: BarChart3,label: 'Stats'   },
+  { to: '/play/library', icon: Library,  label: 'Library' },
+  { to: '/play/profile', icon: User,     label: 'Profile' },
 ]
 
 export function MobileNav(): JSX.Element {
@@ -22,9 +22,10 @@ export function MobileNav(): JSX.Element {
             key={item.to}
             to={item.to}
             end={item.to === '/play'}
+            style={({ isActive }) => isActive ? { color: 'var(--color-accent-text)' } : undefined}
             className={({ isActive }) =>
               `flex flex-col items-center gap-1 px-3 py-2 rounded-lg min-w-[56px] transition-colors ${
-                isActive ? 'text-gold' : 'text-ink-3 hover:text-ink'
+                isActive ? '' : 'text-ink-3 hover:text-ink'
               }`
             }
           >
