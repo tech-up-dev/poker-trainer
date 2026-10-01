@@ -223,7 +223,7 @@ function SessionsTab(): JSX.Element {
             className="btn-primary btn-sm flex items-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
-            Log session
+            Log a session
           </button>
         </div>
 
@@ -320,7 +320,9 @@ function SessionsTab(): JSX.Element {
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold text-ink">{s.session_date}</span>
+                    <span className="text-sm font-semibold text-ink">
+                      {new Date(s.session_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </span>
                     {s.stakes && <span className="badge-muted">{s.stakes}</span>}
                     {s.hours != null && (
                       <span className="text-xs text-ink-3">{s.hours}h</span>
@@ -466,7 +468,7 @@ export function StatsPage(): JSX.Element {
           onClick={() => setTab('sessions')}
           className={tab === 'sessions' ? 'chip-active' : 'chip-inactive'}
         >
-          Session log
+          Your Live Sessions
         </button>
       </div>
 
@@ -527,7 +529,6 @@ export function StatsPage(): JSX.Element {
                 <span><span className="text-warning font-semibold">Needs work</span> 50–74%</span>
                 <span><span className="text-success font-semibold">Solid</span> 75%+</span>
               </div>
-              <p className="text-xs text-ink-3">Score changes compare to your accuracy a day ago.</p>
 
               {bandSections.map(({ band, label, sub, color, barColor }) => {
                 const rows = conceptScores.filter((s) => s.band === band)

@@ -116,7 +116,7 @@ export function MemberDashboardPage(): JSX.Element {
             <div className="flex-1 min-w-0">
               <h2 className="text-xl font-bold text-ink mb-1 truncate">{continueLesson.title}</h2>
               <p className="text-sm text-ink-3 mb-3">
-                {continueLesson.difficulty ?? 'General'} &middot;{' '}
+                {continueLesson.difficulty ? continueLesson.difficulty.charAt(0).toUpperCase() + continueLesson.difficulty.slice(1) : 'General'} &middot;{' '}
                 {continueLesson.questions.length}{' '}
                 {continueLesson.questions.length === 1 ? 'question' : 'questions'}
               </p>
@@ -206,6 +206,7 @@ export function MemberDashboardPage(): JSX.Element {
           <p className="text-sm text-ink-3">Analysing your history…</p>
         )}
 
+        <p className="text-xs text-ink-3">10 questions from your weakest areas</p>
         <button
           type="button"
           onClick={() => void navigate('/play/drill')}
