@@ -570,7 +570,7 @@ export function StatsPage(): JSX.Element {
 
                           {isMeasured && (
                             <div className="ml-7 space-y-1">
-                              <div className="relative h-2 bg-elevated rounded-full overflow-visible">
+                              <div className="relative h-2 rounded-full overflow-visible" style={{ background: 'var(--progress-track-bg)' }}>
                                 <div
                                   className={`h-full rounded-full ${barColor}`}
                                   style={{ width: `${pct}%` }}

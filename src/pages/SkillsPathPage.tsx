@@ -89,7 +89,7 @@ export function SkillsPathPage(): JSX.Element {
                       {avg > 0 && <span className="ml-1">- {avg}% avg accuracy</span>}
                     </p>
                     {/* Progress bar */}
-                    <div className="h-1 bg-elevated rounded-full mt-2 overflow-hidden">
+                    <div className="h-1 rounded-full mt-2 overflow-hidden" style={{ background: 'var(--progress-track-bg)' }}>
                       <div
                         className={`h-full rounded-full transition-all ${barColor}`}
                         style={{ width: `${avg}%` }}
