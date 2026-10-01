@@ -346,12 +346,12 @@ function SessionsTab(): JSX.Element {
 
       {/* Log a session */}
       <div className="card space-y-4">
-        <div className="flex items-center justify-between gap-3">
+        <div className="space-y-3">
           <h2 className="text-xl font-bold text-ink">Your Live Sessions</h2>
           <button
             type="button"
             onClick={() => { setShowForm((v) => !v); setError(null) }}
-            className="btn-primary flex items-center gap-1.5 shrink-0"
+            className="btn-primary w-full flex items-center justify-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
             Log a session
