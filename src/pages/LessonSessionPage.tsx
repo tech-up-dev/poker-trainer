@@ -11,6 +11,7 @@ import { fetchPublishedLesson } from '../lib/lessons'
 import { upsertProgress } from '../lib/progress'
 import { logAnswerEvent } from '../lib/answer-events'
 import { supabaseProd } from '../lib/supabase-prod'
+import { fetchActivitySummary } from '../lib/activity'
 import { useTheme } from '../lib/theme-context'
 function LessonTopControls(): JSX.Element {
   const { theme, toggleTheme } = useTheme()
@@ -106,6 +107,8 @@ export function LessonSessionPage(): JSX.Element {
   const [answeredMap, setAnsweredMap] = useState<Record<number, number>>({})
   const [displayPct, setDisplayPct] = useState(0)
   const [resultTiers, setResultTiers] = useState<ResultTier[]>(DEFAULT_TIERS)
+  const [milestones, setMilestones] = useState<('concept_solid' | 'monthly_goal')[]>([])
+  const conceptWasSolidRef = useRef<boolean>(false)
   const questionStartedAt = useRef<number>(0)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
@@ -137,6 +140,63 @@ export function LessonSessionPage(): JSX.Element {
     window.scrollTo({ top: 0 })
     scrollContainerRef.current?.scrollTo({ top: 0 })
   }, [phase])
+
+  // Snapshot concept solid state BEFORE the lesson so we can detect crossing the threshold
+  useEffect(() => {
+    if (!lesson?.concept) return
+    void supabaseProd
+      .from('concept_accuracy_summary')
+      .select('accuracy, attempts')
+      .eq('concept', lesson.concept)
+      .maybeSingle()
+      .then(({ data }) => {
+        const acc = (data?.accuracy as number | null) ?? null
+        const att = (data?.attempts as number | null) ?? 0
+        conceptWasSolidRef.current = acc !== null && acc >= 75 && att >= 8
+      })
+  }, [lesson?.concept])
+
+  // Check for milestone celebrations after lesson completes
+  useEffect(() => {
+    if (phase.kind !== 'complete' || !lesson) return
+    void (async () => {
+      const found: ('concept_solid' | 'monthly_goal')[] = []
+
+      // Concept reaching Solid: only celebrate once per concept (localStorage guard)
+      if (lesson.concept) {
+        const storageKey = `bss_solid_shown_${lesson.concept}`
+        const alreadyShown = localStorage.getItem(storageKey) === '1'
+        if (!alreadyShown) {
+          const { data } = await supabaseProd
+            .from('concept_accuracy_summary')
+            .select('accuracy, attempts')
+            .eq('concept', lesson.concept)
+            .maybeSingle()
+          const acc = (data?.accuracy as number | null) ?? null
+          const att = (data?.attempts as number | null) ?? 0
+          if (!conceptWasSolidRef.current && acc !== null && acc >= 75 && att >= 8) {
+            found.push('concept_solid')
+            try { localStorage.setItem(storageKey, '1') } catch {}
+          }
+        }
+      }
+
+      // Monthly goal reached: only celebrate once per calendar month
+      const now = new Date()
+      const monthKey = `bss_monthly_goal_${now.getFullYear()}_${now.getMonth()}`
+      const monthAlreadyShown = localStorage.getItem(monthKey) === '1'
+      if (!monthAlreadyShown) {
+        const activity = await fetchActivitySummary()
+        if (activity.monthlyGoalDays > 0 && activity.monthlyActiveDays >= activity.monthlyGoalDays) {
+          found.push('monthly_goal')
+          try { localStorage.setItem(monthKey, '1') } catch {}
+        }
+      }
+
+      if (found.length > 0) setMilestones(found)
+    })()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase.kind])
 
   useEffect(() => {
     if (phase.kind !== 'complete') return
@@ -427,6 +487,27 @@ export function LessonSessionPage(): JSX.Element {
             </div>
           </div>
         </div>
+
+        {/* Milestone celebration cards */}
+        {milestones.includes('concept_solid') && (
+          <div className="card border border-gold/30 bg-gold/5 text-center space-y-2">
+            <div className="text-2xl">🏆</div>
+            <h3 className="font-bold text-gold text-base">Concept Mastered!</h3>
+            <p className="text-sm text-ink-2">
+              You've reached <span className="font-semibold text-ink">Solid</span> accuracy on{' '}
+              <span className="font-semibold text-ink">{lesson.concept}</span>. Keep it up!
+            </p>
+          </div>
+        )}
+        {milestones.includes('monthly_goal') && (
+          <div className="card border border-success/30 bg-success/5 text-center space-y-2">
+            <div className="text-2xl">🎯</div>
+            <h3 className="font-bold text-success text-base">Monthly Goal Reached!</h3>
+            <p className="text-sm text-ink-2">
+              You've hit your active days goal for this month. Outstanding consistency!
+            </p>
+          </div>
+        )}
 
         {/* CTA buttons - shown above missed questions when there are some to scroll past */}
         {missed.length > 0 && (
