@@ -63,12 +63,38 @@ export type ContactField = { key: string; value: string | number };
 // (a PUT with { key, field_value } returns 200 but silently writes nothing), so we
 // map fieldKey -> id here. IDs are for the connected location (X9YN3cpdM3TwR2niCEmk),
 // read from GET /locations/{id}/customFields; see docs/integrations/ghl.md.
-const CUSTOM_FIELD_IDS: Record<string, string> = {
-  "contact.last_trained_date": "pgkLNSFAeJW0xRGjKhq7",
-  "contact.current_streak": "5rVKcvwUA4mnSS3w1uBm",
-  "contact.weakest_concept": "ekiDsFazDVtGFsOEfL5c",
-  "contact.weekly_goal_progress": "Lt4zLukTOJsSd5MWK7pv",
+//
+// v5 scope (Issue #68 §7.5): six fields pushed, two retired.
+//   - KEEP:   last_trained_date, weakest_concept, monthly_days_trained
+//   - RETIRE: current_streak, weekly_goal_progress (streaks + weekly goal cut
+//             per §7.1 / §7.2). Keys left in the map with a `null` ID so a
+//             computeFields caller never resurrects them without being seen
+//             here; `updateContactFields` filters IDs that resolve to a
+//             truthy string, so a nulled key is a safe no-op if a stale
+//             call sends it. Delete the two map entries once we are certain
+//             no older caller references them (not blocking v5).
+//   - NEW:    concepts_solid_count, lesson_in_progress, live_sessions_logged.
+//             Steve is creating the three fields in GHL (Settings -> Custom
+//             Fields -> Contact) and will send the IDs. Until the IDs land,
+//             the keys appear here with `TODO_<slug>` placeholders so a
+//             prepared push just silently drops the field (updateContactFields
+//             filters CUSTOM_FIELD_IDS[k] = undefined); replace each placeholder
+//             with the real 20-char slug once Steve forwards it.
+const CUSTOM_FIELD_IDS: Record<string, string | null> = {
+  "contact.last_trained_date":    "pgkLNSFAeJW0xRGjKhq7",
+  "contact.weakest_concept":      "ekiDsFazDVtGFsOEfL5c",
   "contact.monthly_days_trained": "33u2it1ES8QWRI4SLw5B",
+  // v5 §7.5 new fields. IDs validated against the GHL location on 2026-10-02
+  // via a one-shot probe; see Blagojche thread for the lookup trace.
+  // Note the GHL field is named `lessons_in_progress` (plural) by Steve but our
+  // internal key stays singular as the spec; the id is what the write uses.
+  "contact.concepts_solid_count": "mv8qsCxTErFgARaJSooZ",
+  "contact.lesson_in_progress":   "1SqkIZveXj2jLunM3a79",
+  "contact.live_sessions_logged": "vLEUvTcwl4LJeWT2iA23",
+  // Retired (v5 §7.1 / §7.2). Keys kept nulled so a stray caller is a no-op,
+  // not an undefined-id crash. Remove in a cleanup pass.
+  "contact.current_streak":       null,
+  "contact.weekly_goal_progress": null,
 };
 
 // Write custom fields on a contact (M3-13 write-back) via the PIT. Fields come in
