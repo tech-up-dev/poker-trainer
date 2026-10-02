@@ -1,14 +1,13 @@
 import { useEffect, useState, useRef } from 'react'
 import type { JSX } from 'react'
 import { Link } from 'react-router-dom'
-import { TrendingUp, CheckCircle2, Flame, CheckCircle, XCircle, Zap, Plus, Trash2, DollarSign, Clock, Calendar, ChevronRight } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Plus, Trash2, DollarSign, Clock, Calendar, ChevronRight } from 'lucide-react'
 import { supabaseProd } from '../lib/supabase-prod'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
 import type { LessonProgress } from '../lib/progress'
-import { fetchStreak } from '../lib/streak'
 
 type ConceptScore = {
   concept: string
@@ -19,10 +18,9 @@ type ConceptScore = {
   prev_accuracy: number | null
   band: 'not_enough' | 'needs_work' | 'getting_there' | 'solid'
 }
-import { fetchUserStateRow, fetchUserBadges, BADGE_CATALOGUE } from '../lib/user-state'
-import type { UserBadge } from '../lib/user-state'
 
 const DIFFICULTY_ORDER = ['beginner', 'intermediate', 'advanced'] as const
+const STAKES_OPTIONS = ['$1/2 NLHE', '$1/3 NLHE', '$2/3 NLHE', '$2/5 NLHE', '$5/5 NLHE', 'Other']
 const DIFFICULTY_LABEL: Record<string, string> = {
   beginner:     'Beginner',
   intermediate: 'Intermediate',
@@ -102,6 +100,7 @@ type SessionLog = {
 type SessionForm = {
   session_date: string
   stakes: string
+  stakesCustom: string
   hours: string
   result_amount: string
   notes: string
@@ -110,9 +109,125 @@ type SessionForm = {
 const EMPTY_SESSION: SessionForm = {
   session_date: new Date().toISOString().slice(0, 10),
   stakes: '',
+  stakesCustom: '',
   hours: '',
   result_amount: '',
   notes: '',
+}
+
+function RunningTotalGraph({ sessions }: { sessions: SessionLog[] }): JSX.Element {
+  const sorted = [...sessions].sort((a, b) => a.session_date.localeCompare(b.session_date))
+  const points = sorted.reduce<{ result: number; total: number; date: string }[]>((acc, s) => {
+    const prev = acc.length > 0 ? acc[acc.length - 1].total : 0
+    acc.push({ result: s.result_amount, total: prev + s.result_amount, date: s.session_date })
+    return acc
+  }, [])
+
+  const W = 600
+  const H = 160
+  const pLeft = 60  // room for y-axis labels
+  const pRight = 16
+  const pTop = 16
+  const pBot = 28  // room for x-axis labels
+
+  const totals = points.map((p) => p.total)
+  const minVal = Math.min(0, ...totals)
+  const maxVal = Math.max(0, ...totals)
+  const range = maxVal - minVal || 1
+
+  const toX = (i: number) => pLeft + (i / Math.max(points.length - 1, 1)) * (W - pLeft - pRight)
+  const toY = (v: number) => pTop + ((maxVal - v) / range) * (H - pTop - pBot)
+  const zeroY = toY(0)
+
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'}${toX(i).toFixed(1)},${toY(p.total).toFixed(1)}`).join(' ')
+
+  const finalTotal = points[points.length - 1]?.total ?? 0
+  const fmt = (n: number) => (n >= 0 ? '+' : '') + n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+
+  // Y-axis labels: $0, midpoint, max
+  const fmtK = (n: number) => {
+    const abs = Math.abs(n)
+    const sign = n < 0 ? '-' : ''
+    return abs >= 1000 ? `${sign}$${(abs / 1000).toFixed(abs % 1000 === 0 ? 0 : 1)}k` : `${sign}$${abs}`
+  }
+
+  // collect distinct y tick values: 0, halfway between min/max if range is big enough, max
+  const yTicks: number[] = []
+  if (minVal < 0) yTicks.push(minVal)
+  yTicks.push(0)
+  if (maxVal > 0) yTicks.push(maxVal)
+
+  // x-axis: first and last date
+  const fmtDate = (d: string) => {
+    const dt = new Date(d + 'T00:00:00')
+    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  }
+  const firstDate = sorted[0]?.session_date
+  const lastDate = sorted[sorted.length - 1]?.session_date
+
+  return (
+    <div className="card space-y-1">
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-base font-bold text-ink">Results over time</p>
+          <p className="text-xs text-ink-3">Running total · {sessions.length} session{sessions.length !== 1 ? 's' : ''}</p>
+        </div>
+        <span className={`text-sm font-bold mt-0.5 ${finalTotal >= 0 ? 'text-success' : 'text-error'}`}>{fmt(finalTotal)}</span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 140 }} aria-hidden="true">
+        {/* Y-axis tick labels */}
+        {yTicks.map((v) => (
+          <text
+            key={v}
+            x={pLeft - 6}
+            y={toY(v) + 4}
+            textAnchor="end"
+            fontSize="18"
+            fill="var(--color-ink-3)"
+          >
+            {fmtK(v)}
+          </text>
+        ))}
+        {/* Zero dashed line */}
+        <line
+          x1={pLeft} y1={zeroY} x2={W - pRight} y2={zeroY}
+          stroke="var(--color-ink-3)" strokeWidth="1" strokeDasharray="5 4" opacity="0.4"
+        />
+        {/* Running total line */}
+        <path d={linePath} fill="none" stroke="var(--color-ink)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+        {/* Session dots */}
+        {points.map((p, i) => (
+          <circle
+            key={i}
+            cx={toX(i).toFixed(1)}
+            cy={toY(p.total).toFixed(1)}
+            r="7"
+            fill={p.result >= 0 ? 'var(--color-success)' : 'var(--color-error)'}
+            stroke="var(--color-canvas)"
+            strokeWidth="2"
+          />
+        ))}
+        {/* X-axis date labels */}
+        {firstDate && (
+          <text x={toX(0)} y={H - 6} textAnchor="start" fontSize="18" fill="var(--color-ink-3)">{fmtDate(firstDate)}</text>
+        )}
+        {lastDate && lastDate !== firstDate && (
+          <text x={toX(points.length - 1)} y={H - 6} textAnchor="middle" fontSize="18" fill="var(--color-ink-3)">{fmtDate(lastDate)}</text>
+        )}
+      </svg>
+      {/* Legend */}
+      <div className="flex items-center gap-4 pt-1">
+        <span className="flex items-center gap-1.5 text-xs text-ink-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-success inline-block" />
+          Winning session
+        </span>
+        <span className="flex items-center gap-1.5 text-xs text-ink-3">
+          <span className="w-2.5 h-2.5 rounded-full bg-error inline-block" />
+          Losing session
+        </span>
+      </div>
+    </div>
+  )
 }
 
 function SessionsTab(): JSX.Element {
@@ -152,10 +267,13 @@ function SessionsTab(): JSX.Element {
     setSaving(true)
     const { data: { user } } = await supabaseProd.auth.getUser()
     if (!user) { setSaving(false); return }
+    const stakesValue = form.stakes === 'Other'
+      ? (form.stakesCustom.trim() || null)
+      : (form.stakes || null)
     const { error: err } = await supabaseProd.from('session_logs').insert({
       user_id: user.id,
       session_date: form.session_date,
-      stakes: form.stakes.trim() || null,
+      stakes: stakesValue,
       hours: form.hours ? parseFloat(form.hours) : null,
       result_amount: resultNum,
       notes: form.notes.trim() || null,
@@ -178,10 +296,15 @@ function SessionsTab(): JSX.Element {
   const totalSessions = sessions.length
   const totalHours = sessions.reduce((sum, s) => sum + (s.hours ?? 0), 0)
   const netResult = sessions.reduce((sum, s) => sum + s.result_amount, 0)
-  const winSessions = sessions.filter((s) => s.result_amount > 0).length
+  const hourlyResult = totalHours > 0 ? netResult / totalHours : null
 
   const fmt = (n: number): string =>
     (n >= 0 ? '+' : '') + n.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
+
+  const fmtHourly = (n: number): string => {
+    const rounded = Math.round(n)
+    return (rounded >= 0 ? '+' : '') + '$' + Math.abs(rounded) + '/hr'
+  }
 
   return (
     <div className="space-y-6">
@@ -204,26 +327,34 @@ function SessionsTab(): JSX.Element {
             <p className="stat-label">Net result</p>
           </div>
           <div className="stat-card">
-            <TrendingUp className="w-6 h-6 text-gold mb-2" />
-            <p className="stat-value">
-              {totalSessions > 0 ? Math.round((winSessions / totalSessions) * 100) : 0}%
+            <TrendingUp className={`w-6 h-6 mb-2 ${hourlyResult !== null && hourlyResult >= 0 ? 'text-success' : hourlyResult !== null ? 'text-error' : 'text-gold'}`} />
+            <p className={`stat-value ${hourlyResult !== null && hourlyResult >= 0 ? 'text-success' : hourlyResult !== null ? 'text-error' : ''}`}>
+              {hourlyResult !== null ? fmtHourly(hourlyResult) : '-'}
             </p>
-            <p className="stat-label">Win rate</p>
+            <p className="stat-label">Hourly result</p>
           </div>
         </div>
       )}
 
+      {/* Running total graph - shown from 3 sessions (6.7-6.11) */}
+      {!loading && totalSessions >= 3 && <RunningTotalGraph sessions={sessions} />}
+      {!loading && totalSessions > 0 && totalSessions < 3 && (
+        <p className="text-sm text-ink-3 text-center py-2">
+          Log {3 - totalSessions} more session{3 - totalSessions !== 1 ? 's' : ''} to see your results graph.
+        </p>
+      )}
+
       {/* Log a session */}
-      <div className="card space-y-3">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-ink">Session log</h2>
+      <div className="card space-y-4">
+        <div className="space-y-3">
+          <h2 className="text-xl font-bold text-ink">Your Live Sessions</h2>
           <button
             type="button"
             onClick={() => { setShowForm((v) => !v); setError(null) }}
-            className="btn-primary btn-sm flex items-center gap-1.5"
+            className="btn-primary w-full flex items-center justify-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
-            Log session
+            Log a session
           </button>
         </div>
 
@@ -241,15 +372,27 @@ function SessionsTab(): JSX.Element {
                     required
                   />
                 </div>
-                <div>
-                  <label className="label">Stakes (e.g. NL10)</label>
-                  <input
-                    type="text"
+                <div className="space-y-2">
+                  <label className="label">Stakes</label>
+                  <select
                     className="input"
                     value={form.stakes}
                     onChange={(e) => set('stakes', e.target.value)}
-                    placeholder="NL10"
-                  />
+                  >
+                    <option value="">Select stakes…</option>
+                    {STAKES_OPTIONS.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </select>
+                  {form.stakes === 'Other' && (
+                    <input
+                      type="text"
+                      className="input"
+                      value={form.stakesCustom}
+                      onChange={(e) => set('stakesCustom', e.target.value)}
+                      placeholder="Describe your game…"
+                    />
+                  )}
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -314,34 +457,36 @@ function SessionsTab(): JSX.Element {
         {!loading && sessions.length > 0 && (
           <div className="space-y-2">
             {sessions.map((s) => (
-              <div
-                key={s.id}
-                className="flex items-center justify-between gap-3 p-3 rounded-xl bg-surface-overlay"
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold text-ink">{s.session_date}</span>
-                    {s.stakes && <span className="badge-muted">{s.stakes}</span>}
-                    {s.hours != null && (
-                      <span className="text-xs text-ink-3">{s.hours}h</span>
-                    )}
-                  </div>
-                  {s.notes && (
-                    <p className="text-xs text-ink-3 mt-0.5 truncate">{s.notes}</p>
-                  )}
+              <div key={s.id} className="p-3 rounded-xl bg-canvas space-y-1.5">
+                {/* Row 1: date + result */}
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-bold text-ink">
+                    {new Date(s.session_date + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                  </span>
+                  <span className={`text-sm font-bold shrink-0 ${s.result_amount >= 0 ? 'text-success' : 'text-error'}`}>
+                    {fmt(s.result_amount)}
+                  </span>
                 </div>
-                <span className={`text-sm font-bold shrink-0 ${s.result_amount >= 0 ? 'text-success' : 'text-error'}`}>
-                  {fmt(s.result_amount)}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => { if (confirm('Delete this session?')) void handleDelete(s.id) }}
-                  disabled={deletingId === s.id}
-                  className="p-1.5 rounded-lg text-ink-3 hover:text-error hover:bg-error/10 transition-colors disabled:opacity-40 shrink-0"
-                  aria-label="Delete session"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {/* Row 2: stakes chip + hours + trash */}
+                <div className="flex items-center gap-2">
+                  {s.stakes && <span className="badge-muted">{s.stakes}</span>}
+                  {s.hours != null && (
+                    <span className="text-xs text-ink-3">{s.hours}h</span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => { if (confirm('Delete this session?')) void handleDelete(s.id) }}
+                    disabled={deletingId === s.id}
+                    className="ml-auto p-1 rounded-lg text-ink-3 hover:text-error hover:bg-error/10 transition-colors disabled:opacity-40"
+                    aria-label="Delete session"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+                {/* Row 3: notes */}
+                {s.notes && (
+                  <p className="text-xs text-ink-3 leading-relaxed">{s.notes}</p>
+                )}
               </div>
             ))}
           </div>
@@ -359,21 +504,17 @@ export function StatsPage(): JSX.Element {
   const [tab, setTab] = useState<StatsTab>('training')
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
-  const [streak, setStreak] = useState(0)
   const [loading, setLoading] = useState(true)
   const [conceptScores, setConceptScores] = useState<ConceptScore[] | null>(null)
   const [conceptScoresLoading, setConceptScoresLoading] = useState(true)
-  const [totalPoints, setTotalPoints] = useState<number | null>(null)
-  const [badges, setBadges] = useState<UserBadge[]>([])
 
   useEffect(() => {
-    Promise.all([fetchAllPublishedLessons(), fetchLessonProgress(), fetchStreak()])
-      .then(([allLessons, progressRows, streakData]) => {
+    Promise.all([fetchAllPublishedLessons(), fetchLessonProgress()])
+      .then(([allLessons, progressRows]) => {
         setLessons(allLessons)
         const map: Record<string, LessonProgress> = {}
         for (const row of progressRows) map[row.lessonId] = row
         setProgressMap(map)
-        setStreak(streakData.current)
       })
       .catch(() => {})
       .finally(() => setLoading(false))
@@ -393,17 +534,8 @@ export function StatsPage(): JSX.Element {
     })()
   }, [])
 
-  useEffect(() => {
-    Promise.all([fetchUserStateRow(), fetchUserBadges()])
-      .then(([stateRow, badgeRows]) => {
-        setTotalPoints(stateRow?.totalPoints ?? 0)
-        setBadges(badgeRows)
-      })
-      .catch(() => {})
-  }, [])
 
   const attempted = lessons.filter((l) => l.lesson_id && progressMap[l.lesson_id])
-  const completed = attempted.filter((l) => l.lesson_id && progressMap[l.lesson_id]?.completed)
   const totalAnswered = attempted.reduce(
     (sum, l) => sum + (l.lesson_id ? (progressMap[l.lesson_id]?.questionsAnswered ?? 0) : 0),
     0,
@@ -414,12 +546,8 @@ export function StatsPage(): JSX.Element {
   )
   const overallAccuracy = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0
 
-  const statCards = [
-    { label: 'Streak',    value: `${streak}d`,                                    icon: Flame,        color: 'text-orange-500' },
-    { label: 'Completed', value: String(completed.length),                         icon: CheckCircle2, color: 'text-success'    },
-    { label: 'Accuracy',  value: `${overallAccuracy}%`,                            icon: TrendingUp,   color: 'text-gold'       },
-    { label: 'Points',    value: totalPoints !== null ? String(totalPoints) : '-', icon: Zap,          color: 'text-gold'       },
-  ]
+  const solidCount = conceptScores ? conceptScores.filter((s) => s.band === 'solid').length : null
+  const totalMeasured = conceptScores ? conceptScores.filter((s) => s.band !== 'not_enough').length : null
 
   const difficultyStats: DifficultyStats[] = DIFFICULTY_ORDER.map((diff) => {
     const group = lessons.filter((l) => l.difficulty === diff)
@@ -442,6 +570,7 @@ export function StatsPage(): JSX.Element {
   }).filter((s) => s.total > 0)
 
   const recentLessons = attempted
+    .filter((l) => l.lesson_id && progressMap[l.lesson_id]?.completed)
     .slice(0, 5)
     .map((l) => ({ lesson: l, progress: l.lesson_id ? progressMap[l.lesson_id] : undefined }))
 
@@ -466,7 +595,7 @@ export function StatsPage(): JSX.Element {
           onClick={() => setTab('sessions')}
           className={tab === 'sessions' ? 'chip-active' : 'chip-inactive'}
         >
-          Session log
+          Your Live Sessions
         </button>
       </div>
 
@@ -474,18 +603,22 @@ export function StatsPage(): JSX.Element {
 
       {tab === 'training' && (<>
 
-      {/* Stat cards */}
-      {!loading && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {statCards.map((s) => (
-            <div key={s.label} className="stat-card">
-              <s.icon className={`w-6 h-6 ${s.color} mb-2`} />
-              <p className="stat-value">{s.value}</p>
-              <p className="stat-label">{s.label}</p>
-            </div>
-          ))}
+      {/* Top stat cards */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="stat-card">
+          <CheckCircle2 className="w-6 h-6 text-success mb-2" />
+          <p className="stat-value">{solidCount !== null ? solidCount : '-'}</p>
+          <p className="stat-label">Concepts Solid</p>
+          {solidCount !== null && totalMeasured !== null && totalMeasured > 0 && (
+            <p className="text-xs text-ink-3 mt-1">{solidCount} of {totalMeasured}</p>
+          )}
         </div>
-      )}
+        <div className="stat-card">
+          <TrendingUp className="w-6 h-6 text-gold mb-2" />
+          <p className="stat-value">{overallAccuracy > 0 ? `${overallAccuracy}%` : '-'}</p>
+          <p className="stat-label">Overall accuracy</p>
+        </div>
+      </div>
 
       {/* How you're doing */}
       <div className="card space-y-4">
@@ -527,7 +660,6 @@ export function StatsPage(): JSX.Element {
                 <span><span className="text-warning font-semibold">Needs work</span> 50–74%</span>
                 <span><span className="text-success font-semibold">Solid</span> 75%+</span>
               </div>
-              <p className="text-xs text-ink-3">Score changes compare to your accuracy a day ago.</p>
 
               {bandSections.map(({ band, label, sub, color, barColor }) => {
                 const rows = conceptScores.filter((s) => s.band === band)
@@ -569,7 +701,7 @@ export function StatsPage(): JSX.Element {
 
                           {isMeasured && (
                             <div className="ml-7 space-y-1">
-                              <div className="relative h-2 bg-elevated rounded-full overflow-visible">
+                              <div className="relative h-2 rounded-full overflow-visible" style={{ background: 'var(--progress-track-bg)' }}>
                                 <div
                                   className={`h-full rounded-full ${barColor}`}
                                   style={{ width: `${pct}%` }}
@@ -621,64 +753,38 @@ export function StatsPage(): JSX.Element {
         })()}
       </div>
 
-      {/* Badges */}
-      <div className="card space-y-4">
-        <div>
-          <h2 className="text-xl font-semibold text-ink">Badges</h2>
-          <p className="text-xs text-ink-3 mt-0.5">Milestone achievements</p>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {BADGE_CATALOGUE.map((badge) => {
-            const earned = badges.find((b) => b.slug === badge.slug)
-            return (
-              <div
-                key={badge.slug}
-                className={`flex flex-col items-center text-center gap-2 p-3 rounded-xl border transition-colors ${
-                  earned
-                    ? 'bg-gold/5 border-gold/30'
-                    : 'bg-surface border-line opacity-40'
-                }`}
-              >
-                <span className={`text-3xl ${!earned ? 'grayscale' : ''}`}>{badge.emoji}</span>
-                <div>
-                  <p className={`text-xs font-semibold ${earned ? 'text-ink' : 'text-ink-3'}`}>
-                    {badge.name}
-                  </p>
-                  <p className="text-[11px] text-ink-3 leading-tight mt-0.5">{badge.description}</p>
-                  {earned && (
-                    <p className="text-[10px] text-gold mt-1">
-                      {new Date(earned.earnedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
       {/* Accuracy by difficulty + Recent lessons - side by side on large screens */}
       {!loading && (difficultyStats.length > 0 || recentLessons.length > 0) && (
         <div className="lg:flex lg:gap-6 space-y-6 lg:space-y-0 lg:items-stretch">
 
           {difficultyStats.length > 0 && (
-            <div className="card lg:w-[35%] lg:shrink-0">
+            <div className="card lg:w-[40%] lg:shrink-0">
               <h2 className="text-xl font-semibold text-ink mb-4">Accuracy by Difficulty</h2>
-              <div className="flex flex-col items-center gap-6 lg:flex-col lg:items-start lg:gap-4">
+              <div className="grid grid-cols-3 gap-2">
                 {difficultyStats.map((s) => {
                   const accuracy = s.questionsAnswered > 0
                     ? Math.round((s.questionsCorrect / s.questionsAnswered) * 100)
                     : 0
                   const ringColor = accuracy >= 75 ? 'success' : accuracy >= 50 ? 'warning' : 'error'
+                  const notStarted = s.questionsAnswered === 0
                   return (
-                    <div key={s.difficulty} className="flex flex-col items-center text-center lg:flex-row lg:text-left lg:gap-4">
-                      <ProgressRing value={accuracy} color={ringColor} />
+                    <div key={s.difficulty} className="flex flex-col items-center text-center gap-2">
+                      {notStarted ? (
+                        <div
+                          className="w-16 h-16 rounded-full flex items-center justify-center shrink-0"
+                          style={{ border: '7px solid var(--color-elevated)' }}
+                        >
+                          <span className="text-base font-semibold text-ink-3">–</span>
+                        </div>
+                      ) : (
+                        <ProgressRing value={accuracy} color={ringColor} size={64} strokeWidth={7} />
+                      )}
                       <div>
-                        <p className="text-base font-medium text-ink mt-2 lg:mt-0">
+                        <p className="text-sm font-medium text-ink">
                           {DIFFICULTY_LABEL[s.difficulty]}
                         </p>
                         <p className="text-xs text-ink-3 mt-0.5">
-                          {s.completed}/{s.total} lessons
+                          {notStarted ? 'Not started' : `${s.completed}/${s.total} lessons`}
                         </p>
                       </div>
                     </div>
@@ -696,37 +802,34 @@ export function StatsPage(): JSX.Element {
                   const accuracy = progress && progress.questionsAnswered > 0
                     ? Math.round((progress.questionsCorrect / progress.questionsAnswered) * 100)
                     : null
-                  const isComplete = progress?.completed ?? false
+                  const badgeColor = accuracy !== null
+                    ? accuracy >= 75 ? 'bg-success/20 text-success'
+                    : accuracy >= 50 ? 'bg-warning/20 text-warning'
+                    : 'bg-error/20 text-error'
+                    : 'bg-elevated text-ink-3'
                   return (
                     <div
                       key={lesson.lesson_id ?? lesson.title}
-                      className="flex items-center justify-between p-3 rounded-xl bg-surface-overlay"
+                      className="flex items-start gap-3 p-3 rounded-xl bg-canvas"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
-                          isComplete ? 'bg-success/20' : 'bg-gold/10'
-                        }`}>
-                          {isComplete
-                            ? <CheckCircle className="w-6 h-6 text-success" />
-                            : <XCircle className="w-6 h-6 text-gold" />
-                          }
-                        </div>
-                        <div>
-                          <p className="font-medium text-ink">{lesson.title}</p>
-                          <p className="text-sm text-ink-3">
-                            {lesson.difficulty ?? 'General'} · {lesson.questions.length} questions
-                          </p>
-                        </div>
+                      {/* Score circle */}
+                      <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 font-bold text-sm ${badgeColor}`}>
+                        {accuracy !== null ? `${accuracy}%` : '–'}
                       </div>
-                      {accuracy !== null && (
-                        <span className={`text-sm font-semibold ${
-                          accuracy >= 75 ? 'text-success'
-                          : accuracy >= 50 ? 'text-warning'
-                          : 'text-error'
-                        }`}>
-                          {accuracy}%
-                        </span>
-                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-ink leading-snug line-clamp-2">{lesson.title}</p>
+                        <p className="text-xs text-ink-3 mt-0.5">
+                          {lesson.difficulty ? lesson.difficulty.charAt(0).toUpperCase() + lesson.difficulty.slice(1) : 'General'} · {lesson.questions.length} questions
+                        </p>
+                        {lesson.lesson_id && (
+                          <Link
+                            to={`/play/lessons/${lesson.lesson_id}`}
+                            className="btn-ghost btn-sm text-xs mt-2 inline-flex"
+                          >
+                            Practice Again
+                          </Link>
+                        )}
+                      </div>
                     </div>
                   )
                 })}

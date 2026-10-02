@@ -10,19 +10,21 @@
 
 @theme {
   /* ── Dark theme — navy palette ───────────────────────────────────────────── */
-  --color-canvas:   #07182c;   /* deepest layer, app bg              */
-  --color-surface:  #0e2a47;   /* card / panel surface               */
-  --color-elevated: #16395c;   /* hover, active, progress track      */
-  --color-line:     #21466b;   /* card edges, dividers               */
-  --color-gold:     #f4a024;   /* CTA, progress, icons, links        */
-  --color-amber:    #e0901a;   /* deep amber — btn hover             */
-  --color-on-gold:  #0a1e33;   /* text on gold buttons               */
-  --color-ink:      #eaf1f8;   /* headings, body — off-white         */
-  --color-ink-2:    #9db2c9;   /* subtitles, lesson counts           */
-  --color-ink-3:    #6b83a0;   /* timestamps, muted hints            */
-  --color-link:     #5da2e0;   /* hyperlinks                         */
-  --color-success:  #3dbe8a;
-  --color-error:    #e2574b;
+  --color-canvas:       #0A1628;   /* deepest layer, app bg              */
+  --color-surface:      #0F2440;   /* card / panel surface               */
+  --color-elevated:     #143152;   /* hover, active, highlighted card    */
+  --color-line:         #1E3A5C;   /* card edges, dividers               */
+  --color-gold:         #F5A03A;   /* CTA buttons — orange               */
+  --color-amber:        #E8911F;   /* btn hover (slightly darker orange) */
+  --color-on-gold:      #1A1206;   /* text on gold/orange buttons        */
+  --color-accent-text:  #F5A03A;   /* active nav, accent labels          */
+  --color-ink:          #F1F5F9;   /* headings, body                     */
+  --color-ink-2:        #A3B3C7;   /* subtitles, lesson counts           */
+  --color-ink-3:        #7F93AB;   /* timestamps, muted hints            */
+  --color-link:         #5da2e0;   /* hyperlinks                         */
+  --color-progress:     #CBD5E1;   /* progress bar fill                  */
+  --color-success:      #34D399;   /* accuracy green / Solid             */
+  --color-error:        #F87171;   /* accuracy red / Weak                */
 
   /* ── Brand scale (aliases for the gold accent) ───────────────────────────── */
   --color-brand-50:  #fffbeb;
@@ -38,9 +40,9 @@
   --color-brand-950: #451a03;
 
   /* ── Semantic surface aliases (used by component classes) ────────────────── */
-  --color-surface-raised:   #0e2a47;  /* = surface  */
-  --color-surface-overlay:  #16395c;  /* = elevated */
-  --color-surface-muted:    #21466b;  /* = line     */
+  --color-surface-raised:   #0F2440;  /* = surface  */
+  --color-surface-overlay:  #143152;  /* = elevated */
+  --color-surface-muted:    #1E3A5C;  /* = line     */
 
   /* ── Felt (poker table) ──────────────────────────────────────────────────── */
   --color-felt:       #1a472a;
@@ -48,12 +50,12 @@
   --color-felt-dark:  #0f3320;
 
   /* ── Extended status ─────────────────────────────────────────────────────── */
-  --color-success-dark:  #16a34a;
-  --color-success-muted: #166534;
-  --color-error-dark:    #dc2626;
+  --color-success-dark:  #059669;
+  --color-success-muted: #065f46;
+  --color-error-dark:    #ef4444;
   --color-error-muted:   #991b1b;
-  --color-warning:       #f4a024;
-  --color-warning-dark:  #e0901a;
+  --color-warning:       #FBBF24;   /* accuracy amber — distinct from button orange */
+  --color-warning-dark:  #F59E0B;
   --color-warning-muted: #92400e;
 
   /* ── Typography ──────────────────────────────────────────────────────────── */
@@ -83,28 +85,38 @@
   --animate-score-reveal: scoreReveal 0.4s ease-out forwards;
 }
 
+/* ─── PROGRESS TRACK ─────────────────────────────────────────────────────────
+ * rgba cannot live in @theme, so it's set here and overridden for light mode.
+ */
+:root { --progress-track-bg: rgba(255,255,255,0.12); }
+:root.light { --progress-track-bg: #E2E8F0; }
+
 /* ─── LIGHT THEME OVERRIDES ──────────────────────────────────────────────────
  * Applied when <html class="light"> is set by the theme toggle.
  * Gold accent stays identical — only surfaces and body text flip.
  */
 :root.light {
-  --color-canvas:          #f4f6fa;
-  --color-surface:         #ffffff;
-  --color-elevated:        #f4f6fa;
-  --color-line:            #dbe2ec;
-  --color-gold:            #b87200;  /* darkened for AA contrast on white (4.6:1) */
-  --color-amber:           #9e6000;  /* proportionally darker hover state */
-  --color-on-gold:         #ffffff;  /* white text on darker gold button */
-  --color-ink:             #0c2340;
-  --color-ink-2:           #4a5e78;
-  --color-ink-3:           #4a5e78;
+  --color-canvas:          #F1F5F9;
+  --color-surface:         #FFFFFF;
+  --color-elevated:        #E9F0F8;
+  --color-line:            #E2E8F0;
+  --color-gold:            #F5A03A;  /* same orange as dark mode (1.1) */
+  --color-amber:           #E8911F;  /* btn hover */
+  --color-on-gold:         #1A1206;  /* dark text on orange (1.1) */
+  --color-accent-text:     #C2410C;  /* active nav/labels — darker for white bg contrast */
+  --color-ink:             #0F172A;
+  --color-ink-2:           #475569;
+  --color-ink-3:           #64748B;
   --color-link:            #2e6fb8;
-  --color-success:         #1c7a55;
-  --color-error:           #a8332a;
+  --color-progress:        #475569;  /* gray progress fill on light bg */
+  --color-success:         #15803D;
+  --color-error:           #B91C1C;
+  --color-warning:         #A16207;  /* accuracy amber on light bg */
+  --color-warning-dark:    #92400e;
 
-  --color-surface-raised:  #ffffff;
-  --color-surface-overlay: #f4f6fa;
-  --color-surface-muted:   #dbe2ec;
+  --color-surface-raised:  #FFFFFF;
+  --color-surface-overlay: #E9F0F8;
+  --color-surface-muted:   #E2E8F0;
 
   --shadow-card:    0 1px 4px rgba(12, 35, 64, 0.08);
   --shadow-raised:  0 2px 12px rgba(12, 35, 64, 0.12);
@@ -220,6 +232,10 @@
   /* Forms */
   .input {
     @apply w-full px-4 py-3 bg-surface border border-line rounded-xl text-ink placeholder:text-ink-3 focus:border-gold focus:ring-1 focus:ring-gold transition-colors outline-none;
+    color-scheme: dark;
+  }
+  :root.light .input {
+    color-scheme: light;
   }
 
   .label {
@@ -257,7 +273,8 @@
   }
 
   .nav-item-active {
-    @apply flex items-center gap-2 px-4 py-3 rounded-xl text-gold bg-gold/10 hover:bg-gold/15 transition-colors;
+    @apply flex items-center gap-2 px-4 py-3 rounded-xl bg-elevated font-semibold transition-colors;
+    color: var(--color-accent-text);
   }
 
   /* Filter chips */
@@ -271,11 +288,13 @@
 
   /* Progress */
   .progress-bar {
-    @apply h-2 bg-elevated rounded-full overflow-hidden;
+    @apply h-2 rounded-full overflow-hidden;
+    background: var(--progress-track-bg);
   }
 
   .progress-fill {
-    @apply h-full bg-gold rounded-full transition-all duration-500;
+    @apply h-full rounded-full transition-all duration-500;
+    background: var(--color-progress);
   }
 
   /* Overlays & drawers */

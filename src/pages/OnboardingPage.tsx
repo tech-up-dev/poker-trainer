@@ -111,7 +111,7 @@ export function OnboardingPage(): JSX.Element {
                     <p className="font-semibold text-ink text-sm">Track your progress</p>
                     <p className="text-ink-3 text-sm mt-0.5 leading-relaxed">
                       {/* [CLIENT COPY] */}
-                      Build a streak, review missed questions, and watch your win rate climb.
+                      Track your accuracy, review missed questions, and watch your knowledge grow.
                     </p>
                   </div>
                 </div>
