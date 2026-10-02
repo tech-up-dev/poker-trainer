@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react'
 import type { JSX } from 'react'
 import { Link } from 'react-router-dom'
-import { TrendingUp, CheckCircle2, CheckCircle, Plus, Trash2, DollarSign, Clock, Calendar, ChevronRight } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Plus, Trash2, DollarSign, Clock, Calendar, ChevronRight } from 'lucide-react'
 import { supabaseProd } from '../lib/supabase-prod'
 
 import type { Lesson } from '../../shared/schemas/lesson'
@@ -117,11 +117,11 @@ const EMPTY_SESSION: SessionForm = {
 
 function RunningTotalGraph({ sessions }: { sessions: SessionLog[] }): JSX.Element {
   const sorted = [...sessions].sort((a, b) => a.session_date.localeCompare(b.session_date))
-  let running = 0
-  const points = sorted.map((s) => {
-    running += s.result_amount
-    return { result: s.result_amount, total: running, date: s.session_date }
-  })
+  const points = sorted.reduce<{ result: number; total: number; date: string }[]>((acc, s) => {
+    const prev = acc.length > 0 ? acc[acc.length - 1].total : 0
+    acc.push({ result: s.result_amount, total: prev + s.result_amount, date: s.session_date })
+    return acc
+  }, [])
 
   const W = 600
   const H = 160
@@ -336,7 +336,7 @@ function SessionsTab(): JSX.Element {
         </div>
       )}
 
-      {/* Running total graph — shown from 3 sessions (6.7–6.11) */}
+      {/* Running total graph - shown from 3 sessions (6.7-6.11) */}
       {!loading && totalSessions >= 3 && <RunningTotalGraph sessions={sessions} />}
       {!loading && totalSessions > 0 && totalSessions < 3 && (
         <p className="text-sm text-ink-3 text-center py-2">
@@ -536,7 +536,6 @@ export function StatsPage(): JSX.Element {
 
 
   const attempted = lessons.filter((l) => l.lesson_id && progressMap[l.lesson_id])
-  const completed = attempted.filter((l) => l.lesson_id && progressMap[l.lesson_id]?.completed)
   const totalAnswered = attempted.reduce(
     (sum, l) => sum + (l.lesson_id ? (progressMap[l.lesson_id]?.questionsAnswered ?? 0) : 0),
     0,

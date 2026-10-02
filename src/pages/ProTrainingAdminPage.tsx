@@ -364,7 +364,7 @@ function CourseFormModal({
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-semibold text-ink-3 uppercase tracking-wide">
-                GHL tags — owns course if member has any ({form.ghl_tags.length}/{MAX_TAGS})
+                GHL tags - owns course if member has any ({form.ghl_tags.length}/{MAX_TAGS})
               </label>
               <button
                 type="button"
@@ -398,7 +398,7 @@ function CourseFormModal({
               </div>
             )}
 
-            {/* Search input — hidden when at max */}
+            {/* Search input - hidden when at max */}
             {form.ghl_tags.length < MAX_TAGS && (
               <>
                 <input

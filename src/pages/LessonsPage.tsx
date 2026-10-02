@@ -301,7 +301,7 @@ export function LessonsPage(): JSX.Element {
                   </div>
                 </div>
 
-                {/* Concept chips (4.4 — tap to open concept page) */}
+                {/* Concept chips (4.4 - tap to open concept page) */}
                 <div className="grid gap-1.5 sm:grid-cols-2">
                   {p.concepts.map((c) => (
                     <button

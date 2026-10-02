@@ -176,7 +176,7 @@ export function LessonSessionPage(): JSX.Element {
           const att = (data?.attempts as number | null) ?? 0
           if (!conceptWasSolidRef.current && acc !== null && acc >= 75 && att >= 8) {
             found.push('concept_solid')
-            try { localStorage.setItem(storageKey, '1') } catch {}
+            try { localStorage.setItem(storageKey, '1') } catch { /* storage blocked */ }
           }
         }
       }
@@ -189,7 +189,7 @@ export function LessonSessionPage(): JSX.Element {
         const activity = await fetchActivitySummary()
         if (activity.monthlyGoalDays > 0 && activity.monthlyActiveDays >= activity.monthlyGoalDays) {
           found.push('monthly_goal')
-          try { localStorage.setItem(monthKey, '1') } catch {}
+          try { localStorage.setItem(monthKey, '1') } catch { /* storage blocked */ }
         }
       }
 
