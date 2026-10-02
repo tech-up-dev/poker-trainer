@@ -161,7 +161,7 @@ type Course = {
   cta_text: string
   sort_order: number
   enabled: boolean
-  ghl_tag: string | null
+  ghl_tags: string[]
 }
 
 type CourseForm = Omit<Course, 'id' | 'enabled'>
@@ -185,7 +185,7 @@ const EMPTY_FORM: CourseForm = {
   sales_url: '',
   cta_text: 'Order Now',
   sort_order: 0,
-  ghl_tag: null,
+  ghl_tags: [],
 }
 
 function CourseFormModal({
@@ -204,11 +204,14 @@ function CourseFormModal({
   const [form, setForm] = useState<CourseForm>(initial ?? EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [tagSearch, setTagSearch] = useState(initial?.ghl_tag ?? '')
+  const [tagSearch, setTagSearch] = useState('')
   const [refreshingTags, setRefreshingTags] = useState(false)
 
+  const MAX_TAGS = 5
   const filteredTags = tagSearch.length > 0
-    ? ghlTags.filter((t) => t.toLowerCase().includes(tagSearch.toLowerCase())).slice(0, 50)
+    ? ghlTags
+        .filter((t) => t.toLowerCase().includes(tagSearch.toLowerCase()) && !form.ghl_tags.includes(t))
+        .slice(0, 50)
     : []
 
   async function handleRefreshTags(): Promise<void> {
@@ -357,11 +360,11 @@ function CourseFormModal({
             />
           </div>
 
-          {/* GHL tag */}
+          {/* GHL tags (multi, up to 5) */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="block text-xs font-semibold text-ink-3 uppercase tracking-wide">
-                GHL tag (suppression)
+                GHL tags - owns course if member has any ({form.ghl_tags.length}/{MAX_TAGS})
               </label>
               <button
                 type="button"
@@ -372,44 +375,60 @@ function CourseFormModal({
                 {refreshingTags ? 'Refreshing…' : 'Refresh tags'}
               </button>
             </div>
-            <input
-              className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-gold"
-              value={tagSearch}
-              onChange={(e) => {
-                setTagSearch(e.target.value)
-                if (!e.target.value) set('ghl_tag', null)
-              }}
-              placeholder="Search or clear to unset…"
-            />
-            {filteredTags.length > 0 && (
-              <div className="border border-line rounded-lg mt-1 max-h-36 overflow-y-auto bg-canvas">
-                {filteredTags.map((tag) => (
-                  <button
+
+            {/* Selected tag chips */}
+            {form.ghl_tags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mb-2">
+                {form.ghl_tags.map((tag) => (
+                  <span
                     key={tag}
-                    type="button"
-                    onClick={() => { set('ghl_tag', tag); setTagSearch(tag) }}
-                    className="w-full text-left px-3 py-1.5 text-xs text-ink hover:bg-surface-overlay transition-colors"
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium bg-gold/15 text-gold border border-gold/30"
                   >
                     {tag}
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => set('ghl_tags', form.ghl_tags.filter((t) => t !== tag))}
+                      className="ml-0.5 hover:opacity-70"
+                      aria-label={`Remove ${tag}`}
+                    >
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
                 ))}
               </div>
             )}
-            {form.ghl_tag && (
-              <p className="text-xs text-ink-3 mt-1">
-                Selected: <span className="text-gold font-medium">{form.ghl_tag}</span>
-                {' '}
-                <button
-                  type="button"
-                  onClick={() => { set('ghl_tag', null); setTagSearch('') }}
-                  className="text-error hover:opacity-80"
-                >
-                  Clear
-                </button>
-              </p>
+
+            {/* Search input - hidden when at max */}
+            {form.ghl_tags.length < MAX_TAGS && (
+              <>
+                <input
+                  className="w-full bg-canvas border border-line rounded-lg px-3 py-2 text-sm text-ink focus:outline-none focus:border-gold"
+                  value={tagSearch}
+                  onChange={(e) => setTagSearch(e.target.value)}
+                  placeholder="Search GHL tags to add…"
+                />
+                {filteredTags.length > 0 && (
+                  <div className="border border-line rounded-lg mt-1 max-h-36 overflow-y-auto bg-canvas">
+                    {filteredTags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => {
+                          set('ghl_tags', [...form.ghl_tags, tag])
+                          setTagSearch('')
+                        }}
+                        className="w-full text-left px-3 py-1.5 text-xs text-ink hover:bg-surface-overlay transition-colors"
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
-            <p className="text-xs text-ink-3 mt-1">
-              Members with this GHL tag already own this course and won't see it.
+
+            <p className="text-xs text-ink-3 mt-1.5">
+              A member who has <em>any one</em> of these tags in GHL is treated as owning this course.
             </p>
           </div>
 
@@ -576,7 +595,7 @@ export function ProTrainingAdminPage(): JSX.Element {
         sales_url: editingCourse.sales_url,
         cta_text: editingCourse.cta_text ?? 'Order Now',
         sort_order: editingCourse.sort_order,
-        ghl_tag: editingCourse.ghl_tag,
+        ghl_tags: editingCourse.ghl_tags ?? [],
       }
     : null
 
@@ -666,7 +685,7 @@ export function ProTrainingAdminPage(): JSX.Element {
                     <p className="text-sm font-semibold text-ink truncate">{course.title}</p>
                     <p className="text-xs text-ink-3 mt-0.5">
                       ${course.list_price} → ${course.member_price} ({discount}% off) · sort {course.sort_order}
-                      {course.ghl_tag && <> · <span className="text-gold">{course.ghl_tag}</span></>}
+                      {course.ghl_tags?.length > 0 && <> · <span className="text-gold">{course.ghl_tags.join(', ')}</span></>}
                     </p>
                   </div>
 

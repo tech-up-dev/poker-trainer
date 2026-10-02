@@ -1,303 +1,341 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom'
 import type { JSX } from 'react'
-import { Search, ChevronRight, CheckCircle2, ChevronDown } from 'lucide-react'
+import { Search, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
 import type { LessonProgress } from '../lib/progress'
-import { fetchConcepts } from '../lib/concepts'
-import type { Concept } from '../lib/concepts'
+import { fetchSkillsPath } from '../lib/skills-path'
+import type { SkillPrinciple, SkillConcept } from '../lib/skills-path'
 
-const DIFFICULTIES = ['beginner', 'intermediate', 'advanced'] as const
-type Difficulty = typeof DIFFICULTIES[number]
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const DIFFICULTY_LABEL: Record<Difficulty, string> = {
-  beginner:     'Beginner',
-  intermediate: 'Intermediate',
-  advanced:     'Advanced',
+function accuracyColor(pct: number | null): string {
+  if (pct === null) return 'text-ink-3'
+  if (pct >= 75) return 'text-success'
+  if (pct >= 50) return 'text-warning'
+  return 'text-error'
+}
+
+function accuracyBadge(pct: number | null): string {
+  if (pct === null) return 'bg-surface text-ink-3'
+  if (pct >= 75) return 'bg-success/15 text-success'
+  if (pct >= 50) return 'bg-warning/15 text-warning'
+  return 'bg-error/15 text-error'
 }
 
 function PartialRing({ answered, total }: { answered: number; total: number }): JSX.Element {
   const r = 8
   const circumference = 2 * Math.PI * r
-  const progress = total > 0 ? Math.min(answered / total, 1) : 0
-  const dash = progress * circumference
+  const dash = total > 0 ? Math.min(answered / total, 1) * circumference : 0
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" className="shrink-0 -rotate-90">
       <circle cx="10" cy="10" r={r} fill="none" stroke="currentColor" strokeWidth="2" className="text-line" />
       <circle
-        cx="10" cy="10" r={r} fill="none"
-        stroke="currentColor" strokeWidth="2"
-        strokeDasharray={`${dash} ${circumference}`}
-        strokeLinecap="round"
+        cx="10" cy="10" r={r} fill="none" stroke="currentColor" strokeWidth="2"
+        strokeDasharray={`${dash} ${circumference}`} strokeLinecap="round"
         className="text-gold"
       />
     </svg>
   )
 }
 
-export function LessonsPage(): JSX.Element {
+// ─── Lesson row (3 states) ────────────────────────────────────────────────────
+
+function LessonRow({
+  lesson,
+  progress,
+  titleOverride,
+}: {
+  lesson: Lesson
+  progress: LessonProgress | undefined
+  titleOverride?: string
+}): JSX.Element {
   const navigate = useNavigate()
+  const total = lesson.questions.length
+  const answered = progress?.questionsAnswered ?? 0
+  const correct = progress?.questionsCorrect ?? 0
+  const completed = progress?.completed ?? false
+  const accuracy = answered > 0 ? Math.round((correct / answered) * 100) : null
+  const displayTitle = titleOverride ?? lesson.title
+  const diffLabel = lesson.difficulty
+    ? lesson.difficulty.charAt(0).toUpperCase() + lesson.difficulty.slice(1)
+    : 'General'
+
+  return (
+    <button
+      type="button"
+      onClick={() => void navigate(`/play/lessons/${lesson.lesson_id}`)}
+      className="w-full text-left flex items-start gap-3 p-3 rounded-xl hover:bg-elevated transition-colors group"
+    >
+      {/* State icon */}
+      <div className="mt-0.5 shrink-0">
+        {completed
+          ? <CheckCircle2 className="w-5 h-5 text-success" />
+          : answered > 0
+          ? <PartialRing answered={answered} total={total} />
+          : <div className="w-5 h-5 rounded-full border-2 border-line" />
+        }
+      </div>
+
+      {/* Text */}
+      <div className="flex-1 min-w-0">
+        <p className="text-base font-medium text-ink line-clamp-2">{displayTitle}</p>
+        <p className="text-xs text-ink-3 mt-0.5">
+          {diffLabel} · {total} question{total !== 1 ? 's' : ''}
+        </p>
+        {/* Status line */}
+        <p className={`text-xs mt-0.5 ${completed ? accuracyColor(accuracy) : 'text-ink-3'}`}>
+          {completed && accuracy !== null
+            ? `${accuracy}% correct`
+            : answered > 0
+            ? `${answered} of ${total} answered`
+            : 'Not started'}
+        </p>
+      </div>
+
+      {/* Right side */}
+      <div className="flex items-center gap-2 shrink-0 self-center">
+        {completed && (
+          <span className="text-xs text-ink-3 group-hover:text-gold transition-colors hidden sm:inline">
+            Practice again
+          </span>
+        )}
+        <ChevronRight className="w-4 h-4 text-ink-3 group-hover:text-gold transition-colors" />
+      </div>
+    </button>
+  )
+}
+
+// ─── Principle helpers ────────────────────────────────────────────────────────
+
+function principleAvg(p: SkillPrinciple): number {
+  const practiced = p.concepts.filter((c) => c.attempts > 0)
+  if (practiced.length === 0) return 0
+  return Math.round(practiced.reduce((sum, c) => sum + (c.accuracy ?? 0), 0) / practiced.length)
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export function LessonsPage(): JSX.Element {
   const location = useLocation()
-  const [searchParams] = useSearchParams()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeConcept = searchParams.get('concept')
+
+  const [skillsPath, setSkillsPath] = useState<SkillPrinciple[] | null>(null)
   const [lessons, setLessons] = useState<Lesson[]>([])
-  const [concepts, setConcepts] = useState<Concept[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
-  const [activeFilter, setActiveFilter] = useState<Difficulty | null>(null)
-  const [activeConcept, setActiveConcept] = useState<string | null>(
-    searchParams.get('concept'),
-  )
 
   useEffect(() => {
-    Promise.all([fetchAllPublishedLessons(), fetchLessonProgress(), fetchConcepts()])
-      .then(([allLessons, progressRows, allConcepts]) => {
+    Promise.all([fetchSkillsPath(), fetchAllPublishedLessons(), fetchLessonProgress()])
+      .then(([path, allLessons, progressRows]) => {
+        setSkillsPath(path)
         setLessons(allLessons)
-        // Only show concepts that actually appear on at least one published lesson
-        const usedSlugs = new Set(allLessons.map((l) => l.concept).filter(Boolean))
-        setConcepts(
-          allConcepts
-            .filter((c) => usedSlugs.has(c.slug))
-            .sort((a, b) => {
-              const aNum = /^\d/.test(a.name)
-              const bNum = /^\d/.test(b.name)
-              if (aNum !== bNum) return aNum ? -1 : 1
-              return a.name.localeCompare(b.name)
-            })
-        )
         const map: Record<string, LessonProgress> = {}
         for (const row of progressRows) map[row.lessonId] = row
         setProgressMap(map)
       })
-      .catch((err: unknown) => {
-        setError(err instanceof Error ? err.message : 'Failed to load lessons.')
-      })
+      .catch(() => {})
       .finally(() => setLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
 
-  const filtered = lessons.filter((l) => {
-    const matchesSearch = l.title.toLowerCase().includes(search.toLowerCase())
-    const matchesDiff = !activeFilter || l.difficulty === activeFilter
-    const matchesConcept = !activeConcept || l.concept === activeConcept
-    return matchesSearch && matchesDiff && matchesConcept
-  })
+  // ── Concept sub-page ────────────────────────────────────────────────────────
+  if (activeConcept) {
+    let conceptData: SkillConcept | null = null
+    let principleName = ''
+    for (const p of (skillsPath ?? [])) {
+      const c = p.concepts.find((c) => c.slug === activeConcept)
+      if (c) { conceptData = c; principleName = p.name; break }
+    }
 
-  const activeDifficulties = activeFilter
-    ? [activeFilter]
-    : (DIFFICULTIES.filter((d) => filtered.some((l) => l.difficulty === d)))
+    const conceptName = conceptData?.name ?? activeConcept
+    const conceptLessons = lessons.filter((l) => l.concept === activeConcept)
+    const prefix = conceptName + ': '
 
-  const untagged = filtered.filter((l) => !l.difficulty)
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
+        <button
+          type="button"
+          onClick={() => setSearchParams({})}
+          className="flex items-center gap-1 text-sm text-ink-3 hover:text-ink transition-colors"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          Lessons
+        </button>
 
+        {loading ? (
+          <p className="text-sm text-ink-3">Loading...</p>
+        ) : (
+          <>
+            {/* Concept header (4.14) */}
+            <div>
+              <h1 className="text-2xl font-bold text-ink">{conceptName}</h1>
+              <p className="text-sm text-ink-3 mt-1">
+                {principleName}
+                {conceptData && conceptData.accuracy !== null && (
+                  <>
+                    {' · '}
+                    <span className={`font-medium ${accuracyColor(conceptData.accuracy)}`}>
+                      {conceptData.accuracy}% accuracy
+                    </span>
+                    {' on your last '}
+                    {conceptData.attempts} answer{conceptData.attempts !== 1 ? 's' : ''}
+                    {' over the past 90 days'}
+                  </>
+                )}
+                {conceptData && conceptData.accuracy === null && conceptData.attempts === 0 && (
+                  <> · No attempts yet</>
+                )}
+              </p>
+            </div>
+
+            {/* Lesson rows */}
+            {conceptLessons.length === 0 ? (
+              <p className="text-sm text-ink-3 py-4">No lessons for this concept yet.</p>
+            ) : (
+              <div className="card divide-y divide-line !p-0 overflow-hidden">
+                {conceptLessons.map((lesson) => {
+                  const titleDisplay = lesson.title.startsWith(prefix)
+                    ? lesson.title.slice(prefix.length)
+                    : lesson.title
+                  return (
+                    <LessonRow
+                      key={lesson.lesson_id ?? lesson.title}
+                      lesson={lesson}
+                      progress={lesson.lesson_id ? progressMap[lesson.lesson_id] : undefined}
+                      titleOverride={titleDisplay}
+                    />
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    )
+  }
+
+  // ── Search results ──────────────────────────────────────────────────────────
+  const searchActive = search.trim().length > 0
+  const searchResults = searchActive
+    ? lessons.filter((l) => l.title.toLowerCase().includes(search.toLowerCase()))
+    : []
+
+  // ── Main view (principles + concept chips) ──────────────────────────────────
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-ink mb-2">Lessons</h1>
-        <p className="text-lg text-ink-2">Build your poker knowledge one hand at a time</p>
+        <h1 className="text-2xl font-bold text-ink">Lessons</h1>
+        <p className="text-sm text-ink-2 mt-1">
+          Five Controlled Chaos principles. Everything is unlocked - train in any order.
+        </p>
       </div>
 
-      {/* Search */}
+      {/* Search (4.2) */}
       <div className="relative">
         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-3" />
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search lessons…"
+          placeholder="Search lessons..."
           className="input pl-12"
         />
       </div>
 
-      {/* Difficulty filter chips */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-sm text-ink-3 shrink-0">Difficulty</span>
-        <button
-          type="button"
-          onClick={() => setActiveFilter(null)}
-          className={activeFilter === null ? 'chip-active' : 'chip-inactive'}
-        >
-          All
-        </button>
-        {DIFFICULTIES.filter((d) => lessons.some((l) => l.difficulty === d)).map((diff) => {
-          const total = lessons.filter((l) => l.difficulty === diff).length
-          const done = lessons.filter(
-            (l) => l.difficulty === diff && l.lesson_id && progressMap[l.lesson_id]?.completed,
-          ).length
-          return (
-            <button
-              key={diff}
-              type="button"
-              onClick={() => setActiveFilter(diff)}
-              className={activeFilter === diff ? 'chip-active' : 'chip-inactive'}
-            >
-              {DIFFICULTY_LABEL[diff]}
-              <span className="text-xs opacity-70">({done}/{total})</span>
-            </button>
-          )
-        })}
-      </div>
+      {loading && <p className="text-sm text-ink-3">Loading...</p>}
 
-      {/* Concept filter - dropdown + active chip */}
-      {concepts.length > 0 && (
-        <div className="flex items-center gap-2 flex-wrap">
-          <label htmlFor="topic-filter" className="text-sm text-ink-3 shrink-0">Topic</label>
-          <div className="relative">
-            <select
-              id="topic-filter"
-              value={activeConcept ?? ''}
-              onChange={(e) => setActiveConcept(e.target.value || null)}
-              className="appearance-none rounded-lg border border-line bg-canvas text-ink text-sm px-3 py-1.5 pr-8 outline-none focus:border-gold"
-            >
-              <option value="">All topics</option>
-              {concepts.map((c) => (
-                <option key={c.slug} value={c.slug}>{c.name}</option>
+      {/* Search results (4.5) */}
+      {searchActive && !loading && (
+        <>
+          {searchResults.length === 0 ? (
+            <p className="text-sm text-ink-3 py-4 text-center">No lessons match your search.</p>
+          ) : (
+            <div className="card divide-y divide-line !p-0 overflow-hidden">
+              {searchResults.map((lesson) => (
+                <LessonRow
+                  key={lesson.lesson_id ?? lesson.title}
+                  lesson={lesson}
+                  progress={lesson.lesson_id ? progressMap[lesson.lesson_id] : undefined}
+                />
               ))}
-            </select>
-            <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-3 pointer-events-none" />
-          </div>
-          {activeConcept && (() => {
-            const name = concepts.find((c) => c.slug === activeConcept)?.name ?? activeConcept
-            const count = filtered.length
-            return (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setActiveConcept(null)}
-                  className="chip-active flex items-center gap-1"
-                >
-                  Topic: {name}
-                  <span className="text-xs opacity-70">×</span>
-                </button>
-                <span className="text-sm text-ink-3">{count} lesson{count !== 1 ? 's' : ''}</span>
-              </>
-            )
-          })()}
-        </div>
+            </div>
+          )}
+        </>
       )}
 
-      {loading && <p className="text-ink-3 text-sm">Loading lessons…</p>}
-      {error && <p className="text-error text-sm">{error}</p>}
+      {/* Principles (4.6 always expanded) */}
+      {!searchActive && skillsPath && (
+        <div className="space-y-4">
+          {skillsPath.map((p, i) => {
+            const practiced = p.concepts.filter((c) => c.attempts > 0).length
+            const avg = principleAvg(p)
+            const barColor = avg >= 75
+              ? 'bg-success'
+              : avg >= 50
+              ? 'bg-warning'
+              : avg > 0
+              ? 'bg-error'
+              : ''
+            return (
+              <div key={p.slug} className="card space-y-4">
+                {/* Principle header */}
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-full bg-gold/15 border border-gold/30 flex items-center justify-center shrink-0 mt-0.5">
+                    <span className="text-gold font-bold text-sm">{i + 1}</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-base font-semibold text-ink leading-tight">{p.name}</h2>
+                    <p className="text-xs text-ink-3 mt-0.5">
+                      {practiced} of {p.concepts.length} concept{p.concepts.length !== 1 ? 's' : ''} practiced
+                      {avg > 0 && <span className="ml-1">· {avg}% avg accuracy</span>}
+                    </p>
+                    <div className="h-1 rounded-full mt-2 overflow-hidden" style={{ background: 'var(--progress-track-bg)' }}>
+                      <div className={`h-full rounded-full transition-all ${barColor}`} style={{ width: `${avg}%` }} />
+                    </div>
+                  </div>
+                </div>
 
-      {/* Grouped by difficulty */}
-      <div className="space-y-8">
-        {activeDifficulties.map((diff) => {
-          const group = filtered.filter((l) => l.difficulty === diff)
-          if (group.length === 0) return null
-          const completed = group.filter(
-            (l) => l.lesson_id && progressMap[l.lesson_id]?.completed,
-          ).length
-          const progress = Math.round((completed / group.length) * 100)
-
-          return (
-            <div key={diff} className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-ink">{DIFFICULTY_LABEL[diff]}</h2>
-                <span className="text-sm text-ink-3">{completed}/{group.length} completed</span>
-              </div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: `${progress}%` }} />
-              </div>
-
-              <div className="grid gap-3">
-                {group.map((lesson) => {
-                  const p = lesson.lesson_id ? progressMap[lesson.lesson_id] : undefined
-                  const accuracy = p && p.questionsAnswered > 0
-                    ? Math.round((p.questionsCorrect / p.questionsAnswered) * 100)
-                    : null
-                  const pct = p && p.questionsAnswered > 0
-                    ? Math.round((p.questionsCorrect / p.questionsAnswered) * 100)
-                    : 0
-
-                  return (
+                {/* Concept chips (4.4 - tap to open concept page) */}
+                <div className="grid gap-1.5 sm:grid-cols-2">
+                  {p.concepts.map((c) => (
                     <button
-                      key={lesson.lesson_id ?? lesson.title}
+                      key={c.slug}
                       type="button"
-                      onClick={() => navigate(`/play/lessons/${lesson.lesson_id}`)}
-                      className="card flex items-center justify-between hover:bg-surface-overlay transition-colors group text-left w-full overflow-hidden"
+                      onClick={() => setSearchParams({ concept: c.slug })}
+                      className="flex items-center justify-between gap-3 p-3 rounded-xl bg-canvas border border-line hover:border-gold/40 hover:bg-elevated transition-colors group text-left"
                     >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 min-w-0">
-                          {p?.completed ? (
-                            <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
-                          ) : p ? (
-                            <PartialRing answered={p.questionsAnswered} total={lesson.questions.length} />
-                          ) : (
-                            <div className="w-5 h-5 rounded-full border-2 border-line shrink-0" />
-                          )}
-                          <h3 className="text-base font-medium text-ink truncate">{lesson.title}</h3>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-ink-3 ml-7">
-                          <span>{lesson.questions.length} question{lesson.questions.length !== 1 ? 's' : ''}</span>
-                          {lesson.principle_tag && (
-                            <span className="badge-muted">{lesson.principle_tag}</span>
-                          )}
-                        </div>
-                        {p && p.questionsAnswered > 0 && (
-                          <div className="progress-bar mt-2 ml-7">
-                            <div className="progress-fill" style={{ width: `${pct}%` }} />
-                          </div>
+                      <span className="text-sm font-medium text-ink truncate group-hover:text-gold transition-colors">
+                        {c.name}
+                      </span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {c.accuracy !== null ? (
+                          <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${accuracyBadge(c.accuracy)}`}>
+                            {c.accuracy}%
+                          </span>
+                        ) : (
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-surface text-ink-3">
+                            Not started
+                          </span>
                         )}
-                      </div>
-
-                      <div className="flex items-center gap-3 shrink-0 ml-3">
-                        {accuracy !== null && !p?.completed && (
-                          <span className="text-sm font-medium text-ink-3">{accuracy}%</span>
-                        )}
-                        <ChevronRight className="w-5 h-5 text-ink-3 group-hover:text-gold transition-colors" />
+                        <ChevronRight className="w-3.5 h-3.5 text-ink-3 group-hover:text-gold transition-colors" />
                       </div>
                     </button>
-                  )
-                })}
+                  ))}
+                  {p.concepts.length === 0 && (
+                    <p className="text-sm text-ink-3">No concepts yet.</p>
+                  )}
+                </div>
               </div>
-            </div>
-          )
-        })}
-
-        {/* Untagged lessons (no difficulty) */}
-        {untagged.length > 0 && (
-          <div className="space-y-3">
-            <h2 className="text-xl font-semibold text-ink">General</h2>
-            <div className="grid gap-3">
-              {untagged.map((lesson) => {
-                const p = lesson.lesson_id ? progressMap[lesson.lesson_id] : undefined
-                return (
-                  <button
-                    key={lesson.lesson_id ?? lesson.title}
-                    type="button"
-                    onClick={() => navigate(`/play/lessons/${lesson.lesson_id}`)}
-                    className="card flex items-center justify-between hover:bg-surface-overlay transition-colors group text-left w-full overflow-hidden"
-                  >
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        {p?.completed ? (
-                          <CheckCircle2 className="w-5 h-5 text-success shrink-0" />
-                        ) : p ? (
-                          <PartialRing answered={p.questionsAnswered} total={lesson.questions.length} />
-                        ) : (
-                          <div className="w-5 h-5 rounded-full border-2 border-line shrink-0" />
-                        )}
-                        <h3 className="text-base font-medium text-ink truncate">{lesson.title}</h3>
-                      </div>
-                      <p className="text-sm text-ink-3 ml-7">{lesson.questions.length} question{lesson.questions.length !== 1 ? 's' : ''}</p>
-                    </div>
-                    <ChevronRight className="w-5 h-5 text-ink-3 group-hover:text-gold transition-colors shrink-0 ml-3" />
-                  </button>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {!loading && filtered.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-lg text-ink-2">No lessons found</p>
-            <p className="text-sm text-ink-3 mt-1">Try a different search or filter</p>
-          </div>
-        )}
-      </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

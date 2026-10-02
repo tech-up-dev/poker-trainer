@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { FormEvent, JSX } from 'react'
-import { PlayCircle, Zap, AlertTriangle, ChevronRight, Lock, CalendarDays, Target, Snowflake, Flame } from 'lucide-react'
+import { PlayCircle, Zap, AlertTriangle, ChevronRight, Lock, CalendarDays } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
 
@@ -16,7 +16,6 @@ import type { Concept } from '../lib/concepts'
 import { TodaysTip } from '../components/TodaysTip'
 import { fetchActivitySummary } from '../lib/activity'
 import type { ActivitySummary } from '../lib/activity'
-import { fetchUserStateRow, fetchFreezeCount } from '../lib/user-state'
 
 export function MemberDashboardPage(): JSX.Element {
   const navigate = useNavigate()
@@ -33,8 +32,6 @@ export function MemberDashboardPage(): JSX.Element {
   const pwInputRef = useRef<HTMLInputElement>(null)
   const [concepts, setConcepts] = useState<Concept[]>([])
   const [activity, setActivity] = useState<ActivitySummary | null>(null)
-  const [currentStreak, setCurrentStreak] = useState(0)
-  const [freezeCount, setFreezeCount] = useState(0)
 
   useEffect(() => {
     Promise.all([fetchAllPublishedLessons(), fetchLessonProgress()])
@@ -58,12 +55,8 @@ export function MemberDashboardPage(): JSX.Element {
   }, [])
 
   useEffect(() => {
-    Promise.all([fetchActivitySummary(), fetchUserStateRow(), fetchFreezeCount()])
-      .then(([activityData, stateRow, freezes]) => {
-        setActivity(activityData)
-        setCurrentStreak(stateRow.currentStreak)
-        setFreezeCount(freezes)
-      })
+    fetchActivitySummary()
+      .then(setActivity)
       .catch(() => {})
   }, [])
 
@@ -90,12 +83,9 @@ export function MemberDashboardPage(): JSX.Element {
   const continueLessonProgress = continueLesson?.lesson_id
     ? progressMap[continueLesson.lesson_id]
     : undefined
-  const continuePct =
-    continueLessonProgress && continueLessonProgress.questionsAnswered > 0
-      ? Math.round(
-          (continueLessonProgress.questionsCorrect / continueLessonProgress.questionsAnswered) * 100,
-        )
-      : null
+  const continueAnswered = continueLessonProgress?.questionsAnswered ?? 0
+  const continueTotal = continueLesson?.questions.length ?? 0
+  const continueAnsweredPct = continueTotal > 0 ? Math.round((continueAnswered / continueTotal) * 100) : 0
 
   const topLeaks = leaks && leaks.length > 0 ? leaks.slice(0, 3) : []
 
@@ -114,17 +104,17 @@ export function MemberDashboardPage(): JSX.Element {
         {!loading && continueLesson && (
           <div className="flex flex-col sm:flex-row sm:items-center gap-4">
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-bold text-ink mb-1 truncate">{continueLesson.title}</h2>
+              <h2 className="text-xl font-bold text-ink mb-1 line-clamp-2">{continueLesson.title}</h2>
               <p className="text-sm text-ink-3 mb-3">
-                {continueLesson.difficulty ?? 'General'} &middot;{' '}
+                {continueLesson.difficulty ? continueLesson.difficulty.charAt(0).toUpperCase() + continueLesson.difficulty.slice(1) : 'General'} &middot;{' '}
                 {continueLesson.questions.length}{' '}
                 {continueLesson.questions.length === 1 ? 'question' : 'questions'}
               </p>
-              {continuePct !== null && (
+              {continueAnswered > 0 && (
                 <div className="space-y-1 max-w-xs">
-                  <p className="text-xs text-ink-3">{continuePct}% correct so far</p>
+                  <p className="text-xs text-ink-3">{continueAnswered} of {continueTotal} questions answered</p>
                   <div className="progress-bar w-full">
-                    <div className="progress-fill" style={{ width: `${continuePct}%` }} />
+                    <div className="progress-fill" style={{ width: `${continueAnsweredPct}%` }} />
                   </div>
                 </div>
               )}
@@ -206,6 +196,7 @@ export function MemberDashboardPage(): JSX.Element {
           <p className="text-sm text-ink-3">Analysing your history…</p>
         )}
 
+        <p className="text-xs text-ink-3">10 questions from your weakest areas</p>
         <button
           type="button"
           onClick={() => void navigate('/play/drill')}
@@ -216,74 +207,30 @@ export function MemberDashboardPage(): JSX.Element {
         </button>
       </div>
 
-      {/* Block 3 - This week (M5-01) + This month (M5-02) */}
-      <div className="grid grid-cols-2 gap-3">
-
-        {/* Weekly goal - primary; streak + freeze count secondary */}
-        <div className="card">
-          <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
-            This week
-          </p>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
-              <Target className="w-5 h-5 text-gold" />
-            </div>
-            <div>
-              <p className="text-base font-semibold text-ink">
-                {activity !== null ? activity.weeklyActiveDays : '-'} of {activity?.weeklyGoalDays ?? '-'} days
-              </p>
-              <p className="text-xs text-ink-3">Weekly goal</p>
-            </div>
+      {/* Block 3 - This month */}
+      <div className="card">
+        <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
+          This month
+        </p>
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
+            <CalendarDays className="w-5 h-5 text-gold" />
           </div>
-          {activity !== null && (
-            <div className="progress-bar mt-3">
-              <div
-                className="progress-fill"
-                style={{ width: `${Math.min(100, Math.round((activity.weeklyActiveDays / activity.weeklyGoalDays) * 100))}%` }}
-              />
-            </div>
-          )}
-          {/* Streak + freeze - secondary */}
-          <div className="flex items-center gap-3 mt-3 pt-3 border-t border-line">
-            <span className="flex items-center gap-1 text-xs text-ink-3">
-              <Flame className="w-3.5 h-3.5 text-orange-500" />
-              {currentStreak}d streak
-            </span>
-            {freezeCount > 0 && (
-              <span className="flex items-center gap-1 text-xs text-ink-3">
-                <Snowflake className="w-3.5 h-3.5 text-blue-400" />
-                {freezeCount} {freezeCount === 1 ? 'freeze' : 'freezes'}
-              </span>
-            )}
+          <div>
+            <p className="text-base font-semibold text-ink">
+              {activity !== null ? activity.monthlyActiveDays : '-'} of {activity?.monthlyGoalDays ?? '-'} days
+            </p>
+            <p className="text-xs text-ink-3">Training days</p>
           </div>
         </div>
-
-        {/* Monthly training days */}
-        <div className="card">
-          <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
-            This month
-          </p>
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center shrink-0">
-              <CalendarDays className="w-5 h-5 text-gold" />
-            </div>
-            <div>
-              <p className="text-base font-semibold text-ink">
-                {activity !== null ? activity.monthlyActiveDays : '-'} of {activity?.monthlyGoalDays ?? '-'} days
-              </p>
-              <p className="text-xs text-ink-3">Training days</p>
-            </div>
+        {activity !== null && (
+          <div className="progress-bar mt-3">
+            <div
+              className="progress-fill"
+              style={{ width: `${Math.min(100, Math.round((activity.monthlyActiveDays / activity.monthlyGoalDays) * 100))}%` }}
+            />
           </div>
-          {activity !== null && (
-            <div className="progress-bar mt-3">
-              <div
-                className="progress-fill"
-                style={{ width: `${Math.min(100, Math.round((activity.monthlyActiveDays / activity.monthlyGoalDays) * 100))}%` }}
-              />
-            </div>
-          )}
-        </div>
-
+        )}
       </div>
 
       {/* Block 4 - Today's Tip (full-width) */}
