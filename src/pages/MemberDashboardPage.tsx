@@ -196,14 +196,16 @@ export function MemberDashboardPage(): JSX.Element {
           <p className="text-sm text-ink-3">Analysing your history…</p>
         )}
 
-        <p className="text-xs text-ink-3">10 questions from your weakest areas</p>
         <button
           type="button"
           onClick={() => void navigate('/play/drill')}
-          className="btn-primary w-full flex items-center justify-center gap-2"
+          className="btn-primary w-full flex flex-col items-center justify-center gap-0.5 py-3"
         >
-          <Zap className="w-4 h-4" />
-          Drill my weak spots
+          <span className="flex items-center gap-2 font-bold">
+            <Zap className="w-4 h-4" />
+            Drill my weak spots
+          </span>
+          <span className="text-xs font-normal opacity-85">10 custom questions from these areas</span>
         </button>
       </div>
 
