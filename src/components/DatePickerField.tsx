@@ -45,7 +45,7 @@ export function DatePickerField({ value, onChange }: { value: string; onChange: 
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        <span className={selected ? 'text-ink' : 'text-ink-3'}>
+        <span className={`whitespace-nowrap truncate min-w-0 ${selected ? 'text-ink' : 'text-ink-3'}`}>
           {selected ? selected.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Pick a date'}
         </span>
         <Calendar className="w-4 h-4 text-ink-3 shrink-0" />
