@@ -783,10 +783,10 @@ export function StatsPage(): JSX.Element {
                 ? Math.round((progress.questionsCorrect / progress.questionsAnswered) * 100)
                 : null
               const badgeColor = accuracy !== null
-                ? accuracy >= 75 ? 'bg-success/20 text-success'
-                : accuracy >= 50 ? 'bg-warning/20 text-warning'
-                : 'bg-error/20 text-error'
-                : 'bg-elevated text-ink-3'
+                ? accuracy >= 75 ? 'bg-success/10 text-success border-success'
+                : accuracy >= 50 ? 'bg-warning/10 text-warning border-warning'
+                : 'bg-error/10 text-error border-error'
+                : 'bg-elevated text-ink-3 border-line'
               return lesson.lesson_id ? (
                 <Link
                   key={lesson.lesson_id}
@@ -794,7 +794,7 @@ export function StatsPage(): JSX.Element {
                   className="group flex items-center gap-3 p-3 rounded-xl hover:bg-elevated transition-colors"
                 >
                   {/* Score circle */}
-                  <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 font-bold text-sm ${badgeColor}`}>
+                  <div className={`w-11 h-11 rounded-full border-2 flex items-center justify-center shrink-0 font-bold text-sm ${badgeColor}`}>
                     {accuracy !== null ? `${accuracy}%` : '–'}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -819,7 +819,7 @@ export function StatsPage(): JSX.Element {
                   key={lesson.lesson_id ?? lesson.title}
                   className="flex items-center gap-3 p-3 rounded-xl"
                 >
-                  <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 font-bold text-sm ${badgeColor}`}>
+                  <div className={`w-11 h-11 rounded-full border-2 flex items-center justify-center shrink-0 font-bold text-sm ${badgeColor}`}>
                     {accuracy !== null ? `${accuracy}%` : '–'}
                   </div>
                   <div className="flex-1 min-w-0">
