@@ -750,7 +750,7 @@ export function StatsPage(): JSX.Element {
                         <Link
                           key={s.concept}
                           to={`/play/lessons?concept=${s.concept}`}
-                          className="group flex items-start gap-4 rounded-lg px-2 py-1.5 -mx-2 hover:bg-elevated transition-colors"
+                          className="group flex items-start gap-4 sm:gap-6 rounded-lg px-2 py-1.5 -mx-2 hover:bg-elevated transition-colors"
                         >
                           <div className="flex-1 min-w-0">{rowInner}</div>
                           {/* Offset by the name-row height so this sits level with the bar */}
