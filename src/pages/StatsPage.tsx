@@ -691,25 +691,32 @@ export function StatsPage(): JSX.Element {
                       const rowRank = isMeasured ? rank : null
 
                       const rowInner = (
-                        <div className="flex items-start gap-3">
-                          {/* Left: rank + name + bar + stats */}
-                          <div className="flex-1 min-w-0 space-y-1">
-                            <div className="flex items-center gap-2">
-                              {rowRank !== null
-                                ? <span className="text-xs font-bold text-ink-3 w-5 shrink-0 tabular-nums">{rowRank}</span>
-                                : <span className="w-5 shrink-0" />
-                              }
-                              <span className="text-sm font-medium text-ink flex-1 min-w-0 truncate">{s.name}</span>
-                              {!isMeasured && (
-                                <span className="text-xs text-ink-3 shrink-0">
-                                  {s.attempts > 0 ? `${s.attempts} answer${s.attempts !== 1 ? 's' : ''} so far` : 'not started'}
-                                </span>
-                              )}
-                            </div>
-
+                        <div className="space-y-1">
+                          {/* Name row: pct% and mobile chevron sit on the same line as the name */}
+                          <div className="flex items-center gap-2">
+                            {rowRank !== null
+                              ? <span className="text-xs font-bold text-ink-3 w-5 shrink-0 tabular-nums">{rowRank}</span>
+                              : <span className="w-5 shrink-0" />
+                            }
+                            <span className="text-sm font-medium text-ink flex-1 min-w-0 truncate">{s.name}</span>
+                            {!isMeasured && (
+                              <span className="text-xs text-ink-3 shrink-0">
+                                {s.attempts > 0 ? `${s.attempts} answer${s.attempts !== 1 ? 's' : ''} so far` : 'not started'}
+                              </span>
+                            )}
                             {isMeasured && (
-                              <div className="ml-7 space-y-1">
-                                <div className="relative h-2 rounded-full overflow-visible" style={{ background: 'var(--progress-track-bg)' }}>
+                              <>
+                                <span className="text-base font-bold shrink-0 text-ink">{pct}%</span>
+                                <ChevronRight className="w-4 h-4 text-ink-3 shrink-0 sm:hidden" />
+                              </>
+                            )}
+                          </div>
+
+                          {isMeasured && (
+                            <div className="ml-7 space-y-1">
+                              {/* Bar row: Practice > sits on the same line as the bar (desktop only) */}
+                              <div className="flex items-center gap-3">
+                                <div className="relative h-2 rounded-full overflow-visible flex-1" style={{ background: 'var(--progress-track-bg)' }}>
                                   <div
                                     className={`h-full rounded-full ${barColor}`}
                                     style={{ width: `${pct}%` }}
@@ -719,38 +726,30 @@ export function StatsPage(): JSX.Element {
                                     style={{ left: '75%' }}
                                   />
                                 </div>
-
-                                <div className="flex items-center gap-3 flex-wrap">
-                                  <span className="text-[13px] text-ink-3">
-                                    {s.correct} right in your last {s.attempts} answers
-                                  </span>
-                                  {delta === null ? (
-                                    <span className="text-[13px] text-ink-3">first score</span>
-                                  ) : delta > 0 ? (
-                                    <span className="text-[13px] text-success">up from {prevPct}%</span>
-                                  ) : delta < 0 ? (
-                                    <span className="text-[13px] text-error">down from {prevPct}%</span>
-                                  ) : (
-                                    <span className="text-[13px] text-ink-3">no change</span>
-                                  )}
-                                </div>
-
-                                {/* Mobile tap CTA */}
-                                <span className="flex items-center gap-0.5 text-xs font-semibold text-ink-2 sm:hidden">
-                                  Tap to practice <ChevronRight className="w-3 h-3" />
+                                <span className="hidden sm:flex items-center gap-0.5 text-xs font-semibold text-ink-2 group-hover:text-gold transition-colors shrink-0">
+                                  Practice <ChevronRight className="w-3 h-3" />
                                 </span>
                               </div>
-                            )}
-                          </div>
 
-                          {/* Right: pct% on top, Practice > below (desktop) or chevron (mobile) */}
-                          {isMeasured && (
-                            <div className="flex flex-col items-end shrink-0 gap-1">
-                              <span className="text-base font-bold text-ink">{pct}%</span>
-                              <span className="hidden sm:flex items-center gap-0.5 text-xs font-semibold text-ink-2 group-hover:text-gold transition-colors">
-                                Practice <ChevronRight className="w-3 h-3" />
+                              <div className="flex items-center gap-3 flex-wrap">
+                                <span className="text-[13px] text-ink-3">
+                                  {s.correct} right in your last {s.attempts} answers
+                                </span>
+                                {delta === null ? (
+                                  <span className="text-[13px] text-ink-3">first score</span>
+                                ) : delta > 0 ? (
+                                  <span className="text-[13px] text-success">up from {prevPct}%</span>
+                                ) : delta < 0 ? (
+                                  <span className="text-[13px] text-error">down from {prevPct}%</span>
+                                ) : (
+                                  <span className="text-[13px] text-ink-3">no change</span>
+                                )}
+                              </div>
+
+                              {/* Mobile tap CTA */}
+                              <span className="flex items-center gap-0.5 text-xs font-semibold text-ink-2 sm:hidden">
+                                Tap to practice <ChevronRight className="w-3 h-3" />
                               </span>
-                              <ChevronRight className="w-4 h-4 text-ink-3 sm:hidden" />
                             </div>
                           )}
                         </div>
