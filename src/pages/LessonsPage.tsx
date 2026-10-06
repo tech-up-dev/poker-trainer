@@ -88,14 +88,14 @@ function LessonRow({
         </p>
         {/* Status line + inline mobile CTA */}
         <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-          <span className={`text-xs ${completed ? accuracyColor(accuracy) : 'text-ink-3'}`}>
+          <span className={`text-xs font-semibold ${completed ? accuracyColor(accuracy) : 'text-ink-2'}`}>
             {completed && accuracy !== null
               ? `${accuracy}% correct`
               : answered > 0
               ? `${answered} of ${total} answered`
               : 'Not started'}
           </span>
-          <span className="sm:hidden flex items-center gap-0.5 text-xs text-ink-3">
+          <span className="sm:hidden flex items-center gap-0.5 text-xs font-semibold text-ink-2">
             · {completed ? 'Tap to practice again' : answered > 0 ? 'Tap to resume' : 'Tap to start'}
             <ChevronRight className="w-3 h-3" />
           </span>
