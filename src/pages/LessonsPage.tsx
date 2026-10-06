@@ -36,7 +36,7 @@ function PartialRing({ answered, total }: { answered: number; total: number }): 
       <circle
         cx="10" cy="10" r={r} fill="none" stroke="currentColor" strokeWidth="2"
         strokeDasharray={`${dash} ${circumference}`} strokeLinecap="round"
-        className="text-gold"
+        className="text-ink-3"
       />
     </svg>
   )
@@ -70,10 +70,10 @@ function LessonRow({
       onClick={() => void navigate(`/play/lessons/${lesson.lesson_id}`)}
       className="w-full text-left flex items-start gap-3 p-3 rounded-xl hover:bg-elevated transition-colors group"
     >
-      {/* State icon */}
+      {/* State icon - always neutral */}
       <div className="mt-0.5 shrink-0">
         {completed
-          ? <CheckCircle2 className="w-5 h-5 text-success" />
+          ? <CheckCircle2 className="w-5 h-5 text-ink-3" />
           : answered > 0
           ? <PartialRing answered={answered} total={total} />
           : <div className="w-5 h-5 rounded-full border-2 border-line" />
@@ -86,23 +86,27 @@ function LessonRow({
         <p className="text-xs text-ink-3 mt-0.5">
           {diffLabel} · {total} question{total !== 1 ? 's' : ''}
         </p>
-        {/* Status line */}
-        <p className={`text-xs mt-0.5 ${completed ? accuracyColor(accuracy) : 'text-ink-3'}`}>
-          {completed && accuracy !== null
-            ? `${accuracy}% correct`
-            : answered > 0
-            ? `${answered} of ${total} answered`
-            : 'Not started'}
-        </p>
+        {/* Status line + inline mobile CTA */}
+        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+          <span className={`text-xs font-semibold ${completed ? accuracyColor(accuracy) : 'text-ink-2'}`}>
+            {completed && accuracy !== null
+              ? `${accuracy}% correct`
+              : answered > 0
+              ? `${answered} of ${total} answered`
+              : 'Not started'}
+          </span>
+          <span className="sm:hidden flex items-center gap-0.5 text-xs font-semibold text-ink-2">
+            · {completed ? 'Tap to practice again' : answered > 0 ? 'Tap to resume' : 'Tap to start'}
+            <ChevronRight className="w-3 h-3" />
+          </span>
+        </div>
       </div>
 
-      {/* Right side */}
-      <div className="flex items-center gap-2 shrink-0 self-center">
-        {completed && (
-          <span className="text-xs text-ink-3 group-hover:text-gold transition-colors hidden sm:inline">
-            Practice again
-          </span>
-        )}
+      {/* Right side - desktop CTA always visible, mobile row chevron */}
+      <div className="flex items-center gap-1 shrink-0 self-center">
+        <span className="hidden sm:inline text-xs font-semibold text-ink-2 group-hover:text-gold transition-colors">
+          {completed ? 'Practice again' : answered > 0 ? 'Resume' : 'Start'}
+        </span>
         <ChevronRight className="w-4 h-4 text-ink-3 group-hover:text-gold transition-colors" />
       </div>
     </button>
@@ -141,7 +145,6 @@ export function LessonsPage(): JSX.Element {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
 
   // ── Concept sub-page ────────────────────────────────────────────────────────

@@ -1,8 +1,9 @@
 import { useEffect, useState, useRef } from 'react'
 import type { JSX } from 'react'
 import { Link } from 'react-router-dom'
-import { TrendingUp, CheckCircle2, Plus, Trash2, DollarSign, Clock, Calendar, ChevronRight } from 'lucide-react'
+import { TrendingUp, CheckCircle2, Plus, Trash2, Pencil, DollarSign, Clock, Calendar, ChevronRight } from 'lucide-react'
 import { supabaseProd } from '../lib/supabase-prod'
+import { DatePickerField } from '../components/DatePickerField'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
@@ -19,72 +20,7 @@ type ConceptScore = {
   band: 'not_enough' | 'needs_work' | 'getting_there' | 'solid'
 }
 
-const DIFFICULTY_ORDER = ['beginner', 'intermediate', 'advanced'] as const
 const STAKES_OPTIONS = ['$1/2 NLHE', '$1/3 NLHE', '$2/3 NLHE', '$2/5 NLHE', '$5/5 NLHE', 'Other']
-const DIFFICULTY_LABEL: Record<string, string> = {
-  beginner:     'Beginner',
-  intermediate: 'Intermediate',
-  advanced:     'Advanced',
-}
-
-function ProgressRing({
-  value,
-  size = 80,
-  strokeWidth = 8,
-  color = 'gold',
-}: {
-  value: number
-  size?: number
-  strokeWidth?: number
-  color?: string
-}): JSX.Element {
-  const radius = (size - strokeWidth) / 2
-  const circumference = radius * 2 * Math.PI
-  const offset = circumference - (value / 100) * circumference
-
-  const strokeColor =
-    color === 'success' ? 'var(--color-success)'
-    : color === 'warning' ? 'var(--color-warning)'
-    : color === 'error'   ? 'var(--color-error)'
-    : 'var(--color-gold)'
-
-  return (
-    <div className="relative inline-flex items-center justify-center">
-      <svg width={size} height={size} className="-rotate-90">
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="var(--color-elevated)"
-          strokeWidth={strokeWidth}
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          strokeLinecap="round"
-          stroke={strokeColor}
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-lg font-bold text-ink">{value}%</span>
-      </div>
-    </div>
-  )
-}
-
-type DifficultyStats = {
-  difficulty: string
-  total: number
-  completed: number
-  questionsAnswered: number
-  questionsCorrect: number
-}
 
 // ─── Session logging (M5-05) ──────────────────────────────────────────────────
 
@@ -237,6 +173,7 @@ function SessionsTab(): JSX.Element {
   const [form, setForm] = useState<SessionForm>(EMPTY_SESSION)
   const [saving, setSaving] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const formRef = useRef<HTMLDivElement>(null)
 
@@ -289,6 +226,46 @@ function SessionsTab(): JSX.Element {
     setDeletingId(id)
     await supabaseProd.from('session_logs').delete().eq('id', id)
     setDeletingId(null)
+    await load()
+  }
+
+  function handleStartEdit(s: SessionLog): void {
+    const knownStake = STAKES_OPTIONS.includes(s.stakes ?? '') ? (s.stakes ?? '') : s.stakes ? 'Other' : ''
+    setForm({
+      session_date: s.session_date,
+      stakes: knownStake,
+      stakesCustom: knownStake === 'Other' ? (s.stakes ?? '') : '',
+      hours: s.hours != null ? String(s.hours) : '',
+      result_amount: String(s.result_amount),
+      notes: s.notes ?? '',
+    })
+    setEditingId(s.id)
+    setShowForm(false)
+    setError(null)
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50)
+  }
+
+  async function handleUpdate(e: React.FormEvent): Promise<void> {
+    e.preventDefault()
+    if (!editingId) return
+    setError(null)
+    const resultNum = parseFloat(form.result_amount)
+    if (isNaN(resultNum)) { setError('Enter a valid result amount (negative for a loss).'); return }
+    setSaving(true)
+    const stakesValue = form.stakes === 'Other'
+      ? (form.stakesCustom.trim() || null)
+      : (form.stakes || null)
+    const { error: err } = await supabaseProd.from('session_logs').update({
+      session_date: form.session_date,
+      stakes: stakesValue,
+      hours: form.hours ? parseFloat(form.hours) : null,
+      result_amount: resultNum,
+      notes: form.notes.trim() || null,
+    }).eq('id', editingId)
+    setSaving(false)
+    if (err) { setError(err.message); return }
+    setForm(EMPTY_SESSION)
+    setEditingId(null)
     await load()
   }
 
@@ -350,7 +327,7 @@ function SessionsTab(): JSX.Element {
           <h2 className="text-xl font-bold text-ink">Your Live Sessions</h2>
           <button
             type="button"
-            onClick={() => { setShowForm((v) => !v); setError(null) }}
+            onClick={() => { setShowForm((v) => !v); setEditingId(null); setError(null) }}
             className="btn-primary w-full flex items-center justify-center gap-1.5"
           >
             <Plus className="w-4 h-4" />
@@ -358,19 +335,56 @@ function SessionsTab(): JSX.Element {
           </button>
         </div>
 
+        {editingId && (
+          <div ref={formRef} className="border border-gold/30 rounded-xl p-4 bg-surface-overlay space-y-3">
+            <p className="text-xs font-semibold text-ink-3 uppercase tracking-wide">Edit session</p>
+            <form onSubmit={(e) => void handleUpdate(e)} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">Date</label>
+                  <DatePickerField value={form.session_date} onChange={(v) => set('session_date', v)} />
+                </div>
+                <div className="space-y-2">
+                  <label className="label">Stakes</label>
+                  <select className="input" value={form.stakes} onChange={(e) => set('stakes', e.target.value)}>
+                    <option value="">Select stakes…</option>
+                    {STAKES_OPTIONS.map((o) => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                  {form.stakes === 'Other' && (
+                    <input type="text" className="input" value={form.stakesCustom} onChange={(e) => set('stakesCustom', e.target.value)} placeholder="Describe your game…" />
+                  )}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="label">Hours played</label>
+                  <input type="number" step="0.5" min="0" className="input" value={form.hours} onChange={(e) => set('hours', e.target.value)} placeholder="2.5" />
+                </div>
+                <div>
+                  <label className="label">Result ($)</label>
+                  <input type="number" step="0.01" className="input" value={form.result_amount} onChange={(e) => set('result_amount', e.target.value)} placeholder="-25 or +120" required />
+                </div>
+              </div>
+              <div>
+                <label className="label">Notes (optional)</label>
+                <textarea className="input resize-none" rows={2} value={form.notes} onChange={(e) => set('notes', e.target.value)} placeholder="Key hands, reads, mistakes…" />
+              </div>
+              {error && <p className="text-sm text-error">{error}</p>}
+              <div className="flex gap-2 pt-1">
+                <button type="button" onClick={() => { setEditingId(null); setForm(EMPTY_SESSION); setError(null) }} className="btn-ghost btn-sm flex-1">Cancel</button>
+                <button type="submit" disabled={saving} className="btn-primary btn-sm flex-1">{saving ? 'Saving…' : 'Update session'}</button>
+              </div>
+            </form>
+          </div>
+        )}
+
         {showForm && (
           <div ref={formRef} className="border border-line rounded-xl p-4 bg-surface-overlay space-y-3">
             <form onSubmit={(e) => void handleAdd(e)} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="label">Date</label>
-                  <input
-                    type="date"
-                    className="input"
-                    value={form.session_date}
-                    onChange={(e) => set('session_date', e.target.value)}
-                    required
-                  />
+                  <DatePickerField value={form.session_date} onChange={(v) => set('session_date', v)} />
                 </div>
                 <div className="space-y-2">
                   <label className="label">Stakes</label>
@@ -467,21 +481,31 @@ function SessionsTab(): JSX.Element {
                     {fmt(s.result_amount)}
                   </span>
                 </div>
-                {/* Row 2: stakes chip + hours + trash */}
+                {/* Row 2: stakes chip + hours + edit + trash */}
                 <div className="flex items-center gap-2">
                   {s.stakes && <span className="badge-muted">{s.stakes}</span>}
                   {s.hours != null && (
                     <span className="text-xs text-ink-3">{s.hours}h</span>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => { if (confirm('Delete this session?')) void handleDelete(s.id) }}
-                    disabled={deletingId === s.id}
-                    className="ml-auto p-1 rounded-lg text-ink-3 hover:text-error hover:bg-error/10 transition-colors disabled:opacity-40"
-                    aria-label="Delete session"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="ml-auto flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => handleStartEdit(s)}
+                      className="p-1 rounded-lg text-ink-3 hover:text-gold hover:bg-gold/10 transition-colors"
+                      aria-label="Edit session"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => { if (confirm('Delete this session?')) void handleDelete(s.id) }}
+                      disabled={deletingId === s.id}
+                      className="p-1 rounded-lg text-ink-3 hover:text-error hover:bg-error/10 transition-colors disabled:opacity-40"
+                      aria-label="Delete session"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
                 {/* Row 3: notes */}
                 {s.notes && (
@@ -549,26 +573,6 @@ export function StatsPage(): JSX.Element {
   const solidCount = conceptScores ? conceptScores.filter((s) => s.band === 'solid').length : null
   const totalMeasured = conceptScores ? conceptScores.filter((s) => s.band !== 'not_enough').length : null
 
-  const difficultyStats: DifficultyStats[] = DIFFICULTY_ORDER.map((diff) => {
-    const group = lessons.filter((l) => l.difficulty === diff)
-    const groupCompleted = group.filter((l) => l.lesson_id && progressMap[l.lesson_id]?.completed).length
-    const groupAnswered = group.reduce(
-      (sum, l) => sum + (l.lesson_id ? (progressMap[l.lesson_id]?.questionsAnswered ?? 0) : 0),
-      0,
-    )
-    const groupCorrect = group.reduce(
-      (sum, l) => sum + (l.lesson_id ? (progressMap[l.lesson_id]?.questionsCorrect ?? 0) : 0),
-      0,
-    )
-    return {
-      difficulty: diff,
-      total: group.length,
-      completed: groupCompleted,
-      questionsAnswered: groupAnswered,
-      questionsCorrect: groupCorrect,
-    }
-  }).filter((s) => s.total > 0)
-
   const recentLessons = attempted
     .filter((l) => l.lesson_id && progressMap[l.lesson_id]?.completed)
     .slice(0, 5)
@@ -606,17 +610,19 @@ export function StatsPage(): JSX.Element {
       {/* Top stat cards */}
       <div className="grid grid-cols-2 gap-3">
         <div className="stat-card">
-          <CheckCircle2 className="w-6 h-6 text-success mb-2" />
-          <p className="stat-value">{solidCount !== null ? solidCount : '-'}</p>
+          <CheckCircle2 className="w-6 h-6 text-ink-3 mb-2" />
+          <p className="stat-value text-ink">{solidCount !== null ? solidCount : '-'}</p>
           <p className="stat-label">Concepts Solid</p>
           {solidCount !== null && totalMeasured !== null && totalMeasured > 0 && (
             <p className="text-xs text-ink-3 mt-1">{solidCount} of {totalMeasured}</p>
           )}
         </div>
         <div className="stat-card">
-          <TrendingUp className="w-6 h-6 text-gold mb-2" />
-          <p className="stat-value">{overallAccuracy > 0 ? `${overallAccuracy}%` : '-'}</p>
-          <p className="stat-label">Overall accuracy</p>
+          <TrendingUp className="w-6 h-6 text-ink-3 mb-2" />
+          <p className={`stat-value ${overallAccuracy >= 75 ? 'text-success' : overallAccuracy >= 50 ? 'text-warning' : overallAccuracy > 0 ? 'text-error' : 'text-ink'}`}>
+            {overallAccuracy > 0 ? `${overallAccuracy}%` : '-'}
+          </p>
+          <p className="stat-label">Overall Accuracy</p>
         </div>
       </div>
 
@@ -638,11 +644,11 @@ export function StatsPage(): JSX.Element {
           const solidCount = conceptScores.filter((s) => s.band === 'solid').length
           const totalMeasured = measured.length
 
-          const bandSections: { band: ConceptScore['band']; label: string; sub: string; color: string; barColor: string }[] = [
-            { band: 'needs_work',    label: 'Needs the most work', sub: 'Start here. Click a concept to practice it now.',      color: 'text-error',   barColor: 'bg-error'   },
-            { band: 'getting_there', label: 'Getting there',        sub: 'Close. Click a concept to keep improving.',           color: 'text-warning', barColor: 'bg-warning' },
-            { band: 'solid',         label: 'Solid',                sub: 'Click a concept to keep practicing and stay sharp.',  color: 'text-success', barColor: 'bg-success' },
-            { band: 'not_enough',    label: 'Not enough answers yet', sub: 'Answer at least 8 questions in a concept to get a score.', color: 'text-ink-3', barColor: 'bg-elevated' },
+          const bandSections: { band: ConceptScore['band']; label: string; sub: string; subMobile: string; color: string; barColor: string }[] = [
+            { band: 'needs_work',    label: 'Needs the most work', sub: 'Your biggest leaks. Fix these first - click a concept to practice',  subMobile: 'Your biggest leaks. Fix these first - tap a concept to practice', color: 'text-error',   barColor: 'bg-error'   },
+            { band: 'getting_there', label: 'Getting there',        sub: 'Keep practicing - get your score above 75%',                         subMobile: 'Keep practicing - get your score above 75%',                        color: 'text-warning', barColor: 'bg-warning' },
+            { band: 'solid',         label: 'Solid',                sub: 'Nice work. Scores only count the last 90 days - keep practicing to stay sharp', subMobile: 'Nice work. Scores only count the last 90 days - keep practicing to stay sharp', color: 'text-success', barColor: 'bg-success' },
+            { band: 'not_enough',    label: 'Not enough answers yet', sub: 'Answer at least 8 questions in a concept to get a score.', subMobile: 'Answer at least 8 questions in a concept to get a score.', color: 'text-ink-3', barColor: 'bg-elevated' },
           ]
 
           let rank = 0
@@ -650,8 +656,8 @@ export function StatsPage(): JSX.Element {
           return (
             <div className="space-y-5">
               {/* Running count */}
-              <p className="text-sm font-medium text-ink">
-                Right now: <span className="text-success font-bold">{solidCount}</span> of {totalMeasured > 0 ? totalMeasured : 0} concepts Solid
+              <p className="text-sm font-medium text-ink-2">
+                Right now: {solidCount} of {totalMeasured > 0 ? totalMeasured : 0} concepts solid
               </p>
 
               {/* Legend */}
@@ -661,14 +667,15 @@ export function StatsPage(): JSX.Element {
                 <span><span className="text-success font-semibold">Solid</span> 75%+</span>
               </div>
 
-              {bandSections.map(({ band, label, sub, color, barColor }) => {
+              {bandSections.map(({ band, label, sub, subMobile, color, barColor }) => {
                 const rows = conceptScores.filter((s) => s.band === band)
                 if (rows.length === 0) return null
                 return (
                   <div key={band} className="space-y-3">
                     <div>
                       <p className={`text-xs font-bold uppercase tracking-widest ${color}`}>{label}</p>
-                      <p className="text-xs text-ink-3 mt-0.5">{sub}</p>
+                      <p className="text-xs text-ink-3 mt-0.5 hidden sm:block">{sub}</p>
+                      <p className="text-xs text-ink-3 mt-0.5 sm:hidden">{subMobile}</p>
                     </div>
                     {rows.map((s) => {
                       const pct = Math.round(s.accuracy * 100)
@@ -678,8 +685,9 @@ export function StatsPage(): JSX.Element {
                       if (isMeasured) rank++
                       const rowRank = isMeasured ? rank : null
 
-                      const rowContent = (
+                      const rowInner = (
                         <div className="space-y-1">
+                          {/* Name row: pct% and mobile chevron sit on the same line as the name */}
                           <div className="flex items-center gap-2">
                             {rowRank !== null
                               ? <span className="text-xs font-bold text-ink-3 w-5 shrink-0 tabular-nums">{rowRank}</span>
@@ -692,10 +700,7 @@ export function StatsPage(): JSX.Element {
                               </span>
                             )}
                             {isMeasured && (
-                              <>
-                                <span className="text-base font-bold shrink-0 text-ink">{pct}%</span>
-                                <ChevronRight className="w-4 h-4 text-ink-3 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                              </>
+                              <span className="text-base font-bold shrink-0 text-ink">{pct}%</span>
                             )}
                           </div>
 
@@ -726,6 +731,11 @@ export function StatsPage(): JSX.Element {
                                   <span className="text-[13px] text-ink-3">no change</span>
                                 )}
                               </div>
+
+                              {/* Mobile tap CTA */}
+                              <span className="flex items-center gap-0.5 text-xs font-semibold text-ink-2 sm:hidden">
+                                Tap to practice <ChevronRight className="w-3 h-3" />
+                              </span>
                             </div>
                           )}
                         </div>
@@ -735,13 +745,18 @@ export function StatsPage(): JSX.Element {
                         <Link
                           key={s.concept}
                           to={`/play/lessons?concept=${s.concept}`}
-                          className="group block rounded-lg px-2 py-1.5 -mx-2 hover:bg-elevated transition-colors"
+                          className="group flex items-start gap-4 sm:gap-6 rounded-lg px-2 py-1.5 -mx-2 hover:bg-elevated transition-colors"
                         >
-                          {rowContent}
+                          <div className="flex-1 min-w-0">{rowInner}</div>
+                          {/* Offset by the name-row height so this sits level with the bar */}
+                          <span className="hidden sm:flex items-center gap-0.5 mt-6 text-xs font-semibold text-ink-2 group-hover:text-gold transition-colors shrink-0">
+                            Practice <ChevronRight className="w-3 h-3" />
+                          </span>
+                          <ChevronRight className="w-4 h-4 mt-6 text-ink-3 shrink-0 sm:hidden" />
                         </Link>
                       ) : (
                         <div key={s.concept} className="px-2 py-1.5 -mx-2">
-                          {rowContent}
+                          {rowInner}
                         </div>
                       )
                     })}
@@ -753,90 +768,65 @@ export function StatsPage(): JSX.Element {
         })()}
       </div>
 
-      {/* Accuracy by difficulty + Recent lessons - side by side on large screens */}
-      {!loading && (difficultyStats.length > 0 || recentLessons.length > 0) && (
-        <div className="lg:flex lg:gap-6 space-y-6 lg:space-y-0 lg:items-stretch">
-
-          {difficultyStats.length > 0 && (
-            <div className="card lg:w-[40%] lg:shrink-0">
-              <h2 className="text-xl font-semibold text-ink mb-4">Accuracy by Difficulty</h2>
-              <div className="grid grid-cols-3 gap-2">
-                {difficultyStats.map((s) => {
-                  const accuracy = s.questionsAnswered > 0
-                    ? Math.round((s.questionsCorrect / s.questionsAnswered) * 100)
-                    : 0
-                  const ringColor = accuracy >= 75 ? 'success' : accuracy >= 50 ? 'warning' : 'error'
-                  const notStarted = s.questionsAnswered === 0
-                  return (
-                    <div key={s.difficulty} className="flex flex-col items-center text-center gap-2">
-                      {notStarted ? (
-                        <div
-                          className="w-16 h-16 rounded-full flex items-center justify-center shrink-0"
-                          style={{ border: '7px solid var(--color-elevated)' }}
-                        >
-                          <span className="text-base font-semibold text-ink-3">–</span>
-                        </div>
-                      ) : (
-                        <ProgressRing value={accuracy} color={ringColor} size={64} strokeWidth={7} />
-                      )}
-                      <div>
-                        <p className="text-sm font-medium text-ink">
-                          {DIFFICULTY_LABEL[s.difficulty]}
-                        </p>
-                        <p className="text-xs text-ink-3 mt-0.5">
-                          {notStarted ? 'Not started' : `${s.completed}/${s.total} lessons`}
-                        </p>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
-          {recentLessons.length > 0 && (
-            <div className="card lg:flex-1">
-              <h2 className="text-xl font-semibold text-ink mb-4">Recent Lessons</h2>
-              <div className="space-y-3">
-                {recentLessons.map(({ lesson, progress }) => {
-                  const accuracy = progress && progress.questionsAnswered > 0
-                    ? Math.round((progress.questionsCorrect / progress.questionsAnswered) * 100)
-                    : null
-                  const badgeColor = accuracy !== null
-                    ? accuracy >= 75 ? 'bg-success/20 text-success'
-                    : accuracy >= 50 ? 'bg-warning/20 text-warning'
-                    : 'bg-error/20 text-error'
-                    : 'bg-elevated text-ink-3'
-                  return (
-                    <div
-                      key={lesson.lesson_id ?? lesson.title}
-                      className="flex items-start gap-3 p-3 rounded-xl bg-canvas"
-                    >
-                      {/* Score circle */}
-                      <div className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 font-bold text-sm ${badgeColor}`}>
-                        {accuracy !== null ? `${accuracy}%` : '–'}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-ink leading-snug line-clamp-2">{lesson.title}</p>
-                        <p className="text-xs text-ink-3 mt-0.5">
-                          {lesson.difficulty ? lesson.difficulty.charAt(0).toUpperCase() + lesson.difficulty.slice(1) : 'General'} · {lesson.questions.length} questions
-                        </p>
-                        {lesson.lesson_id && (
-                          <Link
-                            to={`/play/lessons/${lesson.lesson_id}`}
-                            className="btn-ghost btn-sm text-xs mt-2 inline-flex"
-                          >
-                            Practice Again
-                          </Link>
-                        )}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
-
+      {/* Recent Lessons - full width */}
+      {!loading && recentLessons.length > 0 && (
+        <div className="card">
+          <h2 className="text-xl font-semibold text-ink mb-4">Recent Lessons</h2>
+          <div className="space-y-1">
+            {recentLessons.map(({ lesson, progress }) => {
+              const accuracy = progress && progress.questionsAnswered > 0
+                ? Math.round((progress.questionsCorrect / progress.questionsAnswered) * 100)
+                : null
+              const badgeColor = accuracy !== null
+                ? accuracy >= 75 ? 'bg-success/10 text-success border-success'
+                : accuracy >= 50 ? 'bg-warning/10 text-warning border-warning'
+                : 'bg-error/10 text-error border-error'
+                : 'bg-elevated text-ink-3 border-line'
+              return lesson.lesson_id ? (
+                <Link
+                  key={lesson.lesson_id}
+                  to={`/play/lessons/${lesson.lesson_id}`}
+                  className="group flex items-center gap-3 p-3 rounded-xl hover:bg-elevated transition-colors"
+                >
+                  {/* Score circle */}
+                  <div className={`w-11 h-11 rounded-full border-2 flex items-center justify-center shrink-0 font-bold text-sm ${badgeColor}`}>
+                    {accuracy !== null ? `${accuracy}%` : '–'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-ink leading-snug line-clamp-2">{lesson.title}</p>
+                    <p className="text-xs text-ink-3 mt-0.5">
+                      {lesson.difficulty ? lesson.difficulty.charAt(0).toUpperCase() + lesson.difficulty.slice(1) : 'General'} · {lesson.questions.length} questions
+                    </p>
+                    {/* Mobile tap CTA */}
+                    <span className="flex items-center gap-0.5 text-xs font-semibold text-ink-2 mt-0.5 sm:hidden">
+                      Tap to practice again <ChevronRight className="w-3 h-3" />
+                    </span>
+                  </div>
+                  {/* Desktop: always-visible Practice again > */}
+                  <span className="hidden sm:flex items-center gap-0.5 text-xs text-ink-3 group-hover:text-gold transition-colors shrink-0">
+                    Practice again <ChevronRight className="w-3 h-3" />
+                  </span>
+                  {/* Mobile: chevron only */}
+                  <ChevronRight className="w-4 h-4 text-ink-3 shrink-0 sm:hidden" />
+                </Link>
+              ) : (
+                <div
+                  key={lesson.lesson_id ?? lesson.title}
+                  className="flex items-center gap-3 p-3 rounded-xl"
+                >
+                  <div className={`w-11 h-11 rounded-full border-2 flex items-center justify-center shrink-0 font-bold text-sm ${badgeColor}`}>
+                    {accuracy !== null ? `${accuracy}%` : '–'}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-ink leading-snug line-clamp-2">{lesson.title}</p>
+                    <p className="text-xs text-ink-3 mt-0.5">
+                      {lesson.difficulty ? lesson.difficulty.charAt(0).toUpperCase() + lesson.difficulty.slice(1) : 'General'} · {lesson.questions.length} questions
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       )}
 

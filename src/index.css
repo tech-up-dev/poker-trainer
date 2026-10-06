@@ -387,3 +387,25 @@ html.text-size-xl    { font-size: 20px; }
     display: none;
   }
 }
+
+.themed-day-picker .rdp-root {
+  --rdp-accent-color: var(--color-gold);
+  --rdp-accent-background-color: var(--color-elevated);
+  --rdp-today-color: var(--color-accent-text);
+  --rdp-day-height: 36px;
+  --rdp-day-width: 36px;
+  --rdp-day_button-height: 34px;
+  --rdp-day_button-width: 34px;
+  color: var(--color-ink);
+  font-size: 0.875rem;
+}
+.themed-day-picker .rdp-weekday { color: var(--color-ink-3); }
+.themed-day-picker .rdp-outside { color: var(--color-ink-3); opacity: 0.5; }
+.themed-day-picker .rdp-chevron { fill: var(--color-ink-2); }
+.themed-day-picker .rdp-day_button:hover { background: var(--color-elevated); }
+.themed-day-picker .rdp-selected .rdp-day_button {
+  background: var(--color-gold);
+  border-color: var(--color-gold);
+  color: var(--color-on-gold, #0B1A2E);
+  font-weight: 700;
+}
