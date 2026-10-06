@@ -3,6 +3,7 @@ import type { JSX } from 'react'
 import { Link } from 'react-router-dom'
 import { TrendingUp, CheckCircle2, Plus, Trash2, Pencil, DollarSign, Clock, Calendar, ChevronRight } from 'lucide-react'
 import { supabaseProd } from '../lib/supabase-prod'
+import { DatePickerField } from '../components/DatePickerField'
 
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
@@ -341,7 +342,7 @@ function SessionsTab(): JSX.Element {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="label">Date</label>
-                  <input type="date" className="input" value={form.session_date} onChange={(e) => set('session_date', e.target.value)} required />
+                  <DatePickerField value={form.session_date} onChange={(v) => set('session_date', v)} />
                 </div>
                 <div className="space-y-2">
                   <label className="label">Stakes</label>
@@ -383,13 +384,7 @@ function SessionsTab(): JSX.Element {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="label">Date</label>
-                  <input
-                    type="date"
-                    className="input"
-                    value={form.session_date}
-                    onChange={(e) => set('session_date', e.target.value)}
-                    required
-                  />
+                  <DatePickerField value={form.session_date} onChange={(v) => set('session_date', v)} />
                 </div>
                 <div className="space-y-2">
                   <label className="label">Stakes</label>
