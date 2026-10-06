@@ -745,7 +745,9 @@ export function StatsPage(): JSX.Element {
                               </div>
 
                               {/* Mobile tap CTA */}
-                              <p className="text-xs text-ink-3 sm:hidden">Tap to practice &gt;</p>
+                              <span className="flex items-center gap-0.5 text-xs font-semibold text-ink-2 sm:hidden">
+                                Tap to practice <ChevronRight className="w-3 h-3" />
+                              </span>
                             </div>
                           )}
                         </div>
@@ -803,7 +805,9 @@ export function StatsPage(): JSX.Element {
                       {lesson.difficulty ? lesson.difficulty.charAt(0).toUpperCase() + lesson.difficulty.slice(1) : 'General'} · {lesson.questions.length} questions
                     </p>
                     {/* Mobile tap CTA */}
-                    <p className="text-xs text-ink-3 mt-0.5 sm:hidden">Tap to practice again &gt;</p>
+                    <span className="flex items-center gap-0.5 text-xs font-semibold text-ink-2 mt-0.5 sm:hidden">
+                      Tap to practice again <ChevronRight className="w-3 h-3" />
+                    </span>
                   </div>
                   {/* Desktop: always-visible Practice again > */}
                   <span className="hidden sm:flex items-center gap-0.5 text-xs text-ink-3 group-hover:text-gold transition-colors shrink-0">
