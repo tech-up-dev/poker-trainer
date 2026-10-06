@@ -36,7 +36,7 @@ function PartialRing({ answered, total }: { answered: number; total: number }): 
       <circle
         cx="10" cy="10" r={r} fill="none" stroke="currentColor" strokeWidth="2"
         strokeDasharray={`${dash} ${circumference}`} strokeLinecap="round"
-        className="text-gold"
+        className="text-ink-3"
       />
     </svg>
   )
@@ -70,10 +70,10 @@ function LessonRow({
       onClick={() => void navigate(`/play/lessons/${lesson.lesson_id}`)}
       className="w-full text-left flex items-start gap-3 p-3 rounded-xl hover:bg-elevated transition-colors group"
     >
-      {/* State icon */}
+      {/* State icon - always neutral */}
       <div className="mt-0.5 shrink-0">
         {completed
-          ? <CheckCircle2 className="w-5 h-5 text-success" />
+          ? <CheckCircle2 className="w-5 h-5 text-ink-3" />
           : answered > 0
           ? <PartialRing answered={answered} total={total} />
           : <div className="w-5 h-5 rounded-full border-2 border-line" />
@@ -94,17 +94,21 @@ function LessonRow({
             ? `${answered} of ${total} answered`
             : 'Not started'}
         </p>
+        {/* Mobile CTA - hidden on sm+ */}
+        <p className="text-xs text-ink-3 mt-0.5 sm:hidden">
+          {completed ? 'Tap to practice again >' : answered > 0 ? 'Tap to resume >' : 'Tap to start >'}
+        </p>
       </div>
 
-      {/* Right side */}
-      <div className="flex items-center gap-2 shrink-0 self-center">
-        {completed && (
-          <span className="text-xs text-ink-3 group-hover:text-gold transition-colors hidden sm:inline">
-            Practice again
-          </span>
-        )}
+      {/* Right side - desktop CTA always visible */}
+      <div className="hidden sm:flex items-center gap-1 shrink-0 self-center">
+        <span className="text-xs text-ink-3 group-hover:text-gold transition-colors">
+          {completed ? 'Practice again' : answered > 0 ? 'Resume' : 'Start'}
+        </span>
         <ChevronRight className="w-4 h-4 text-ink-3 group-hover:text-gold transition-colors" />
       </div>
+      {/* Mobile chevron only */}
+      <ChevronRight className="w-4 h-4 text-ink-3 shrink-0 self-center sm:hidden" />
     </button>
   )
 }
@@ -141,7 +145,6 @@ export function LessonsPage(): JSX.Element {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key])
 
   // ── Concept sub-page ────────────────────────────────────────────────────────

@@ -110,13 +110,13 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
               style={{ border: '1px solid var(--color-accent-text)' }}
             >
               <div className="w-[34px] h-[34px] rounded-lg flex items-center justify-center shrink-0 bg-elevated">
-                <Lock className="w-4 h-4 text-gold" />
+                <Lock className="w-4 h-4 shrink-0" style={{ color: 'var(--color-accent-text)' }} />
               </div>
               <div className="flex-1 text-left">
                 <p className="text-[14.5px] font-bold text-ink leading-tight">{upsell.title}</p>
-                <p className="text-[12.5px] text-gold leading-tight">{upsell.subtitle}</p>
+                <p className="text-[12.5px] font-bold leading-tight" style={{ color: 'var(--color-accent-text)' }}>{upsell.subtitle}</p>
               </div>
-              <ChevronRight className="w-4 h-4 text-gold shrink-0" />
+              <ChevronRight className="w-4 h-4 text-ink-2 shrink-0" />
             </button>
           </div>
         )}
