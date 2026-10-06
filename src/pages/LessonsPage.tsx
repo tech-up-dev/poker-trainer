@@ -87,7 +87,7 @@ function LessonRow({
           {diffLabel} · {total} question{total !== 1 ? 's' : ''}
         </p>
         {/* Status line + inline mobile CTA */}
-        <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
           <span className={`text-xs font-semibold ${completed ? accuracyColor(accuracy) : 'text-ink-2'}`}>
             {completed && accuracy !== null
               ? `${accuracy}% correct`
