@@ -690,8 +690,8 @@ export function StatsPage(): JSX.Element {
                       if (isMeasured) rank++
                       const rowRank = isMeasured ? rank : null
 
-                      const rowContent = (
-                        <div className="space-y-1">
+                      const rowInner = (
+                        <div className="space-y-1 flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             {rowRank !== null
                               ? <span className="text-xs font-bold text-ink-3 w-5 shrink-0 tabular-nums">{rowRank}</span>
@@ -704,15 +704,7 @@ export function StatsPage(): JSX.Element {
                               </span>
                             )}
                             {isMeasured && (
-                              <>
-                                <span className="text-base font-bold shrink-0 text-ink">{pct}%</span>
-                                {/* Desktop: always-visible Practice > */}
-                                <span className="hidden sm:flex items-center gap-0.5 text-xs text-ink-3 group-hover:text-gold transition-colors shrink-0">
-                                  Practice <ChevronRight className="w-3 h-3" />
-                                </span>
-                                {/* Mobile: chevron only */}
-                                <ChevronRight className="w-4 h-4 text-ink-3 shrink-0 sm:hidden" />
-                              </>
+                              <span className="text-base font-bold shrink-0 text-ink">{pct}%</span>
                             )}
                           </div>
 
@@ -757,13 +749,18 @@ export function StatsPage(): JSX.Element {
                         <Link
                           key={s.concept}
                           to={`/play/lessons?concept=${s.concept}`}
-                          className="group block rounded-lg px-2 py-1.5 -mx-2 hover:bg-elevated transition-colors"
+                          className="group flex items-center gap-2 rounded-lg px-2 py-1.5 -mx-2 hover:bg-elevated transition-colors"
                         >
-                          {rowContent}
+                          {rowInner}
+                          {/* Desktop: Practice label + chevron; mobile: chevron only - both centered on the row */}
+                          <span className="hidden sm:flex items-center gap-0.5 text-xs font-semibold text-ink-2 group-hover:text-gold transition-colors shrink-0">
+                            Practice <ChevronRight className="w-3 h-3" />
+                          </span>
+                          <ChevronRight className="w-4 h-4 text-ink-3 shrink-0 sm:hidden" />
                         </Link>
                       ) : (
                         <div key={s.concept} className="px-2 py-1.5 -mx-2">
-                          {rowContent}
+                          {rowInner}
                         </div>
                       )
                     })}
