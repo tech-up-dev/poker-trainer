@@ -86,18 +86,20 @@ function LessonRow({
         <p className="text-xs text-ink-3 mt-0.5">
           {diffLabel} · {total} question{total !== 1 ? 's' : ''}
         </p>
-        {/* Status line */}
-        <p className={`text-xs mt-0.5 ${completed ? accuracyColor(accuracy) : 'text-ink-3'}`}>
-          {completed && accuracy !== null
-            ? `${accuracy}% correct`
-            : answered > 0
-            ? `${answered} of ${total} answered`
-            : 'Not started'}
-        </p>
-        {/* Mobile CTA - hidden on sm+ */}
-        <p className="text-xs text-ink-3 mt-0.5 sm:hidden">
-          {completed ? 'Tap to practice again >' : answered > 0 ? 'Tap to resume >' : 'Tap to start >'}
-        </p>
+        {/* Status line + inline mobile CTA */}
+        <div className="flex items-center gap-1 mt-0.5 flex-wrap">
+          <span className={`text-xs ${completed ? accuracyColor(accuracy) : 'text-ink-3'}`}>
+            {completed && accuracy !== null
+              ? `${accuracy}% correct`
+              : answered > 0
+              ? `${answered} of ${total} answered`
+              : 'Not started'}
+          </span>
+          <span className="sm:hidden flex items-center gap-0.5 text-xs text-ink-3">
+            · {completed ? 'Tap to practice again' : answered > 0 ? 'Tap to resume' : 'Tap to start'}
+            <ChevronRight className="w-3 h-3" />
+          </span>
+        </div>
       </div>
 
       {/* Right side - desktop CTA always visible */}
@@ -107,8 +109,6 @@ function LessonRow({
         </span>
         <ChevronRight className="w-4 h-4 text-ink-3 group-hover:text-gold transition-colors" />
       </div>
-      {/* Mobile chevron only */}
-      <ChevronRight className="w-4 h-4 text-ink-3 shrink-0 self-center sm:hidden" />
     </button>
   )
 }
