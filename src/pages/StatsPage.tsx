@@ -710,15 +710,24 @@ export function StatsPage(): JSX.Element {
 
                           {isMeasured && (
                             <div className="ml-7 space-y-1">
-                              <div className="relative h-2 rounded-full overflow-visible" style={{ background: 'var(--progress-track-bg)' }}>
-                                <div
-                                  className={`h-full rounded-full ${barColor}`}
-                                  style={{ width: `${pct}%` }}
-                                />
-                                <div
-                                  className="absolute top-[-2px] bottom-[-2px] w-[2px] bg-ink-3/60 rounded-full"
-                                  style={{ left: '75%' }}
-                                />
+                              {/* Bar row: bar + chevron aligned together */}
+                              <div className="flex items-center gap-2">
+                                <div className="relative h-2 rounded-full overflow-visible flex-1" style={{ background: 'var(--progress-track-bg)' }}>
+                                  <div
+                                    className={`h-full rounded-full ${barColor}`}
+                                    style={{ width: `${pct}%` }}
+                                  />
+                                  <div
+                                    className="absolute top-[-2px] bottom-[-2px] w-[2px] bg-ink-3/60 rounded-full"
+                                    style={{ left: '75%' }}
+                                  />
+                                </div>
+                                {/* Desktop: Practice label + chevron at bar level */}
+                                <span className="hidden sm:flex items-center gap-0.5 text-xs font-semibold text-ink-2 group-hover:text-gold transition-colors shrink-0">
+                                  Practice <ChevronRight className="w-3 h-3" />
+                                </span>
+                                {/* Mobile: chevron only at bar level */}
+                                <ChevronRight className="w-4 h-4 text-ink-3 shrink-0 sm:hidden" />
                               </div>
 
                               <div className="flex items-center gap-3 flex-wrap">
@@ -749,14 +758,9 @@ export function StatsPage(): JSX.Element {
                         <Link
                           key={s.concept}
                           to={`/play/lessons?concept=${s.concept}`}
-                          className="group flex items-center gap-2 rounded-lg px-2 py-1.5 -mx-2 hover:bg-elevated transition-colors"
+                          className="group block rounded-lg px-2 py-1.5 -mx-2 hover:bg-elevated transition-colors"
                         >
                           {rowInner}
-                          {/* Desktop: Practice label + chevron; mobile: chevron only - both centered on the row */}
-                          <span className="hidden sm:flex items-center gap-0.5 text-xs font-semibold text-ink-2 group-hover:text-gold transition-colors shrink-0">
-                            Practice <ChevronRight className="w-3 h-3" />
-                          </span>
-                          <ChevronRight className="w-4 h-4 text-ink-3 shrink-0 sm:hidden" />
                         </Link>
                       ) : (
                         <div key={s.concept} className="px-2 py-1.5 -mx-2">
