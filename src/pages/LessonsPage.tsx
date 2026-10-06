@@ -102,9 +102,9 @@ function LessonRow({
         </div>
       </div>
 
-      {/* Right side - desktop CTA always visible */}
-      <div className="hidden sm:flex items-center gap-1 shrink-0 self-center">
-        <span className="text-xs text-ink-3 group-hover:text-gold transition-colors">
+      {/* Right side - desktop CTA always visible, mobile row chevron */}
+      <div className="flex items-center gap-1 shrink-0 self-center">
+        <span className="hidden sm:inline text-xs text-ink-3 group-hover:text-gold transition-colors">
           {completed ? 'Practice again' : answered > 0 ? 'Resume' : 'Start'}
         </span>
         <ChevronRight className="w-4 h-4 text-ink-3 group-hover:text-gold transition-colors" />
