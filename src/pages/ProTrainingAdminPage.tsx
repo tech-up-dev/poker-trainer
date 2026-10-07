@@ -520,20 +520,16 @@ export function ProTrainingAdminPage(): JSX.Element {
   }, [])
 
   async function handleSave(form: CourseForm): Promise<void> {
-    // cta_text is omitted until the DB column is added by the BE developer.
-    // Remove this destructure once pro_training_courses.cta_text exists.
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { cta_text: _cta, ...dbPayload } = form
     if (editingCourse) {
       const { error: err } = await supabaseProd
         .from('pro_training_courses')
-        .update(dbPayload)
+        .update(form)
         .eq('id', editingCourse.id)
       if (err) throw new Error(err.message)
     } else {
       const { error: err } = await supabaseProd
         .from('pro_training_courses')
-        .insert({ ...dbPayload, enabled: true })
+        .insert({ ...form, enabled: true })
       if (err) throw new Error(err.message)
     }
     setModalOpen(false)
