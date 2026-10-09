@@ -123,7 +123,7 @@ export function GlossaryPage(): JSX.Element {
 
   useEffect(() => {
     fetchAllGlossaryEntries()
-      .then(setEntries)
+      .then((all) => setEntries([...all].sort((a, b) => a.term.localeCompare(b.term, 'en', { sensitivity: 'base', numeric: true }))))
       .catch(() => setEntries([]))
       .finally(() => setLoading(false))
   }, [])

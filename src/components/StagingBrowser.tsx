@@ -16,7 +16,7 @@ type StagedItem = {
   created_at?: string
 }
 
-type SortField = 'name' | 'seq' | 'created_at' | 'updated_at'
+type SortField = 'name' | 'seq' | 'created_at' | 'updated_at' | 'sort_order'
 type SortDir = 'asc' | 'desc'
 
 type LoadState =
@@ -37,6 +37,10 @@ const EDITOR_ROUTE: Partial<Record<ContentType, string>> = {
   glossary:  '/admin?tab=glossary',
   tip:       '/admin?tab=tip',
   reference: '/admin?tab=reference',
+}
+
+function orderOf(item: StagedItem): number {
+  return (item.content as { sort_order?: number }).sort_order ?? Number.MAX_SAFE_INTEGER
 }
 
 function key(item: StagedItem): string {
@@ -81,6 +85,8 @@ export function StagingBrowser(): JSX.Element {
   const [confirmItem, setConfirmItem] = useState<StagedItem | null>(null)
   const [confirmDemoteItem, setConfirmDemoteItem] = useState<StagedItem | null>(null)
   const [demoteState, setDemoteState] = useState<Record<string, DemoteStatus>>({})
+  // Per-item Library-order save status (references only).
+  const [orderState, setOrderState] = useState<Record<string, 'saving' | { error: string }>>({})
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [promotingAll, setPromotingAll] = useState(false)
   const [activeTab, setActiveTab] = useState<ContentType>('lesson')
@@ -215,6 +221,46 @@ export function StagingBrowser(): JSX.Element {
     )
   }
 
+  // Reference Library order: saves sort_order into the staged content. The
+  // change goes live on the next Promote, like any other edit.
+  async function saveOrder(item: StagedItem, raw: string): Promise<void> {
+    const trimmed = raw.trim()
+    const current = (item.content as { sort_order?: number }).sort_order
+    if (trimmed === '' ? current === undefined : Number(trimmed) === current) return
+    const n = Number(trimmed)
+    if (trimmed !== '' && (!Number.isInteger(n) || n < 1)) {
+      setOrderState((o) => ({ ...o, [key(item)]: { error: 'Order must be a whole number, 1 or higher' } }))
+      return
+    }
+    setOrderState((o) => ({ ...o, [key(item)]: 'saving' }))
+    const content: Record<string, unknown> = { ...(item.content as Record<string, unknown>) }
+    if (trimmed === '') delete content.sort_order
+    else content.sort_order = n
+    const { data, error } = await supabaseProd.functions.invoke('save-to-staging', {
+      body: { content_id: item.content_id, content_type: item.content_type, content },
+    })
+    const result = data as { ok?: boolean; message?: string } | null
+    if (error || result?.ok === false) {
+      setOrderState((o) => ({ ...o, [key(item)]: { error: result?.message ?? error?.message ?? 'Save failed' } }))
+      return
+    }
+    setOrderState((o) => {
+      const next = { ...o }
+      delete next[key(item)]
+      return next
+    })
+    setState((prev) =>
+      prev.kind === 'loaded'
+        ? {
+            kind: 'loaded',
+            items: prev.items.map((i) =>
+              key(i) === key(item) ? { ...i, content, updated_at: new Date().toISOString() } : i,
+            ),
+          }
+        : prev,
+    )
+  }
+
   // Demote: removes from production only, staging copy is kept intact.
   async function demoteItem(item: StagedItem): Promise<void> {
     setConfirmDemoteItem(null)
@@ -283,6 +329,8 @@ export function StagingBrowser(): JSX.Element {
     const cmp =
       sortField === 'name'
         ? labelFor(a).localeCompare(labelFor(b))
+        : sortField === 'sort_order'
+          ? (orderOf(a) - orderOf(b))
         : sortField === 'seq'
           ? ((a.seq ?? Infinity) - (b.seq ?? Infinity))
           : sortField === 'created_at'
@@ -376,6 +424,7 @@ export function StagingBrowser(): JSX.Element {
               <option value="created_at">Creation date</option>
               <option value="name">Name</option>
               <option value="seq">Seq #</option>
+              {activeTab === 'reference' ? <option value="sort_order">Library order</option> : null}
             </select>
             <button
               type="button"
@@ -472,6 +521,24 @@ export function StagingBrowser(): JSX.Element {
                         </div>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
+                        {item.content_type === 'reference' ? (
+                          <label className="flex items-center gap-1 text-xs text-ink-3">
+                            Order
+                            <input
+                              key={`${key(item)}:${(item.content as { sort_order?: number }).sort_order ?? ''}`}
+                              type="number"
+                              min={1}
+                              step={1}
+                              inputMode="numeric"
+                              defaultValue={(item.content as { sort_order?: number }).sort_order ?? ''}
+                              disabled={orderState[key(item)] === 'saving'}
+                              onBlur={(e) => void saveOrder(item, e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') e.currentTarget.blur() }}
+                              className="w-14 text-xs px-2 py-1 rounded bg-canvas border border-line text-ink"
+                              aria-label={`Library order for ${labelFor(item)}`}
+                            />
+                          </label>
+                        ) : null}
                         <button
                           type="button"
                           onClick={() => setExpanded((e) => ({ ...e, [key(item)]: !isOpen }))}
@@ -536,6 +603,9 @@ export function StagingBrowser(): JSX.Element {
                     ) : null}
                     {typeof status === 'object' && 'error' in status ? (
                       <p className="text-xs text-red-400">Promote failed: {status.error}</p>
+                    ) : null}
+                    {typeof orderState[key(item)] === 'object' ? (
+                      <p className="text-xs text-red-400">Order not saved: {(orderState[key(item)] as { error: string }).error}</p>
                     ) : null}
                     {typeof del === 'object' && 'error' in del ? (
                       <p className="text-xs text-red-400">Delete failed: {del.error}</p>
