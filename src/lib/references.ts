@@ -8,5 +8,7 @@ export async function fetchAllPublishedReferences(): Promise<Reference[]> {
     .eq('content_type', 'reference')
     .order('content_id')
   if (error) throw new Error(error.message)
-  return (data ?? []).map((row) => row.content as Reference)
+  const refs = (data ?? []).map((row) => row.content as Reference)
+  // Array.sort is stable, so ties and unnumbered items keep the content_id order from the query.
+  return refs.sort((a, b) => (a.sort_order ?? Number.MAX_SAFE_INTEGER) - (b.sort_order ?? Number.MAX_SAFE_INTEGER))
 }

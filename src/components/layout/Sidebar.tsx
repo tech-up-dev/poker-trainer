@@ -105,7 +105,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps): JSX.Element {
           <div className="px-3 pb-3">
             <button
               type="button"
-              onClick={() => { onClose(); void navigate('/play/pro-training') }}
+              onClick={() => { onClose(); void navigate('/play/courses') }}
               className="w-full flex items-center gap-3 rounded-xl p-[13px_14px] transition-colors cursor-pointer bg-surface hover:bg-elevated"
               style={{ border: '1px solid var(--color-accent-text)' }}
             >
