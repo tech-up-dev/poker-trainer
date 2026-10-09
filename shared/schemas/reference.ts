@@ -20,6 +20,9 @@ export const ReferenceSchema = z.object({
     .string({ error: 'body_markdown is required' })
     .min(1, 'body_markdown is required'),
   tags: z.array(z.string()).optional(),
+  // Manual display order in the Library (lower first). Items without one sort
+  // after those that have one. Coerced so CSV bulk import ("3") is accepted.
+  sort_order: z.coerce.number().int().positive().optional(),
 })
 
 export type Reference = z.infer<typeof ReferenceSchema>
