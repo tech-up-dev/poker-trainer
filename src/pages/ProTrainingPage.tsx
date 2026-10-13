@@ -126,7 +126,7 @@ export function ProTrainingPage(): JSX.Element {
       const [coursesResult, ownedResult] = await Promise.all([
         supabaseProd
           .from('pro_training_courses')
-          .select('id, eyebrow, title, description, list_price, member_price, tone, sales_url, sort_order')
+          .select('id, eyebrow, title, description, list_price, member_price, tone, sales_url, cta_text, sort_order')
           .eq('enabled', true)
           .order('sort_order', { ascending: true }),
         supabaseProd.rpc('get_owned_courses'),

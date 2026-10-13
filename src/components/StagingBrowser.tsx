@@ -86,7 +86,7 @@ export function StagingBrowser(): JSX.Element {
   const [confirmDemoteItem, setConfirmDemoteItem] = useState<StagedItem | null>(null)
   const [demoteState, setDemoteState] = useState<Record<string, DemoteStatus>>({})
   // Per-item Library-order save status (references only).
-  const [orderState, setOrderState] = useState<Record<string, 'saving' | { error: string }>>({})
+  const [orderState, setOrderState] = useState<Record<string, 'saving' | 'saved' | { error: string }>>({})
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [promotingAll, setPromotingAll] = useState(false)
   const [activeTab, setActiveTab] = useState<ContentType>('lesson')
@@ -232,6 +232,10 @@ export function StagingBrowser(): JSX.Element {
       setOrderState((o) => ({ ...o, [key(item)]: { error: 'Order must be a whole number, 1 or higher' } }))
       return
     }
+    // Auto-publish only when live and with no other unpublished edits, so the
+    // new order is the only thing that goes live.
+    const liveAt = publishedAt.get(key(item))
+    const autoPublish = publishedKeys.has(key(item)) && liveAt !== undefined && item.updated_at <= liveAt
     setOrderState((o) => ({ ...o, [key(item)]: 'saving' }))
     const content: Record<string, unknown> = { ...(item.content as Record<string, unknown>) }
     if (trimmed === '') delete content.sort_order
@@ -244,21 +248,24 @@ export function StagingBrowser(): JSX.Element {
       setOrderState((o) => ({ ...o, [key(item)]: { error: result?.message ?? error?.message ?? 'Save failed' } }))
       return
     }
-    setOrderState((o) => {
-      const next = { ...o }
-      delete next[key(item)]
-      return next
-    })
+    const updatedAt = new Date().toISOString()
     setState((prev) =>
       prev.kind === 'loaded'
         ? {
             kind: 'loaded',
             items: prev.items.map((i) =>
-              key(i) === key(item) ? { ...i, content, updated_at: new Date().toISOString() } : i,
+              key(i) === key(item) ? { ...i, content, updated_at: updatedAt } : i,
             ),
           }
         : prev,
     )
+    const published = autoPublish && (await promoteItem({ ...item, content, updated_at: updatedAt }))
+    setOrderState((o) => {
+      const next = { ...o }
+      if (published) delete next[key(item)]
+      else next[key(item)] = 'saved'
+      return next
+    })
   }
 
   // Demote: removes from production only, staging copy is kept intact.
@@ -603,6 +610,9 @@ export function StagingBrowser(): JSX.Element {
                     ) : null}
                     {typeof status === 'object' && 'error' in status ? (
                       <p className="text-xs text-red-400">Promote failed: {status.error}</p>
+                    ) : null}
+                    {orderState[key(item)] === 'saved' ? (
+                      <p className="text-xs text-amber-400">Order saved to staging. It will not show in the Library until you click Promote.</p>
                     ) : null}
                     {typeof orderState[key(item)] === 'object' ? (
                       <p className="text-xs text-red-400">Order not saved: {(orderState[key(item)] as { error: string }).error}</p>
