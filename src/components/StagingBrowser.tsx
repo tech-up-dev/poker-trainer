@@ -232,6 +232,10 @@ export function StagingBrowser(): JSX.Element {
       setOrderState((o) => ({ ...o, [key(item)]: { error: 'Order must be a whole number, 1 or higher' } }))
       return
     }
+    // Auto-publish only when live and with no other unpublished edits, so the
+    // new order is the only thing that goes live.
+    const liveAt = publishedAt.get(key(item))
+    const autoPublish = publishedKeys.has(key(item)) && liveAt !== undefined && item.updated_at <= liveAt
     setOrderState((o) => ({ ...o, [key(item)]: 'saving' }))
     const content: Record<string, unknown> = { ...(item.content as Record<string, unknown>) }
     if (trimmed === '') delete content.sort_order
@@ -244,17 +248,24 @@ export function StagingBrowser(): JSX.Element {
       setOrderState((o) => ({ ...o, [key(item)]: { error: result?.message ?? error?.message ?? 'Save failed' } }))
       return
     }
-    setOrderState((o) => ({ ...o, [key(item)]: 'saved' }))
+    const updatedAt = new Date().toISOString()
     setState((prev) =>
       prev.kind === 'loaded'
         ? {
             kind: 'loaded',
             items: prev.items.map((i) =>
-              key(i) === key(item) ? { ...i, content, updated_at: new Date().toISOString() } : i,
+              key(i) === key(item) ? { ...i, content, updated_at: updatedAt } : i,
             ),
           }
         : prev,
     )
+    const published = autoPublish && (await promoteItem({ ...item, content, updated_at: updatedAt }))
+    setOrderState((o) => {
+      const next = { ...o }
+      if (published) delete next[key(item)]
+      else next[key(item)] = 'saved'
+      return next
+    })
   }
 
   // Demote: removes from production only, staging copy is kept intact.
