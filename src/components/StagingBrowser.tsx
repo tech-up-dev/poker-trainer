@@ -86,7 +86,7 @@ export function StagingBrowser(): JSX.Element {
   const [confirmDemoteItem, setConfirmDemoteItem] = useState<StagedItem | null>(null)
   const [demoteState, setDemoteState] = useState<Record<string, DemoteStatus>>({})
   // Per-item Library-order save status (references only).
-  const [orderState, setOrderState] = useState<Record<string, 'saving' | { error: string }>>({})
+  const [orderState, setOrderState] = useState<Record<string, 'saving' | 'saved' | { error: string }>>({})
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [promotingAll, setPromotingAll] = useState(false)
   const [activeTab, setActiveTab] = useState<ContentType>('lesson')
@@ -244,11 +244,7 @@ export function StagingBrowser(): JSX.Element {
       setOrderState((o) => ({ ...o, [key(item)]: { error: result?.message ?? error?.message ?? 'Save failed' } }))
       return
     }
-    setOrderState((o) => {
-      const next = { ...o }
-      delete next[key(item)]
-      return next
-    })
+    setOrderState((o) => ({ ...o, [key(item)]: 'saved' }))
     setState((prev) =>
       prev.kind === 'loaded'
         ? {
@@ -603,6 +599,9 @@ export function StagingBrowser(): JSX.Element {
                     ) : null}
                     {typeof status === 'object' && 'error' in status ? (
                       <p className="text-xs text-red-400">Promote failed: {status.error}</p>
+                    ) : null}
+                    {orderState[key(item)] === 'saved' ? (
+                      <p className="text-xs text-amber-400">Order saved to staging. It will not show in the Library until you click Promote.</p>
                     ) : null}
                     {typeof orderState[key(item)] === 'object' ? (
                       <p className="text-xs text-red-400">Order not saved: {(orderState[key(item)] as { error: string }).error}</p>
