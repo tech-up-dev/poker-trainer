@@ -45,4 +45,22 @@ export async function assertAdmin(
     .maybeSingle();
 
   if (!entitlement) throw new AdminError(403, "Admin access required");
+
+  // #79 admin 2FA. Opt-in like REQUIRE_ADMIN so it can ship dark and be turned
+  // on after the FE enrollment/challenge UI is live and every admin has
+  // enrolled a TOTP factor; flipping it on early would lock admins out.
+  // The token was already verified by getUser above, so its claims are trusted.
+  if (Deno.env.get("REQUIRE_ADMIN_MFA") === "true" && jwtAal(token) !== "aal2") {
+    throw new AdminError(403, "Two-factor verification required");
+  }
+}
+
+function jwtAal(token: string): string | null {
+  try {
+    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const claims = JSON.parse(atob(payload.padEnd(payload.length + ((4 - (payload.length % 4)) % 4), "=")));
+    return typeof claims.aal === "string" ? claims.aal : null;
+  } catch {
+    return null;
+  }
 }
