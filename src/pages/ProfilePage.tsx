@@ -7,6 +7,7 @@ import { useAuth } from '../lib/auth-context'
 import { supabaseProd } from '../lib/supabase-prod'
 import { PRICING_PLANS, createCheckoutSession } from '../lib/checkout'
 import type { PricingPlan } from '../lib/checkout'
+import { ChangePasswordCard } from '../components/ChangePasswordCard'
 import { getTextSize, setTextSize, TEXT_SIZE_OPTIONS } from '../lib/text-size'
 
 type Entitlement = {
@@ -240,6 +241,8 @@ export function ProfilePage(): JSX.Element {
           )}
         </div>
       )}
+
+      <ChangePasswordCard />
 
       <div className="flex justify-end">
         <button
