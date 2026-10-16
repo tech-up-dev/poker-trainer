@@ -1,21 +1,14 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 
-import { AdminLayout } from './layout/AdminLayout'
 import { MemberLayout } from './layout/MemberLayout'
 import { RequireAuth } from './components/RequireAuth'
 import { RequireSession } from './components/RequireSession'
 import { GlossaryDrawerProvider } from './components/GlossaryDrawer'
-import { AdminDashboardPage } from './pages/AdminDashboardPage'
-import { ValidatorPage } from './pages/ValidatorPage'
 import { LoginPage } from './pages/LoginPage'
 import { SignupPage } from './pages/SignupPage'
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
-import { BulkImport } from './components/BulkImport'
-import { StagingBrowser } from './components/StagingBrowser'
 import { TablePreviewPage } from './pages/TablePreviewPage'
 import { ResetPasswordPage } from './pages/ResetPasswordPage'
-import { TableBuilderPage } from './pages/TableBuilderPage'
-import { AuthoringWizardPage } from './pages/AuthoringWizardPage'
 import { MemberDashboardPage } from './pages/MemberDashboardPage'
 import { LessonsPage } from './pages/LessonsPage'
 import { LessonSessionPage } from './pages/LessonSessionPage'
@@ -28,11 +21,6 @@ import { ReferencesLibraryPage } from './pages/ReferencesLibraryPage'
 import { CheckoutSuccessPage } from './pages/CheckoutSuccessPage'
 import { OnboardingPage } from './pages/OnboardingPage'
 import { ProTrainingPage } from './pages/ProTrainingPage'
-import { ProTrainingAdminPage } from './pages/ProTrainingAdminPage'
-import { AppSettingsAdminPage } from './pages/AppSettingsAdminPage'
-import { ConceptsAdminPage } from './pages/ConceptsAdminPage'
-import { EntitlementsAdminPage } from './pages/EntitlementsAdminPage'
-import { AdminMembersPage } from './pages/AdminMembersPage'
 import { DrillSessionPage } from './pages/DrillSessionPage'
 import { SubscribePage } from './pages/SubscribePage'
 
@@ -52,23 +40,23 @@ export const router = createBrowserRouter([
     children: [
       {
         path: '/',
-        element: <AdminLayout />,
+        lazy: async () => ({ Component: (await import('./layout/AdminLayout')).AdminLayout }),
         children: [
           { index: true, element: <Navigate to="/admin/dashboard" replace /> },
-          { path: 'admin/dashboard', element: <AdminDashboardPage /> },
-          { path: 'admin', element: <ValidatorPage /> },
-          { path: 'admin/import', element: <BulkImport /> },
+          { path: 'admin/dashboard', lazy: async () => ({ Component: (await import('./pages/AdminDashboardPage')).AdminDashboardPage }) },
+          { path: 'admin', lazy: async () => ({ Component: (await import('./pages/ValidatorPage')).ValidatorPage }) },
+          { path: 'admin/import', lazy: async () => ({ Component: (await import('./components/BulkImport')).BulkImport }) },
           { path: 'admin/tips', element: <Navigate to="/admin?tab=tip" replace /> },
           { path: 'admin/references', element: <Navigate to="/admin?tab=reference" replace /> },
           { path: 'admin/glossary', element: <Navigate to="/admin?tab=glossary" replace /> },
-          { path: 'admin/staging', element: <StagingBrowser /> },
-          { path: 'admin/table-builder', element: <TableBuilderPage /> },
-          { path: 'admin/wizard', element: <GlossaryDrawerProvider><AuthoringWizardPage fullscreen /></GlossaryDrawerProvider> },
-          { path: 'admin/pro-training', element: <ProTrainingAdminPage /> },
-          { path: 'admin/settings',     element: <AppSettingsAdminPage /> },
-          { path: 'admin/concepts',     element: <ConceptsAdminPage /> },
-          { path: 'admin/entitlements', element: <EntitlementsAdminPage /> },
-          { path: 'admin/members',     element: <AdminMembersPage /> },
+          { path: 'admin/staging', lazy: async () => ({ Component: (await import('./components/StagingBrowser')).StagingBrowser }) },
+          { path: 'admin/table-builder', lazy: async () => ({ Component: (await import('./pages/TableBuilderPage')).TableBuilderPage }) },
+          { path: 'admin/wizard', lazy: async () => { const { AuthoringWizardPage } = await import('./pages/AuthoringWizardPage'); return { element: <GlossaryDrawerProvider><AuthoringWizardPage fullscreen /></GlossaryDrawerProvider> } } },
+          { path: 'admin/pro-training', lazy: async () => ({ Component: (await import('./pages/ProTrainingAdminPage')).ProTrainingAdminPage }) },
+          { path: 'admin/settings',     lazy: async () => ({ Component: (await import('./pages/AppSettingsAdminPage')).AppSettingsAdminPage }) },
+          { path: 'admin/concepts',     lazy: async () => ({ Component: (await import('./pages/ConceptsAdminPage')).ConceptsAdminPage }) },
+          { path: 'admin/entitlements', lazy: async () => ({ Component: (await import('./pages/EntitlementsAdminPage')).EntitlementsAdminPage }) },
+          { path: 'admin/members',     lazy: async () => ({ Component: (await import('./pages/AdminMembersPage')).AdminMembersPage }) },
           { path: '*', element: <Navigate to="/admin/dashboard" replace /> },
         ],
       },
