@@ -41,7 +41,10 @@ export function ReferenceSectionOrder(): JSX.Element {
   return (
     <div className="rounded border border-line p-3 space-y-2 max-w-md">
       <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest">Library section order</p>
-      <p className="text-xs text-ink-3">Top to bottom, as members see the sections. Changes apply immediately.</p>
+      <p className="text-xs text-ink-3">
+        Top to bottom, as members see the sections. Changes apply immediately. The Order number on each reference
+        only sorts it within its own section; use these arrows to move whole sections.
+      </p>
       <ul className="space-y-1">
         {order.map((key, i) => (
           <li key={key} className="flex items-center justify-between gap-2 text-sm text-ink bg-surface rounded px-3 py-1.5">
