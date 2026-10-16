@@ -18,6 +18,7 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { jsonResponse, preflight } from "../_shared/responses.ts";
+import { allowRequest } from "../_shared/rate-limit.ts";
 import { findUserByEmail } from "../_shared/users.ts";
 
 const KEY = "quiz_app_access";
@@ -55,6 +56,13 @@ Deno.serve(async (req) => {
   if (!sessionId) {
     return jsonResponse(req, { ok: false, message: "session_id is required" }, 400);
   }
+  const admin = createClient(url, key);
+
+  // Anonymous endpoint that calls Stripe on every request: cap it per IP.
+  if (!(await allowRequest(admin, "post-purchase-signin", req, 10, 60))) {
+    return jsonResponse(req, { ok: false, message: "Too many requests. Please try again in a minute." }, 429);
+  }
+
   // Always land the buyer back on /play/checkout/success (no query params). That
   // page already knows how to react to a fresh recovery-link session: it picks up
   // the session and polls for the entitlement. Derived from the request Origin so
@@ -85,8 +93,6 @@ Deno.serve(async (req) => {
   if (!email) {
     return jsonResponse(req, { ok: false, message: "Session has no email" }, 400);
   }
-
-  const admin = createClient(url, key);
 
   // 3. Ensure the auth user exists. The stripe-webhook may have already created
   //    it; if not, create here. createUser on an existing email returns an error,

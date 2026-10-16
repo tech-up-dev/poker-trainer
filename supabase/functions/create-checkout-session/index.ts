@@ -18,6 +18,7 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 import { jsonResponse, preflight } from "../_shared/responses.ts";
+import { allowRequest } from "../_shared/rate-limit.ts";
 import { findUserByEmail } from "../_shared/users.ts";
 
 type StripeCheckoutSession = { url: string; id: string };
@@ -55,6 +56,11 @@ Deno.serve(async (req) => {
   }
 
   const prod = createClient(prodUrl, prodKey);
+
+  // Anonymous endpoint that calls Stripe on every request: cap it per IP.
+  if (!(await allowRequest(prod, "create-checkout-session", req, 10, 60))) {
+    return jsonResponse(req, { ok: false, message: "Too many requests. Please try again in a minute." }, 429);
+  }
 
   let body: {
     price_id?: string;
