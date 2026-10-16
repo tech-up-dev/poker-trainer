@@ -18,8 +18,17 @@ export function ResetPasswordPage(): JSX.Element {
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
   const [activating, setActivating] = useState(false)
+  // Links from the new email template carry a one-time token_hash. It is only
+  // spent when the person clicks Continue, so mail scanners that open links
+  // automatically can't use it up.
+  const [tokenHash] = useState(() => new URLSearchParams(window.location.search).get('token_hash'))
+  const [verifying, setVerifying] = useState(false)
+  const [linkError, setLinkError] = useState<string | null>(null)
 
   useEffect(() => {
+    // New-style links are verified by the Continue button instead.
+    if (tokenHash) return
+
     // Register the listener before anything else so we don't miss the event.
     const {
       data: { subscription },
@@ -35,7 +44,21 @@ export function ResetPasswordPage(): JSX.Element {
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [tokenHash])
+
+  async function handleContinue(): Promise<void> {
+    if (!tokenHash || verifying) return
+    setVerifying(true)
+    setLinkError(null)
+    const { error: verifyError } = await supabaseProd.auth.verifyOtp({ token_hash: tokenHash, type: 'recovery' })
+    setVerifying(false)
+    if (verifyError) {
+      setLinkError('This reset link has expired or was already used.')
+      return
+    }
+    window.history.replaceState(null, '', window.location.pathname)
+    setReady(true)
+  }
 
   async function handleSubmit(e: FormEvent): Promise<void> {
     e.preventDefault()
@@ -123,6 +146,44 @@ export function ResetPasswordPage(): JSX.Element {
           <CheckCircle2 className="w-14 h-14 text-success mx-auto" />
           <h1 className="text-xl font-bold text-ink">Password updated</h1>
           <p className="text-sm text-ink-2">Redirecting you to sign in…</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!ready && tokenHash) {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm space-y-6">
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-14 h-14 rounded-2xl bg-gold flex items-center justify-center shadow-lg">
+              <span className="text-2xl font-bold text-on-gold">B</span>
+            </div>
+            <div className="text-center">
+              <h1 className="text-xl font-bold text-ink">Reset your password</h1>
+              <p className="text-sm text-ink-3 mt-0.5">Click continue to choose a new password.</p>
+            </div>
+          </div>
+          <div className="card-elevated space-y-4">
+            {linkError !== null && (
+              <p className="text-sm text-error" role="alert">
+                {linkError}{' '}
+                <Link to="/forgot-password" className="text-gold underline underline-offset-2">
+                  Request a new link
+                </Link>
+              </p>
+            )}
+            <button
+              type="button"
+              onClick={() => void handleContinue()}
+              disabled={verifying || linkError !== null}
+              className="btn-primary btn-lg w-full"
+            >
+              {verifying ? 'Checking…' : (
+                <>Continue <ArrowRight className="w-4 h-4" /></>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     )

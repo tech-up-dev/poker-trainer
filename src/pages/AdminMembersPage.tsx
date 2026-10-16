@@ -62,7 +62,7 @@ function MemberRow({ member, onResetSent }: { member: Member; onResetSent: (emai
     const { error } = await supabaseProd.functions.invoke('admin-send-recovery', {
       body: {
         email: member.email,
-        redirect_to: 'https://poker-trainer-olive-rho.vercel.app/reset-password',
+        redirect_to: `${window.location.origin}/reset-password`,
       },
     })
     if (error) {
