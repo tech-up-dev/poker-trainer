@@ -123,15 +123,24 @@ export function ProTrainingPage(): JSX.Element {
 
   useEffect(() => {
     void (async () => {
-      const [coursesResult, ownedResult] = await Promise.all([
+      // Refresh the member's GHL tags first so a purchase tag added in GHL hides
+      // the course right away. Never blocks the page: failures and slow replies
+      // (over 5s) are ignored and the page falls back to the stored tags.
+      const tagSync = Promise.race([
+        supabaseProd.functions.invoke('ghl-sync-me', { body: { tags_only: true } }),
+        new Promise((resolve) => setTimeout(resolve, 5000)),
+      ]).catch(() => undefined)
+
+      const [coursesResult] = await Promise.all([
         supabaseProd
           .from('pro_training_courses')
           .select('id, eyebrow, title, description, list_price, member_price, tone, sales_url, cta_text, sort_order')
           .eq('enabled', true)
           .order('sort_order', { ascending: true }),
-        supabaseProd.rpc('get_owned_courses'),
         fetchUpsellButtonConfig().then(setUpsell),
+        tagSync,
       ])
+      const ownedResult = await supabaseProd.rpc('get_owned_courses')
       const ownedIds = new Set<string>((ownedResult.data?.owned_course_ids as string[] | null) ?? [])
       const visible = ((coursesResult.data ?? []) as Course[]).filter((c) => !ownedIds.has(c.id))
       setCourses(visible)
