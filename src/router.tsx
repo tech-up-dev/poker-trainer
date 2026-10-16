@@ -38,6 +38,7 @@ export const router = createBrowserRouter([
   {
     element: <RequireAuth />,
     children: [
+      { path: '/admin/verify', lazy: async () => ({ Component: (await import('./pages/AdminMfaChallengePage')).AdminMfaChallengePage }) },
       {
         path: '/',
         lazy: async () => ({ Component: (await import('./layout/AdminLayout')).AdminLayout }),
@@ -56,6 +57,7 @@ export const router = createBrowserRouter([
           { path: 'admin/settings',     lazy: async () => ({ Component: (await import('./pages/AppSettingsAdminPage')).AppSettingsAdminPage }) },
           { path: 'admin/concepts',     lazy: async () => ({ Component: (await import('./pages/ConceptsAdminPage')).ConceptsAdminPage }) },
           { path: 'admin/entitlements', lazy: async () => ({ Component: (await import('./pages/EntitlementsAdminPage')).EntitlementsAdminPage }) },
+          { path: 'admin/security', lazy: async () => ({ Component: (await import('./pages/AdminSecurityPage')).AdminSecurityPage }) },
           { path: 'admin/members',     lazy: async () => ({ Component: (await import('./pages/AdminMembersPage')).AdminMembersPage }) },
           { path: '*', element: <Navigate to="/admin/dashboard" replace /> },
         ],

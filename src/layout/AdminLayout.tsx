@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 import {
   LayoutDashboard,
   Upload,
@@ -10,6 +10,7 @@ import {
   Wand2,
   ShoppingBag,
   Settings,
+  ShieldCheck,
   LogOut,
   Sun,
   Moon,
@@ -22,6 +23,7 @@ import {
 import { supabaseProd } from '../lib/supabase-prod'
 import { useAuth } from '../lib/auth-context'
 import { useTheme } from '../lib/theme-context'
+import { getMfaStatus } from '../lib/mfa'
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard',     icon: LayoutDashboard, label: 'Dashboard'     },
@@ -32,6 +34,7 @@ const NAV_ITEMS = [
   { to: '/admin/wizard',        icon: Wand2,       label: 'Wizard'        },
   { to: '/admin/pro-training', icon: ShoppingBag, label: 'Pro Training'  },
   { to: '/admin/members',      icon: Users,       label: 'Members'       },
+  { to: '/admin/security',     icon: ShieldCheck, label: 'Security'      },
   { to: '/admin/settings',     icon: Settings,    label: 'Settings'      },
 ]
 
@@ -149,6 +152,11 @@ function AdminSidebar({ isOpen, onClose }: AdminSidebarProps): JSX.Element {
 
 export function AdminLayout(): JSX.Element {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [mfaOff, setMfaOff] = useState(false)
+
+  useEffect(() => {
+    getMfaStatus().then((s) => setMfaOff(!s.hasVerifiedTotp)).catch(() => {})
+  }, [])
 
   return (
     <div className="min-h-screen bg-canvas text-ink flex">
@@ -176,6 +184,14 @@ export function AdminLayout(): JSX.Element {
         </header>
 
         <main className="flex-1 p-4 sm:p-6 lg:p-10">
+          {mfaOff && (
+            <div className="mb-6 rounded-xl border border-warning/40 bg-warning/10 px-4 py-3 text-sm text-ink">
+              Your admin account is not protected by two-factor authentication.{' '}
+              <Link to="/admin/security" className="text-gold underline underline-offset-2 font-semibold">
+                Set it up now
+              </Link>
+            </div>
+          )}
           <Outlet />
         </main>
       </div>
