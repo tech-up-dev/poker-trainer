@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabaseProd } from '../lib/supabase-prod'
 import { downloadJson, exportFilename } from '../lib/download'
 import { ConfirmDialog } from './ConfirmDialog'
+import { ReferenceSectionOrder } from './ReferenceSectionOrder'
 import type { ContentType } from '../../shared/schemas/content'
 
 type StagedItem = {
@@ -397,6 +398,8 @@ export function StagingBrowser(): JSX.Element {
           )
         })}
       </div>
+
+      {activeTab === 'reference' ? <ReferenceSectionOrder /> : null}
 
       {/* Search + Sort */}
       {state.kind === 'loaded' && tabItems.length > 0 && (
