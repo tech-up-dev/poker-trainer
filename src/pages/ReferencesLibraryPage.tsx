@@ -9,6 +9,11 @@ import type { Reference } from '../../shared/schemas/reference'
 import type { Lesson, Question } from '../../shared/schemas/lesson'
 import type { Tip } from '../../shared/schemas/tip'
 import { fetchAllPublishedReferences } from '../lib/references'
+import {
+  DEFAULT_REFERENCE_CATEGORY_ORDER,
+  REFERENCE_CATEGORY_LABEL,
+  fetchReferenceCategoryOrder,
+} from '../lib/reference-sections'
 import { fetchPublishedLesson } from '../lib/lessons'
 import { fetchSavedQuestionRefs, unsaveQuestion } from '../lib/saved-questions'
 import { fetchAllPublishedTips } from '../lib/tips'
@@ -21,12 +26,6 @@ const TABS = [
   { id: 'references', label: 'References',        icon: FileText  },
 ]
 
-const CATEGORY_LABEL: Record<string, string> = {
-  cheat_sheet:       'Cheat Sheets',
-  character_mapping: 'Character Mapping',
-  methodology:       'Methodology',
-}
-const CATEGORY_ORDER = ['cheat_sheet', 'character_mapping', 'methodology']
 
 function renderMarkdown(md: string): string {
   const raw = marked.parse(md, { async: false }) as string
@@ -80,6 +79,7 @@ export function ReferencesLibraryPage(): JSX.Element {
 
   const [references, setReferences] = useState<Reference[]>([])
   const [refsLoading, setRefsLoading] = useState(true)
+  const [categoryOrder, setCategoryOrder] = useState<string[]>(DEFAULT_REFERENCE_CATEGORY_ORDER)
   const [refSearch, setRefSearch] = useState('')
 
   useEffect(() => {
@@ -111,6 +111,10 @@ export function ReferencesLibraryPage(): JSX.Element {
       setTips(ids.flatMap((id) => (tipMap.has(id) ? [tipMap.get(id)!] : [])))
     }
     loadTips().catch(() => setTips([])).finally(() => setTipsLoading(false))
+  }, [])
+
+  useEffect(() => {
+    fetchReferenceCategoryOrder().then(setCategoryOrder).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -151,7 +155,7 @@ export function ReferencesLibraryPage(): JSX.Element {
     grouped.get(key)!.push(ref)
   }
   const orderedKeys = [
-    ...CATEGORY_ORDER.filter((k) => grouped.has(k)),
+    ...categoryOrder.filter((k) => grouped.has(k)),
     ...(grouped.has('other') ? ['other'] : []),
   ]
 
@@ -315,7 +319,7 @@ export function ReferencesLibraryPage(): JSX.Element {
           {orderedKeys.map((key) => (
             <div key={key} className="space-y-2">
               <h2 className="text-xs font-semibold uppercase tracking-widest text-gold">
-                {CATEGORY_LABEL[key] ?? 'General'}
+                {REFERENCE_CATEGORY_LABEL[key] ?? 'General'}
               </h2>
               {grouped.get(key)!.map((ref) => (
                 <ReferenceCard key={ref.reference_id ?? ref.title} entry={ref} />
