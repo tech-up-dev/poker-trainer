@@ -27,11 +27,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const { data } = await supabaseProd
       .from('entitlements')
-      .select('entitlement_key')
+      .select('entitlement_key, expires_at')
       .in('entitlement_key', ['admin_access', 'quiz_app_access'])
       .eq('status', 'active')
     if (!activeRef.current) return
-    const keys = (data ?? []).map((r) => r.entitlement_key as string)
+    // The database also ignores expired entitlements, so an expired member must
+    // not pass the route guard and land on pages that load empty.
+    const now = Date.now()
+    const keys = (data ?? [])
+      .filter((r) => !r.expires_at || new Date(r.expires_at as string).getTime() > now)
+      .map((r) => r.entitlement_key as string)
     setIsAdmin(keys.includes('admin_access'))
     setHasAccess(keys.includes('quiz_app_access'))
     setLoading(false)
