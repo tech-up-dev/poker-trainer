@@ -1,8 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import type { JSX, ChangeEvent } from 'react'
-import { Search, Send, ShieldCheck, ShieldOff, Clock } from 'lucide-react'
+import { Search, Send, ShieldCheck, ShieldOff, Clock, Trash2 } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
+import { useAuth } from '../lib/auth-context'
+import { ConfirmDialog } from '../components/ConfirmDialog'
 
 type Member = {
   user_id: string
@@ -17,6 +19,7 @@ type Member = {
 }
 
 type ResetState = 'idle' | 'sending' | 'sent' | 'error'
+type DeleteState = 'idle' | 'confirming' | 'deleting' | 'error'
 
 const EMPTY_DASH = String.fromCharCode(8212) // U+2014, kept out of raw source for no-em-dash lint
 
@@ -52,9 +55,22 @@ function AccessBadge({ status }: { status: string }): JSX.Element {
   )
 }
 
-function MemberRow({ member, onResetSent }: { member: Member; onResetSent: (email: string) => void }): JSX.Element {
+function MemberRow({
+  member,
+  isSelf,
+  onResetSent,
+  onDeleted,
+}: {
+  member: Member
+  isSelf: boolean
+  onResetSent: (email: string) => void
+  onDeleted: (userId: string) => void
+}): JSX.Element {
   const [resetState, setResetState] = useState<ResetState>('idle')
   const [resetError, setResetError] = useState<string | null>(null)
+  const [deleteState, setDeleteState] = useState<DeleteState>('idle')
+  const [deleteError, setDeleteError] = useState<string | null>(null)
+  const canDelete = !isSelf && !member.is_admin
 
   async function handleReset(): Promise<void> {
     setResetState('sending')
@@ -62,7 +78,7 @@ function MemberRow({ member, onResetSent }: { member: Member; onResetSent: (emai
     const { error } = await supabaseProd.functions.invoke('admin-send-recovery', {
       body: {
         email: member.email,
-        redirect_to: 'https://poker-trainer-olive-rho.vercel.app/reset-password',
+        redirect_to: `${window.location.origin}/reset-password`,
       },
     })
     if (error) {
@@ -72,6 +88,21 @@ function MemberRow({ member, onResetSent }: { member: Member; onResetSent: (emai
       setResetState('sent')
       onResetSent(member.email)
     }
+  }
+
+  async function handleDelete(): Promise<void> {
+    setDeleteState('deleting')
+    setDeleteError(null)
+    const { data, error } = await supabaseProd.functions.invoke<{ ok: boolean; message?: string }>(
+      'admin-delete-user',
+      { body: { user_id: member.user_id } },
+    )
+    if (error || data?.ok === false) {
+      setDeleteState('error')
+      setDeleteError(data?.message ?? error?.message ?? 'Delete failed')
+      return
+    }
+    onDeleted(member.user_id)
   }
 
   return (
@@ -100,6 +131,7 @@ function MemberRow({ member, onResetSent }: { member: Member; onResetSent: (emai
         {formatDate(member.created_at)}
       </td>
       <td className="px-4 py-3 text-right">
+        <div className="flex flex-col items-end gap-1.5">
         {resetState === 'sent' ? (
           <span className="text-xs text-success font-medium">Reset sent</span>
         ) : resetState === 'error' ? (
@@ -124,6 +156,30 @@ function MemberRow({ member, onResetSent }: { member: Member; onResetSent: (emai
             {resetState === 'sending' ? 'Sending…' : 'Reset password'}
           </button>
         )}
+        {canDelete && (
+          <button
+            type="button"
+            onClick={() => setDeleteState('confirming')}
+            disabled={deleteState === 'deleting'}
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-error hover:underline transition-colors disabled:opacity-40"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            {deleteState === 'deleting' ? 'Deleting…' : 'Delete user'}
+          </button>
+        )}
+        {deleteState === 'error' && (
+          <span className="text-xs text-error">{deleteError ?? 'Delete failed'}</span>
+        )}
+        </div>
+        <ConfirmDialog
+          open={deleteState === 'confirming'}
+          title="Delete this user?"
+          message={`${member.email} will be permanently deleted, along with their lessons, stats and session history. This cannot be undone.`}
+          confirmLabel="Delete user"
+          destructive
+          onConfirm={() => void handleDelete()}
+          onCancel={() => setDeleteState('idle')}
+        />
       </td>
     </tr>
   )
@@ -135,6 +191,7 @@ export function AdminMembersPage(): JSX.Element {
   const [loadError, setLoadError] = useState<string | null>(null)
   const [query, setQuery] = useState('')
   const [recentResets, setRecentResets] = useState<Set<string>>(new Set())
+  const { session } = useAuth()
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -155,6 +212,10 @@ export function AdminMembersPage(): JSX.Element {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load()
   }, [load])
+
+  function handleDeleted(userId: string): void {
+    setMembers((prev) => prev.filter((m) => m.user_id !== userId))
+  }
 
   function handleResetSent(email: string): void {
     setRecentResets((prev) => new Set([...prev, email]))
@@ -238,7 +299,9 @@ export function AdminMembersPage(): JSX.Element {
                   <MemberRow
                     key={member.user_id}
                     member={member}
+                    isSelf={member.user_id === session?.user?.id}
                     onResetSent={handleResetSent}
+                    onDeleted={handleDeleted}
                   />
                 ))}
               </tbody>
