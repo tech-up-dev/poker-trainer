@@ -1,18 +1,23 @@
 ﻿import { useEffect, useState } from 'react'
 import type { FormEvent, JSX } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Lock, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Lock, Eye, EyeOff, ArrowRight, CheckCircle2, Loader2 } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
+import { useAuth } from '../lib/auth-context'
+import { pollForEntitlement } from '../lib/checkout'
+import { AWAITING_ACCESS_KEY } from '../components/RequireSession'
 
 export function ResetPasswordPage(): JSX.Element {
   const navigate = useNavigate()
+  const { refreshEntitlements } = useAuth()
   const [ready, setReady] = useState(false)
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [done, setDone] = useState(false)
+  const [activating, setActivating] = useState(false)
 
   useEffect(() => {
     // Register the listener before anything else so we don't miss the event.
@@ -40,15 +45,75 @@ export function ResetPasswordPage(): JSX.Element {
 
     const { error: updateError } = await supabaseProd.auth.updateUser({ password })
 
-    setSubmitting(false)
-
     if (updateError) {
+      setSubmitting(false)
       setError(updateError.message)
       return
     }
 
-    setDone(true)
-    setTimeout(() => navigate('/login', { replace: true }), 2000)
+    // The recovery link signs the user in, so they already hold a session here.
+    const { data: userData } = await supabaseProd.auth.getUser()
+    const userId = userData.user?.id
+
+    if (!userId) {
+      // No session (e.g. a reset flow that did not auto-sign-in) - fall back to login.
+      setSubmitting(false)
+      setDone(true)
+      setTimeout(() => navigate('/login', { replace: true }), 2000)
+      return
+    }
+
+    // Branch on the account's current access so we don't send everyone through the
+    // new-member activation path. Read the live entitlement state directly (the
+    // cached auth flags can be stale right after a user update).
+    const { data: ents } = await supabaseProd
+      .from('entitlements')
+      .select('entitlement_key')
+      .in('entitlement_key', ['admin_access', 'quiz_app_access'])
+      .eq('status', 'active')
+    const keys = (ents ?? []).map((r) => r.entitlement_key as string)
+
+    await refreshEntitlements()
+
+    // Admin resetting their password: keep them in the CMS, not the member app.
+    if (keys.includes('admin_access')) {
+      navigate('/', { replace: true })
+      return
+    }
+    // Existing member with access already: straight to the homepage.
+    if (keys.includes('quiz_app_access')) {
+      navigate('/play', { replace: true })
+      return
+    }
+
+    // No active access yet - this is a brand-new member (purchased in GHL or via
+    // Stripe) whose quiz_app_access grant is still propagating. Flag the in-flight
+    // activation so that if the grant outlasts this screen's poll, the member
+    // route shows an activating state rather than the Subscribe page.
+    try { localStorage.setItem(AWAITING_ACCESS_KEY, '1') } catch { /* storage unavailable */ }
+    setActivating(true)
+
+    const granted = await pollForEntitlement(userId)
+    if (granted) {
+      try { localStorage.removeItem(AWAITING_ACCESS_KEY) } catch { /* storage unavailable */ }
+    }
+    // Refresh the cached flags either way: on success so the homepage renders
+    // without a bounce; on timeout the awaiting flag keeps the member route
+    // graceful while the grant finishes landing.
+    await refreshEntitlements()
+    navigate('/play', { replace: true })
+  }
+
+  if (activating) {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm text-center space-y-4">
+          <Loader2 className="w-14 h-14 text-gold animate-spin mx-auto" />
+          <h1 className="text-xl font-bold text-ink">Setting up your account</h1>
+          <p className="text-sm text-ink-2">Confirming your access, just a moment…</p>
+        </div>
+      </div>
+    )
   }
 
   if (done) {
