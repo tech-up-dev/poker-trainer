@@ -7,7 +7,7 @@ export const TRACKED_PATHS = ['/login', '/signup', '/subscribe', '/play', '/play
 export type TrackingConfig = {
   // Facebook (Meta) Pixel ID, digits only. Empty = off.
   meta_pixel_id: string
-  // Hyros script address (https, hyros.com only). Empty = off.
+  // Hyros script address (https; hyros.com or the custom tracking domain). Empty = off.
   hyros_script_url: string
 }
 
@@ -19,10 +19,16 @@ export function isValidPixelId(id: string): boolean {
   return /^\d{5,20}$/.test(id)
 }
 
+// Hyros scripts load from hyros.com or, when a custom tracking domain is set up
+// (for example go.beatsmallstakes.com), from that domain at this fixed path.
+const HYROS_SCRIPT_PATH = '/v1/lst/universal-script'
+
 function isHyrosUrl(raw: string): boolean {
   try {
     const u = new URL(raw)
-    return u.protocol === 'https:' && (u.hostname === 'hyros.com' || u.hostname.endsWith('.hyros.com'))
+    if (u.protocol !== 'https:') return false
+    const onHyros = u.hostname === 'hyros.com' || u.hostname.endsWith('.hyros.com')
+    return onHyros || u.pathname === HYROS_SCRIPT_PATH
   } catch {
     return false
   }
