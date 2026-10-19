@@ -24,12 +24,21 @@ Prod Supabase project `ypbgytbdowfzyfikesfg`. Prepared 2026-10-19.
    begin;
    update stripe_prices set enabled = false where price_id like 'price_1U5qTE%';
    insert into stripe_prices (price_id, label, amount, interval, enabled, sort_order) values
-     ('price_1URiY4014e1UrpFzIrBjIA3x', 'Monthly $<amt>', <amt>, 'month', true, 10),
-     ('price_1URibj014e1UrpFzMTnOmt8g', 'Annual $<amt>',  <amt>, 'year',  true, 20);
+     ('price_1URiY4014e1UrpFzIrBjIA3x', 'Monthly $67', 67, 'month', true, 10),
+     ('price_1URibj014e1UrpFzMTnOmt8g', 'Annual $670', 670, 'year',  true, 20);
    commit;
    ```
 3. Clear sandbox customer ids: `update user_profiles set stripe_customer_id = null where stripe_customer_id is not null;`. All current ids are test-mode customers that don't exist in live mode. Without this, a returning test user's checkout fails with "No such customer".
 4. Smoke test: one real purchase with a real card on the monthly price, check access and the billing portal, then refund in Stripe.
+
+## Status 2026-10-19
+
+- `rk_live` received and checked read-only: Checkout Sessions, Customers, Subscriptions and the billing portal all work. The live portal is active. Live prices are $67/month and $670/year.
+- Steve already created the live endpoint at our URL (enabled) with the 4 events above. Still needed from him:
+  - the `whsec_`;
+  - adding `charge.refunded` and `charge.dispute.created` to the endpoint, so a refund or chargeback revokes access;
+  - adding **Invoices: Read** to the restricted key, so we can tell a trainer refund from one for his other products.
+- **Guard (deployed 2026-10-19):** Steve's live account also sells his other products, so `stripe-webhook` and `post-purchase-signin` only act on subscriptions whose price is in `stripe_prices`. Everything else is ignored. Without this, any of his other Stripe sales would have created trainer accounts with access.
 
 ## Notes
 
