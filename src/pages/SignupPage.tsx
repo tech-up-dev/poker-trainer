@@ -4,9 +4,11 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
+import { useAuth } from '../lib/auth-context'
 
 export function SignupPage(): JSX.Element {
   const navigate = useNavigate()
+  const { refreshEntitlements } = useAuth()
   // Activation deep link: a GHL thank-you-page button sends buyers here with
   // ?email=<their purchase email>. We prefill and lock it so the account is
   // created under the exact email that carries the app_subscriber_active tag,
@@ -44,14 +46,14 @@ export function SignupPage(): JSX.Element {
       },
     })
 
-    setSubmitting(false)
-
     if (signUpError) {
+      setSubmitting(false)
       setError(signUpError.message)
       return
     }
 
     if (data.user && (data.user.identities?.length ?? 0) === 0) {
+      setSubmitting(false)
       setError('An account with this email already exists. Try signing in instead.')
       return
     }
@@ -62,10 +64,18 @@ export function SignupPage(): JSX.Element {
     // only a defensive fallback for the misconfigured (confirmations ON) case -
     // it should never fire in a correctly configured project.
     if (data.session) {
-      // Fire-and-forget: sync new user to GHL. Never block navigation on this.
-      void supabaseProd.functions.invoke('ghl-sync-me')
+      // Sync the new user to GHL and WAIT for it: ghl-sync-me is what grants
+      // quiz_app_access from the buyer's GHL tags, so navigating before it
+      // finishes lands a paying member on the Subscribe page (#71/#81). Await it,
+      // refresh the cached entitlement flags, then go to the homepage. Wrapped so
+      // a sync hiccup still lets them through - RequireSession re-checks access.
+      try {
+        await supabaseProd.functions.invoke('ghl-sync-me')
+      } catch { /* non-fatal: fall through and let the member route re-check */ }
+      await refreshEntitlements()
       navigate('/play', { replace: true })
     } else {
+      setSubmitting(false)
       setEmailSent(true)
     }
   }
