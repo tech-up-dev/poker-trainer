@@ -2,7 +2,7 @@
 // Admin-gated: lets a support/admin trigger a real password-recovery email for a
 // member (typical support case: "member forgot their password, help me send them
 // a reset link"). Two steps:
-//   (1) anon.auth.resetPasswordForEmail  - dispatches the standard recovery
+//   (1) admin.auth.resetPasswordForEmail - dispatches the standard recovery
 //       email through our configured SMTP (Resend). This IS the send.
 //   (2) admin.auth.admin.generateLink(type=recovery)  - mints an extra link the
 //       admin FE can show as an out-of-band fallback (Slack DM, etc) if the
@@ -25,13 +25,11 @@ Deno.serve(async (req) => {
 
   const url = Deno.env.get("SUPABASE_URL");
   const key = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!url || !key || !anonKey) {
+  if (!url || !key) {
     return jsonResponse(req, { ok: false, message: "Missing required environment variables" }, 500);
   }
 
   const admin = createClient(url, key);
-  const anon = createClient(url, anonKey);
 
   try {
     await assertAdmin(req, admin);
@@ -56,7 +54,10 @@ Deno.serve(async (req) => {
   const redirectTo = typeof body.redirect_to === "string" ? body.redirect_to : undefined;
 
   // (1) actually dispatch the email through our SMTP.
-  const { error: sendErr } = await anon.auth.resetPasswordForEmail(
+  // Sent with the service-role client, not anon: once Supabase Auth CAPTCHA is
+  // on (#77 Turnstile), anon recover calls need a captcha token, while
+  // service-role requests skip the captcha check.
+  const { error: sendErr } = await admin.auth.resetPasswordForEmail(
     email,
     redirectTo ? { redirectTo } : undefined,
   );
