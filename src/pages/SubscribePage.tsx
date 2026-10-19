@@ -3,12 +3,14 @@ import type { FormEvent, JSX } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Mail, ArrowRight } from 'lucide-react'
 
-import { PRICING_PLANS, createCheckoutSession } from '../lib/checkout'
+import { createCheckoutSession } from '../lib/checkout'
+import { usePricingPlans } from '../lib/pricing-plans'
 import type { PricingPlan } from '../lib/checkout'
 import { supabaseProd } from '../lib/supabase-prod'
 
 export function SubscribePage(): JSX.Element {
   const navigate = useNavigate()
+  const { plans, loading: plansLoading } = usePricingPlans()
   const [email, setEmail] = useState('')
   const [emailConfirmed, setEmailConfirmed] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
@@ -88,7 +90,11 @@ export function SubscribePage(): JSX.Element {
               </button>
             </p>
 
-            {PRICING_PLANS.map((plan) => (
+            {plansLoading && <p className="text-sm text-ink-3">Loading plans…</p>}
+            {!plansLoading && plans.length === 0 && (
+              <p className="text-sm text-ink-3">Plans are unavailable right now. Please refresh in a moment.</p>
+            )}
+            {plans.map((plan) => (
               <div
                 key={plan.id}
                 className="border border-line rounded-xl p-4 flex items-center justify-between gap-4 bg-surface-overlay"
