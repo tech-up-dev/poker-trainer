@@ -19,7 +19,7 @@ type Member = {
 }
 
 type ResetState = 'idle' | 'sending' | 'sent' | 'error'
-type DeleteState = 'idle' | 'confirming' | 'deleting' | 'error'
+type DeleteState = 'idle' | 'confirming' | 'confirming-cancel' | 'deleting' | 'error'
 
 const EMPTY_DASH = String.fromCharCode(8212) // U+2014, kept out of raw source for no-em-dash lint
 
@@ -90,16 +90,29 @@ function MemberRow({
     }
   }
 
-  async function handleDelete(): Promise<void> {
+  async function handleDelete(cancelSubscription = false): Promise<void> {
     setDeleteState('deleting')
     setDeleteError(null)
     const { data, error } = await supabaseProd.functions.invoke<{ ok: boolean; message?: string }>(
       'admin-delete-user',
-      { body: { user_id: member.user_id } },
+      { body: { user_id: member.user_id, ...(cancelSubscription ? { cancel_subscription: true } : {}) } },
     )
-    if (error || data?.ok === false) {
+    if (error) {
+      let body: { code?: string; message?: string } | undefined
+      try {
+        body = await (error as { context?: Response }).context?.json?.()
+      } catch { /* fall back to the generic message */ }
+      if (body?.code === 'active_subscription') {
+        setDeleteState('confirming-cancel')
+        return
+      }
       setDeleteState('error')
-      setDeleteError(data?.message ?? error?.message ?? 'Delete failed')
+      setDeleteError(body?.message ?? error.message)
+      return
+    }
+    if (data?.ok === false) {
+      setDeleteState('error')
+      setDeleteError(data.message ?? 'Delete failed')
       return
     }
     onDeleted(member.user_id)
@@ -178,6 +191,15 @@ function MemberRow({
           confirmLabel="Delete user"
           destructive
           onConfirm={() => void handleDelete()}
+          onCancel={() => setDeleteState('idle')}
+        />
+        <ConfirmDialog
+          open={deleteState === 'confirming-cancel'}
+          title="This member has an active subscription"
+          message={`${member.email} is still paying. Deleting them will also cancel their subscription in Stripe, then permanently remove their account and data. This cannot be undone.`}
+          confirmLabel="Cancel subscription and delete"
+          destructive
+          onConfirm={() => void handleDelete(true)}
           onCancel={() => setDeleteState('idle')}
         />
       </td>
