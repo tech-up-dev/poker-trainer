@@ -113,6 +113,21 @@ function customerIdOf(sub: StripeSubscription): string | null {
   return typeof sub.customer === "string" ? sub.customer : sub.customer?.id ?? null;
 }
 
+// #8 live mode: Steve's live Stripe account also sells his other products (GHL
+// funnels, Masterclass), and this endpoint receives their events too. Only a
+// subscription on one of OUR prices (any stripe_prices row, enabled or not) may
+// create an account or change trainer access; everything else is acknowledged
+// and ignored.
+async function trainerPriceIds(prod: Client): Promise<Set<string>> {
+  const { data, error } = await prod.from("stripe_prices").select("price_id");
+  if (error) throw error; // 500 -> Stripe retries
+  return new Set((data ?? []).map((r) => r.price_id as string));
+}
+
+function hasTrainerPrice(items: Array<{ price?: { id?: string } }> | undefined, ids: Set<string>): boolean {
+  return (items ?? []).some((i) => typeof i.price?.id === "string" && ids.has(i.price.id));
+}
+
 async function grant(prod: Client, userId: string, sub: StripeSubscription, customerId: string): Promise<void> {
   const priceId = sub.items?.data?.[0]?.price?.id ?? null;
   const expiresAt = sub.current_period_end ? new Date(sub.current_period_end * 1000).toISOString() : null;
@@ -214,6 +229,7 @@ Deno.serve(async (req) => {
   const prod = createClient(url, key);
 
   try {
+    const ourPrices = await trainerPriceIds(prod);
     switch (event.type) {
       case "checkout.session.completed": {
         // Grant straight from the session: the buyer email and customer id are in
@@ -246,20 +262,19 @@ Deno.serve(async (req) => {
         // does. customer.subscription.updated fires seconds later and would set
         // it anyway, but doing it here closes the race window so the billing
         // portal / next-billing UI show the right date immediately.
-        let checkoutExpiresAt: string | null = null;
-        if (subId) {
-          try {
-            const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${encodeURIComponent(subId)}`, {
-              headers: { Authorization: `Bearer ${stripeKey}` },
-            });
-            if (subRes.ok) {
-              const sub = await subRes.json() as { current_period_end?: number };
-              if (sub.current_period_end) checkoutExpiresAt = new Date(sub.current_period_end * 1000).toISOString();
-            }
-          } catch {
-            // Best-effort: if Stripe is unreachable, subscription.updated will fill it in.
-          }
-        }
+        // The subscription is also what tells us whether this checkout was for the
+        // trainer at all (see hasTrainerPrice). No subscription = not ours. If
+        // Stripe can't be reached, throw so Stripe retries the event.
+        if (!subId) break;
+        const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${encodeURIComponent(subId)}`, {
+          headers: { Authorization: `Bearer ${stripeKey}` },
+        });
+        if (!subRes.ok) throw new Error(`subscription fetch failed: ${subRes.status}`);
+        const checkoutSub = await subRes.json() as StripeSubscription;
+        if (!hasTrainerPrice(checkoutSub.items?.data, ourPrices)) break;
+        const checkoutExpiresAt = checkoutSub.current_period_end
+          ? new Date(checkoutSub.current_period_end * 1000).toISOString()
+          : null;
         if (email && customerId) {
           // Pay-first (Steve M3 follow-up item 1): if no auth user exists for
           // this email yet, create one now with a random password. The buyer
@@ -300,6 +315,7 @@ Deno.serve(async (req) => {
       case "customer.subscription.created":
       case "customer.subscription.updated": {
         const sub = event.data.object as unknown as StripeSubscription;
+        if (!hasTrainerPrice(sub.items?.data, ourPrices)) break;
         const customerId = customerIdOf(sub);
         if (!customerId) break;
         const userId = await resolveUserId(prod, stripeKey, customerId);
@@ -319,6 +335,7 @@ Deno.serve(async (req) => {
       }
       case "customer.subscription.deleted": {
         const sub = event.data.object as unknown as StripeSubscription;
+        if (!hasTrainerPrice(sub.items?.data, ourPrices)) break;
         const customerId = customerIdOf(sub);
         if (!customerId) break;
         const userId = await resolveUserId(prod, stripeKey, customerId);
@@ -342,9 +359,20 @@ Deno.serve(async (req) => {
       //    entitlement screen)
       case "charge.refunded":
       case "charge.dispute.created": {
-        const charge = event.data.object as { customer?: string };
+        const charge = event.data.object as { customer?: string; invoice?: string | null };
         const customerId = typeof charge.customer === "string" ? charge.customer : null;
         if (!customerId) break;
+        // Only a refund/dispute of a trainer subscription payment revokes access,
+        // never one for another of Steve's products. Needs the invoice; if it
+        // can't be read (no invoice, or the key lacks Invoices: Read), do nothing.
+        const invoiceId = typeof charge.invoice === "string" ? charge.invoice : null;
+        if (!invoiceId) break;
+        const invRes = await fetch(`https://api.stripe.com/v1/invoices/${encodeURIComponent(invoiceId)}`, {
+          headers: { Authorization: `Bearer ${stripeKey}` },
+        });
+        if (!invRes.ok) break;
+        const invoice = await invRes.json() as { lines?: { data?: Array<{ price?: { id?: string } }> } };
+        if (!hasTrainerPrice(invoice.lines?.data, ourPrices)) break;
         const userId = await resolveUserId(prod, stripeKey, customerId);
         if (!userId) break;
         // Cancel via a synthetic subscription-shaped record so the existing
