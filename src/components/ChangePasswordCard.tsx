@@ -4,6 +4,8 @@ import { Eye, EyeOff } from 'lucide-react'
 
 import { useAuth } from '../lib/auth-context'
 import { supabaseProd } from '../lib/supabase-prod'
+import { TurnstileWidget } from './TurnstileWidget'
+import { turnstileEnabled } from '../lib/turnstile'
 
 export function ChangePasswordCard(): JSX.Element {
   const { session } = useAuth()
@@ -16,6 +18,8 @@ export function ChangePasswordCard(): JSX.Element {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [done, setDone] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaReset, setCaptchaReset] = useState(0)
 
   function close(): void {
     setOpen(false)
@@ -36,10 +40,19 @@ export function ChangePasswordCard(): JSX.Element {
     if (next === current) { setError('New password must be different from your current one.'); return }
 
     setSaving(true)
-    const { error: verifyError } = await supabaseProd.auth.signInWithPassword({ email, password: current })
+    const { error: verifyError } = await supabaseProd.auth.signInWithPassword({
+      email,
+      password: current,
+      options: captchaToken ? { captchaToken } : undefined,
+    })
+    setCaptchaReset((n) => n + 1)
     if (verifyError) {
       setSaving(false)
-      setError('Your current password is incorrect.')
+      setError(
+        verifyError.message.toLowerCase().includes('captcha')
+          ? 'The security check did not pass. Please try again.'
+          : 'Your current password is incorrect.',
+      )
       return
     }
     const { error: updateError } = await supabaseProd.auth.updateUser({ password: next })
@@ -119,13 +132,15 @@ export function ChangePasswordCard(): JSX.Element {
             />
           </div>
 
+          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} />
+
           {error !== null && <p className="text-sm text-error" role="alert">{error}</p>}
 
           <div className="flex items-center justify-end gap-3">
             <button type="button" onClick={close} className="text-sm text-ink-3 hover:text-ink transition-colors">
               Cancel
             </button>
-            <button type="submit" disabled={saving} className="btn-primary">
+            <button type="submit" disabled={saving || (turnstileEnabled && !captchaToken)} className="btn-primary">
               {saving ? 'Updating…' : 'Update password'}
             </button>
           </div>

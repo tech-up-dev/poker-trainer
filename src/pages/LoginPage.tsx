@@ -4,6 +4,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
+import { TurnstileWidget } from '../components/TurnstileWidget'
+import { turnstileEnabled } from '../lib/turnstile'
 import { useAuth } from '../lib/auth-context'
 
 export function LoginPage(): JSX.Element {
@@ -14,6 +16,8 @@ export function LoginPage(): JSX.Element {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaReset, setCaptchaReset] = useState(0)
 
   const existingEmail = session?.user.email ?? null
   const [pendingRedirect, setPendingRedirect] = useState(false)
@@ -41,7 +45,9 @@ export function LoginPage(): JSX.Element {
     const { error: signInError } = await supabaseProd.auth.signInWithPassword({
       email: emailVal,
       password: passwordVal,
+      options: captchaToken ? { captchaToken } : undefined,
     })
+    setCaptchaReset((n) => n + 1)
 
     if (signInError) {
       setSubmitting(false)
@@ -143,9 +149,12 @@ export function LoginPage(): JSX.Element {
             <p className="text-sm text-error" role="alert">{error}</p>
           )}
 
+
+          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} />
+
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || (turnstileEnabled && !captchaToken)}
             className="btn-primary btn-lg w-full"
           >
             {submitting ? 'Signing in…' : (
