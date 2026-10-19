@@ -5,11 +5,12 @@ import { CheckCircle2, Loader2 } from 'lucide-react'
 
 import { useAuth } from '../lib/auth-context'
 import { pollForEntitlement, postPurchaseSignIn } from '../lib/checkout'
+import { AWAITING_ACCESS_KEY } from '../components/RequireSession'
 
 type Phase = 'signing-in' | 'polling' | 'success' | 'timeout' | 'error'
 
 export function CheckoutSuccessPage(): JSX.Element {
-  const { session } = useAuth()
+  const { session, refreshEntitlements } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   // Derive the starting phase during render so we do not call setState
@@ -44,9 +45,17 @@ export function CheckoutSuccessPage(): JSX.Element {
     if (!userId) return
 
     pollForEntitlement(userId)
-      .then((granted) => setPhase(granted ? 'success' : 'timeout'))
+      .then(async (granted) => {
+        if (granted) {
+          try { localStorage.removeItem(AWAITING_ACCESS_KEY) } catch { /* storage unavailable */ }
+          // Refresh the cached entitlement flags so RequireSession lets the
+          // member into /play instead of bouncing them back to Subscribe.
+          await refreshEntitlements()
+        }
+        setPhase(granted ? 'success' : 'timeout')
+      })
       .catch(() => setPhase('timeout'))
-  }, [session, searchParams])
+  }, [session, searchParams, refreshEntitlements])
 
   useEffect(() => {
     if (phase !== 'success') return

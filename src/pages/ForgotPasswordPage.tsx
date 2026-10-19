@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom'
 import { Mail, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
+import { TurnstileWidget } from '../components/TurnstileWidget'
+import { turnstileEnabled } from '../lib/turnstile'
 
 const COOLDOWN_SECONDS = 60
 
@@ -18,6 +20,8 @@ export function ForgotPasswordPage(): JSX.Element {
   const [email, setEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaReset, setCaptchaReset] = useState(0)
   const [sent, setSent] = useState(false)
   const [cooldown, setCooldown] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -49,7 +53,9 @@ export function ForgotPasswordPage(): JSX.Element {
 
     const { error: resetError } = await supabaseProd.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
+      captchaToken: captchaToken ?? undefined,
     })
+    setCaptchaReset((n) => n + 1)
 
     setSubmitting(false)
 
@@ -140,9 +146,12 @@ export function ForgotPasswordPage(): JSX.Element {
             <p className="text-sm text-error" role="alert">{error}</p>
           )}
 
+
+          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} />
+
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || (turnstileEnabled && !captchaToken)}
             className="btn-primary btn-lg w-full"
           >
             {submitting ? 'Sending…' : (

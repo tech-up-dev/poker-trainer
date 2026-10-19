@@ -4,9 +4,13 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Mail, Lock, Eye, EyeOff, ArrowRight, CheckCircle2 } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
+import { TurnstileWidget } from '../components/TurnstileWidget'
+import { turnstileEnabled } from '../lib/turnstile'
+import { useAuth } from '../lib/auth-context'
 
 export function SignupPage(): JSX.Element {
   const navigate = useNavigate()
+  const { refreshEntitlements } = useAuth()
   // Activation deep link: a GHL thank-you-page button sends buyers here with
   // ?email=<their purchase email>. We prefill and lock it so the account is
   // created under the exact email that carries the app_subscriber_active tag,
@@ -22,6 +26,8 @@ export function SignupPage(): JSX.Element {
   const [ageVerified, setAgeVerified] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+  const [captchaReset, setCaptchaReset] = useState(0)
   const [emailSent, setEmailSent] = useState(false)
 
   async function handleSubmit(e: FormEvent): Promise<void> {
@@ -41,8 +47,10 @@ export function SignupPage(): JSX.Element {
       options: {
         data: { age_verified: true },
         emailRedirectTo: `${window.location.origin}/play`,
+        ...(captchaToken ? { captchaToken } : {}),
       },
     })
+    setCaptchaReset((n) => n + 1)
 
     setSubmitting(false)
 
@@ -62,8 +70,15 @@ export function SignupPage(): JSX.Element {
     // only a defensive fallback for the misconfigured (confirmations ON) case -
     // it should never fire in a correctly configured project.
     if (data.session) {
-      // Fire-and-forget: sync new user to GHL. Never block navigation on this.
-      void supabaseProd.functions.invoke('ghl-sync-me')
+      // Wait for the GHL sync so the new member's access exists before /play
+      // loads (otherwise they can land on the Subscribe page). Capped at 8s so a
+      // slow or failed sync can never trap the signup.
+      setSubmitting(true)
+      await Promise.race([
+        supabaseProd.functions.invoke('ghl-sync-me').catch(() => undefined),
+        new Promise((resolve) => setTimeout(resolve, 8000)),
+      ])
+      await refreshEntitlements()
       navigate('/play', { replace: true })
     } else {
       setEmailSent(true)
@@ -185,9 +200,12 @@ export function SignupPage(): JSX.Element {
             <p className="text-sm text-error" role="alert">{error}</p>
           )}
 
+
+          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} />
+
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || (turnstileEnabled && !captchaToken)}
             className="btn-primary btn-lg w-full"
           >
             {submitting ? 'Creating account…' : (
