@@ -94,6 +94,27 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { ok: false, message: "Session has no email" }, 400);
   }
 
+  // #8 live mode: Steve's live Stripe account also sells his other products. A
+  // paid session only unlocks the trainer when its subscription is on one of our
+  // prices (any stripe_prices row), so a session id from another purchase can't
+  // be used to create a trainer account.
+  const subId = typeof session.subscription === "string" ? session.subscription : "";
+  if (!subId) {
+    return jsonResponse(req, { ok: false, message: "Not a trainer purchase" }, 400);
+  }
+  const subRes = await fetch(`https://api.stripe.com/v1/subscriptions/${encodeURIComponent(subId)}`, {
+    headers: { Authorization: `Bearer ${stripeKey}` },
+  });
+  if (!subRes.ok) {
+    return jsonResponse(req, { ok: false, message: "Could not verify the subscription" }, 502);
+  }
+  const sub = await subRes.json() as { items?: { data?: Array<{ price?: { id?: string } }> } };
+  const { data: priceRows } = await admin.from("stripe_prices").select("price_id");
+  const ourPrices = new Set((priceRows ?? []).map((r) => r.price_id as string));
+  if (!(sub.items?.data ?? []).some((i) => typeof i.price?.id === "string" && ourPrices.has(i.price.id))) {
+    return jsonResponse(req, { ok: false, message: "Not a trainer purchase" }, 400);
+  }
+
   // 3. Ensure the auth user exists. The stripe-webhook may have already created
   //    it; if not, create here. createUser on an existing email returns an error,
   //    which we treat as "already exists" and re-look up.

@@ -18,6 +18,7 @@ export function LoginPage(): JSX.Element {
   const [submitting, setSubmitting] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [captchaReset, setCaptchaReset] = useState(0)
+  const [captchaFailed, setCaptchaFailed] = useState(false)
 
   const existingEmail = session?.user.email ?? null
   const [pendingRedirect, setPendingRedirect] = useState(false)
@@ -150,11 +151,11 @@ export function LoginPage(): JSX.Element {
           )}
 
 
-          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} />
+          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} onUnavailable={() => setCaptchaFailed(true)} />
 
           <button
             type="submit"
-            disabled={submitting || (turnstileEnabled && !captchaToken)}
+            disabled={submitting || (turnstileEnabled && !captchaToken && !captchaFailed)}
             className="btn-primary btn-lg w-full"
           >
             {submitting ? 'Signing in…' : (
