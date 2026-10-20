@@ -20,6 +20,7 @@ export function ChangePasswordCard(): JSX.Element {
   const [done, setDone] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [captchaReset, setCaptchaReset] = useState(0)
+  const [captchaFailed, setCaptchaFailed] = useState(false)
 
   function close(): void {
     setOpen(false)
@@ -132,7 +133,7 @@ export function ChangePasswordCard(): JSX.Element {
             />
           </div>
 
-          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} />
+          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} onUnavailable={() => setCaptchaFailed(true)} />
 
           {error !== null && <p className="text-sm text-error" role="alert">{error}</p>}
 
@@ -140,7 +141,7 @@ export function ChangePasswordCard(): JSX.Element {
             <button type="button" onClick={close} className="text-sm text-ink-3 hover:text-ink transition-colors">
               Cancel
             </button>
-            <button type="submit" disabled={saving || (turnstileEnabled && !captchaToken)} className="btn-primary">
+            <button type="submit" disabled={saving || (turnstileEnabled && !captchaToken && !captchaFailed)} className="btn-primary">
               {saving ? 'Updating…' : 'Update password'}
             </button>
           </div>
