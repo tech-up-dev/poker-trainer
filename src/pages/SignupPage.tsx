@@ -28,6 +28,7 @@ export function SignupPage(): JSX.Element {
   const [submitting, setSubmitting] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [captchaReset, setCaptchaReset] = useState(0)
+  const [captchaFailed, setCaptchaFailed] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
 
   async function handleSubmit(e: FormEvent): Promise<void> {
@@ -201,11 +202,11 @@ export function SignupPage(): JSX.Element {
           )}
 
 
-          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} />
+          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} onUnavailable={() => setCaptchaFailed(true)} />
 
           <button
             type="submit"
-            disabled={submitting || (turnstileEnabled && !captchaToken)}
+            disabled={submitting || (turnstileEnabled && !captchaToken && !captchaFailed)}
             className="btn-primary btn-lg w-full"
           >
             {submitting ? 'Creating account…' : (
