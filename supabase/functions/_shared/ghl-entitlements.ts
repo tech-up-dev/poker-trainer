@@ -27,12 +27,19 @@ export async function grantAccess(prod: Client, userId: string, contactId: strin
 
 // Soft cancel: a targeted update that only touches an existing active grant, so a
 // contact who never subscribed never gets a spurious cancelled row.
+//
+// Only a grant GHL itself made (source 'ghl:...', or a legacy row with no source)
+// can be cancelled here. A manual grant (admins, comps) or a Stripe grant is never
+// revoked by a missing GHL tag: on 2026-10-20 the 06:00 resync cancelled Steve's
+// access after his account email changed to one whose GHL contact had no
+// subscriber tag.
 export async function cancelAccess(prod: Client, userId: string, contactId: string): Promise<void> {
   await prod
     .from("entitlements")
     .update({ status: "cancelled", source: `ghl:${contactId}`, updated_at: new Date().toISOString() })
     .eq("user_id", userId)
-    .eq("entitlement_key", KEY);
+    .eq("entitlement_key", KEY)
+    .or("source.is.null,source.like.ghl:*");
 }
 
 // Reconcile from the contact's CURRENT tags (authoritative): the access tag
