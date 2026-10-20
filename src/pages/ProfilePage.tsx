@@ -63,7 +63,16 @@ export function ProfilePage(): JSX.Element {
     })
     setPortalLoading(false)
     if (fnErr || !(data as { url?: string })?.url) {
-      setError('Could not open billing portal. Please try again.')
+      let reason: string | undefined
+      try {
+        const body = await (fnErr as { context?: Response } | null)?.context?.json?.() as { message?: string } | undefined
+        reason = body?.message
+      } catch { /* fall back to the generic message */ }
+      setError(
+        reason === 'No billing account found'
+          ? 'There is no billing account linked to this membership, so there is no billing page to open. If you think this is a mistake, please contact support.'
+          : 'Could not open billing portal. Please try again.',
+      )
       return
     }
     window.location.href = (data as { url: string }).url
