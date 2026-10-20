@@ -37,16 +37,22 @@ function loadScript(): Promise<void> {
 export function TurnstileWidget({
   onToken,
   resetKey,
+  onUnavailable,
 }: {
   onToken: (token: string | null) => void
   resetKey: number
+  // Called when the check cannot run at all (bad key, blocked script), so the form
+  // can stop waiting for a token instead of locking people out.
+  onUnavailable?: () => void
 }): JSX.Element | null {
   const ref = useRef<HTMLDivElement>(null)
   const widgetId = useRef<string | null>(null)
   const onTokenRef = useRef(onToken)
+  const onUnavailableRef = useRef(onUnavailable)
   useEffect(() => {
     onTokenRef.current = onToken
-  }, [onToken])
+    onUnavailableRef.current = onUnavailable
+  }, [onToken, onUnavailable])
 
   useEffect(() => {
     if (!SITE_KEY) return
@@ -59,10 +65,16 @@ export function TurnstileWidget({
           theme: 'auto',
           callback: (t: string) => onTokenRef.current(t),
           'expired-callback': () => onTokenRef.current(null),
-          'error-callback': () => onTokenRef.current(null),
+          'error-callback': () => {
+            onTokenRef.current(null)
+            onUnavailableRef.current?.()
+          },
         })
       })
-      .catch(() => onTokenRef.current(null))
+      .catch(() => {
+        onTokenRef.current(null)
+        onUnavailableRef.current?.()
+      })
     return () => {
       cancelled = true
       if (widgetId.current && window.turnstile) window.turnstile.remove(widgetId.current)

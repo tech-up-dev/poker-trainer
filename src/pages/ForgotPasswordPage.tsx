@@ -22,6 +22,7 @@ export function ForgotPasswordPage(): JSX.Element {
   const [submitting, setSubmitting] = useState(false)
   const [captchaToken, setCaptchaToken] = useState<string | null>(null)
   const [captchaReset, setCaptchaReset] = useState(0)
+  const [captchaFailed, setCaptchaFailed] = useState(false)
   const [sent, setSent] = useState(false)
   const [cooldown, setCooldown] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -147,11 +148,11 @@ export function ForgotPasswordPage(): JSX.Element {
           )}
 
 
-          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} />
+          <TurnstileWidget onToken={setCaptchaToken} resetKey={captchaReset} onUnavailable={() => setCaptchaFailed(true)} />
 
           <button
             type="submit"
-            disabled={submitting || (turnstileEnabled && !captchaToken)}
+            disabled={submitting || (turnstileEnabled && !captchaToken && !captchaFailed)}
             className="btn-primary btn-lg w-full"
           >
             {submitting ? 'Sending…' : (
