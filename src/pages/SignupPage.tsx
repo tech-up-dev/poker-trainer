@@ -76,8 +76,12 @@ export function SignupPage(): JSX.Element {
       // finishes lands a paying member on the Subscribe page (#71/#81). Await it,
       // refresh the cached entitlement flags, then go to the homepage. Wrapped so
       // a sync hiccup still lets them through - RequireSession re-checks access.
+      // Capped at 8s so a stalled sync can never trap the signup button.
       try {
-        await supabaseProd.functions.invoke('ghl-sync-me')
+        await Promise.race([
+          supabaseProd.functions.invoke('ghl-sync-me'),
+          new Promise((resolve) => setTimeout(resolve, 8000)),
+        ])
       } catch { /* non-fatal: fall through and let the member route re-check */ }
       await refreshEntitlements()
       navigate('/play', { replace: true })
