@@ -5,7 +5,8 @@ import { LogOut } from 'lucide-react'
 
 import { useAuth } from '../lib/auth-context'
 import { supabaseProd } from '../lib/supabase-prod'
-import { PRICING_PLANS, createCheckoutSession } from '../lib/checkout'
+import { createCheckoutSession } from '../lib/checkout'
+import { usePricingPlans } from '../lib/pricing-plans'
 import type { PricingPlan } from '../lib/checkout'
 import { ChangePasswordCard } from '../components/ChangePasswordCard'
 import { getTextSize, setTextSize, TEXT_SIZE_OPTIONS } from '../lib/text-size'
@@ -19,6 +20,7 @@ type Entitlement = {
 
 export function ProfilePage(): JSX.Element {
   const { session } = useAuth()
+  const { plans, loading: plansLoading } = usePricingPlans()
   const navigate = useNavigate()
   const [entitlement, setEntitlement] = useState<Entitlement | null>(null)
   const [loading, setLoading] = useState(true)
@@ -179,7 +181,11 @@ export function ProfilePage(): JSX.Element {
                 </p>
               </div>
               <div className="space-y-3">
-                {PRICING_PLANS.map((plan) => (
+                {plansLoading && <p className="text-sm text-ink-3">Loading plans…</p>}
+                {!plansLoading && plans.length === 0 && (
+                  <p className="text-sm text-ink-3">Plans are unavailable right now. Please refresh in a moment.</p>
+                )}
+                {plans.map((plan) => (
                   <div
                     key={plan.id}
                     className="border border-line rounded-xl p-4 flex items-center justify-between gap-4 bg-surface-overlay"
@@ -214,7 +220,11 @@ export function ProfilePage(): JSX.Element {
                 </p>
               </div>
               <div className="space-y-3">
-                {PRICING_PLANS.map((plan) => (
+                {plansLoading && <p className="text-sm text-ink-3">Loading plans…</p>}
+                {!plansLoading && plans.length === 0 && (
+                  <p className="text-sm text-ink-3">Plans are unavailable right now. Please refresh in a moment.</p>
+                )}
+                {plans.map((plan) => (
                   <div
                     key={plan.id}
                     className="border border-line rounded-xl p-4 flex items-center justify-between gap-4 bg-surface-overlay"

@@ -1,5 +1,7 @@
 # Supabase Auth email templates (#76)
 
+> Update (Steve, via Blagojche): the "Need help? Just reply to this email" line has been removed from every template below, so no Reply-To or Send Email hook is needed for the copy. The hook is still only needed if a plain-text part is wanted.
+
 Source: Steve's `trainer-password-reset-email-fixes.pdf`, pages 4-5 (recovery copy relayed by Blagojche 2026-10-16). The other four reuse the same style.
 
 These go into the auth config PATCH in `security-batch-74-76-79.md`, together with `"mailer_otp_exp": 3600` (60 minutes, matching the copy).
@@ -27,7 +29,6 @@ display:inline-block;background:#F5A03A;color:#1A1206;padding:12px 22px;border-r
 <p style="font-size:13px;color:#555;">If the button doesn't work, copy and paste this link into your browser:<br>{{ .SiteURL }}/reset-password?token_hash={{ .TokenHash }}&type=recovery</p>
 <p>This link expires in 60 minutes and can only be used once.</p>
 <p>If you didn't ask to reset your password, you can ignore this email, your password won't change and your account is still secure.</p>
-<p>Need help? Just reply to this email and we'll get you sorted out.</p>
 <p>Thanks,</p>
 <p>Steve Pavilanis<br>Beat Small Stakes, Controlled Chaos Trainer</p>
 ```
@@ -43,7 +44,6 @@ display:inline-block;background:#F5A03A;color:#1A1206;padding:12px 22px;border-r
 <p style="font-size:13px;color:#555;">If the button doesn't work, copy and paste this link into your browser:<br>{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email</p>
 <p>This link expires in 60 minutes and can only be used once.</p>
 <p>If you didn't create this account, you can ignore this email.</p>
-<p>Need help? Just reply to this email and we'll get you sorted out.</p>
 <p>Thanks,</p>
 <p>Steve Pavilanis<br>Beat Small Stakes, Controlled Chaos Trainer</p>
 ```
@@ -59,7 +59,6 @@ display:inline-block;background:#F5A03A;color:#1A1206;padding:12px 22px;border-r
 <p style="font-size:13px;color:#555;">If the button doesn't work, copy and paste this link into your browser:<br>{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email</p>
 <p>This link expires in 60 minutes and can only be used once.</p>
 <p>If you didn't ask to sign in, you can ignore this email, your account is still secure.</p>
-<p>Need help? Just reply to this email and we'll get you sorted out.</p>
 <p>Thanks,</p>
 <p>Steve Pavilanis<br>Beat Small Stakes, Controlled Chaos Trainer</p>
 ```
@@ -75,7 +74,6 @@ display:inline-block;background:#F5A03A;color:#1A1206;padding:12px 22px;border-r
 <p style="font-size:13px;color:#555;">If the button doesn't work, copy and paste this link into your browser:<br>{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=invite</p>
 <p>This link expires in 60 minutes and can only be used once.</p>
 <p>If you weren't expecting this invite, you can ignore this email.</p>
-<p>Need help? Just reply to this email and we'll get you sorted out.</p>
 <p>Thanks,</p>
 <p>Steve Pavilanis<br>Beat Small Stakes, Controlled Chaos Trainer</p>
 ```
@@ -91,7 +89,6 @@ display:inline-block;background:#F5A03A;color:#1A1206;padding:12px 22px;border-r
 <p style="font-size:13px;color:#555;">If the button doesn't work, copy and paste this link into your browser:<br>{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email_change</p>
 <p>This link expires in 60 minutes and can only be used once.</p>
 <p>If you didn't ask for this change, ignore this email and your email address will stay the same.</p>
-<p>Need help? Just reply to this email and we'll get you sorted out.</p>
 <p>Thanks,</p>
 <p>Steve Pavilanis<br>Beat Small Stakes, Controlled Chaos Trainer</p>
 ```

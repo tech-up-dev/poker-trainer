@@ -53,14 +53,14 @@ export function SignupPage(): JSX.Element {
     })
     setCaptchaReset((n) => n + 1)
 
-    setSubmitting(false)
-
     if (signUpError) {
+      setSubmitting(false)
       setError(signUpError.message)
       return
     }
 
     if (data.user && (data.user.identities?.length ?? 0) === 0) {
+      setSubmitting(false)
       setError('An account with this email already exists. Try signing in instead.')
       return
     }
@@ -71,17 +71,22 @@ export function SignupPage(): JSX.Element {
     // only a defensive fallback for the misconfigured (confirmations ON) case -
     // it should never fire in a correctly configured project.
     if (data.session) {
-      // Wait for the GHL sync so the new member's access exists before /play
-      // loads (otherwise they can land on the Subscribe page). Capped at 8s so a
-      // slow or failed sync can never trap the signup.
-      setSubmitting(true)
-      await Promise.race([
-        supabaseProd.functions.invoke('ghl-sync-me').catch(() => undefined),
-        new Promise((resolve) => setTimeout(resolve, 8000)),
-      ])
+      // Sync the new user to GHL and WAIT for it: ghl-sync-me is what grants
+      // quiz_app_access from the buyer's GHL tags, so navigating before it
+      // finishes lands a paying member on the Subscribe page (#71/#81). Await it,
+      // refresh the cached entitlement flags, then go to the homepage. Wrapped so
+      // a sync hiccup still lets them through - RequireSession re-checks access.
+      // Capped at 8s so a stalled sync can never trap the signup button.
+      try {
+        await Promise.race([
+          supabaseProd.functions.invoke('ghl-sync-me'),
+          new Promise((resolve) => setTimeout(resolve, 8000)),
+        ])
+      } catch { /* non-fatal: fall through and let the member route re-check */ }
       await refreshEntitlements()
       navigate('/play', { replace: true })
     } else {
+      setSubmitting(false)
       setEmailSent(true)
     }
   }
