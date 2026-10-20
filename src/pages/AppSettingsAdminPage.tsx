@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import type { JSX } from 'react'
 import { Plus, Trash2 } from 'lucide-react'
 import { supabaseProd } from '../lib/supabase-prod'
+import { TrackingSettingsCard } from '../components/TrackingSettingsCard'
 
 type Tier = { min_pct: number; message: string; confetti: boolean }
 
@@ -268,6 +269,8 @@ export function AppSettingsAdminPage(): JSX.Element {
           {leakSaved && <span className="text-sm text-success">Saved successfully.</span>}
         </div>
       </div>
+
+      <TrackingSettingsCard />
     </section>
   )
 }
