@@ -9,7 +9,7 @@ These go into the auth config PATCH in `security-batch-74-76-79.md`, together wi
 **Caveats**
 
 - Supabase Auth templates are HTML only. There is no plain-text template field, so the plain-text part needs the Send Email hook (the same hook that would add Reply-To).
-- "Just reply to this email" only works with Reply-To. `auth.beatsmallstakes.com` has **no MX record**, so a reply to `support@auth.beatsmallstakes.com` bounces. Either ship the hook with `Reply-To: support@lc.beatsmallstakes.com`, or change that line of copy.
+- The "Need help? Just reply to this email" line is REMOVED from all templates (Steve's decision 2026-10-17): `auth.beatsmallstakes.com` has no MX record, so replies would bounce.
 - Signup, magic link, invite and email change link to `/auth/confirm`. That FE route doesn't exist yet. Those flows aren't used today (`mailer_autoconfirm` is on), so this is only for consistency.
 
 Button style, shared by all five templates:
