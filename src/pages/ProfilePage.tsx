@@ -16,7 +16,6 @@ type Entitlement = {
   status: string
   expires_at: string | null
   stripe_price_id: string | null
-  source: string | null
 }
 
 export function ProfilePage(): JSX.Element {
@@ -35,7 +34,7 @@ export function ProfilePage(): JSX.Element {
     if (!session) return
     supabaseProd
       .from('entitlements')
-      .select('entitlement_key, status, expires_at, stripe_price_id, source')
+      .select('entitlement_key, status, expires_at, stripe_price_id')
       .eq('user_id', session.user.id)
       .eq('entitlement_key', 'quiz_app_access')
       .maybeSingle()
@@ -57,11 +56,6 @@ export function ProfilePage(): JSX.Element {
       setCheckoutLoading(null)
     }
   }
-
-  // Access granted through GoHighLevel has no Stripe subscription to manage.
-  const managedElsewhere = entitlement !== null
-    && !entitlement.stripe_price_id
-    && (entitlement.source ?? '').toLowerCase().startsWith('ghl')
 
   async function handleManageBilling(): Promise<void> {
     setPortalLoading(true)
@@ -179,26 +173,19 @@ export function ProfilePage(): JSX.Element {
                     {statusLabel(entitlement.status)}
                   </span>
                 </div>
-                {!managedElsewhere && (
+                {entitlement.expires_at !== null && (
                   <Row label="Next billing" value={formatDate(entitlement.expires_at)} />
                 )}
               </div>
               <div className="pt-1 border-t border-line">
-                {managedElsewhere ? (
-                  <p className="text-sm text-ink-2">
-                    Billing is managed through your original purchase, so there is no billing page here.
-                    For any billing question, please contact support.
-                  </p>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleManageBilling}
-                    disabled={portalLoading}
-                    className="btn-primary w-full"
-                  >
-                    {portalLoading ? 'Opening…' : 'Manage billing'}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={handleManageBilling}
+                  disabled={portalLoading}
+                  className="btn-primary w-full"
+                >
+                  {portalLoading ? 'Opening…' : 'Manage billing'}
+                </button>
               </div>
             </div>
           ) : entitlement !== null ? (
