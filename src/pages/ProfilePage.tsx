@@ -29,6 +29,7 @@ export function ProfilePage(): JSX.Element {
   const [error, setError] = useState<string | null>(null)
   // A calm explanation (not an error) for members who have no billing page to open.
   const [billingNote, setBillingNote] = useState<string | null>(null)
+  const [ghlCancelHelp, setGhlCancelHelp] = useState(false)
 
   useEffect(() => {
     if (!session) return
@@ -61,6 +62,7 @@ export function ProfilePage(): JSX.Element {
     setPortalLoading(true)
     setError(null)
     setBillingNote(null)
+    setGhlCancelHelp(false)
     const { data, error: fnErr } = await supabaseProd.functions.invoke('billing-portal', {
       body: { return_url: window.location.href },
     })
@@ -73,7 +75,9 @@ export function ProfilePage(): JSX.Element {
 
       if (body?.code === 'no_billing_account' || body?.message === 'No billing account found') {
         // The server knows how this membership was set up, so let it decide the wording.
-        if (body?.managed_by === 'ghl' || body?.managed_by === 'manual') {
+        if (body?.managed_by === 'ghl') {
+          setGhlCancelHelp(true)
+        } else if (body?.managed_by === 'manual') {
           setBillingNote('Billing is managed through your original purchase, so there is no billing page here. For any billing question, please contact support.')
         } else if (body?.managed_by === 'stripe_unlinked') {
           setBillingNote('We could not link your payment to a billing page. Please contact support and we will sort it out.')
@@ -148,6 +152,13 @@ export function ProfilePage(): JSX.Element {
         </div>
       </div>
 
+      {ghlCancelHelp && (
+        <p className="text-sm text-ink-2 rounded-xl border border-line bg-surface px-4 py-3" role="status">
+          Want to cancel your subscription? Email{' '}
+          <a href="mailto:support@lc.beatsmallstakes.com" className="text-gold hover:underline">support@lc.beatsmallstakes.com</a>
+          , and we'll cancel it for you and get back to you with confirmation ASAP.
+        </p>
+      )}
       {billingNote !== null && (
         <p className="text-sm text-ink-2 rounded-xl border border-line bg-surface px-4 py-3" role="status">{billingNote}</p>
       )}
