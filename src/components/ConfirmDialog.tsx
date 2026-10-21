@@ -8,6 +8,9 @@ type ConfirmDialogProps = {
   confirmLabel?: string
   cancelLabel?: string
   destructive?: boolean
+  // Optional facts shown in a highlighted box under the message (for example the
+  // exact account about to be deleted).
+  details?: { label: string; value: string }[]
   onConfirm: () => void
   onCancel: () => void
 }
@@ -19,6 +22,7 @@ export function ConfirmDialog({
   confirmLabel = 'Confirm',
   cancelLabel = 'Cancel',
   destructive = false,
+  details,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps): JSX.Element | null {
@@ -64,6 +68,16 @@ export function ConfirmDialog({
           <p id={messageId} className="text-sm text-ink-2 leading-relaxed">
             {message}
           </p>
+          {details && details.length > 0 && (
+            <dl className="mt-3 rounded border border-line bg-surface px-3 py-2 text-sm space-y-1">
+              {details.map((d) => (
+                <div key={d.label} className="flex gap-2">
+                  <dt className="text-ink-3 shrink-0">{d.label}:</dt>
+                  <dd className="text-ink font-medium break-all">{d.value}</dd>
+                </div>
+              ))}
+            </dl>
+          )}
         </div>
         <div className="px-5 py-3 border-t border-line flex justify-end gap-2">
           <button
