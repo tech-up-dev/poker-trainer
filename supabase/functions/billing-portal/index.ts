@@ -55,7 +55,29 @@ Deno.serve(async (req) => {
   }
 
   if (!profile?.stripe_customer_id) {
-    return jsonResponse(req, { ok: false, message: "No billing account found" }, 404);
+    // #84: say WHY there is no billing account, so the profile page can show
+    // "managed through your original purchase" (GHL buyers) instead of an error.
+    // Status and message are unchanged for older clients.
+    const { data: ent } = await prod
+      .from("entitlements")
+      .select("source, stripe_price_id")
+      .eq("user_id", user.id)
+      .eq("entitlement_key", "quiz_app_access")
+      .maybeSingle();
+    const source = (ent?.source ?? "").toLowerCase();
+    const managedBy = !ent
+      ? "none"
+      : ent.stripe_price_id
+        ? "stripe_unlinked" // paid through our Stripe checkout, but no customer linked (e.g. sandbox-era test members)
+        : source.startsWith("ghl")
+          ? "ghl"
+          : "manual";
+    return jsonResponse(req, {
+      ok: false,
+      code: "no_billing_account",
+      managed_by: managedBy,
+      message: "No billing account found",
+    }, 404);
   }
 
   let returnUrl: string;
