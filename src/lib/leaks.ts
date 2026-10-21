@@ -22,8 +22,18 @@ type LeakRow = {
 // accuracy summary, then read the leaks through the get_leaks RPC, which applies
 // the admin-configurable leak_min_attempts / leak_accuracy_ceiling thresholds
 // from app_settings at query time (M3-16) and returns worst-first.
+// Recompute the saved per-concept accuracy summary from the latest answers. The
+// Stats and Lessons pages read that summary, so they call this first; otherwise the
+// scores stay stale until the member happens to open Home. Never throws: a failed
+// refresh just means the previous scores are shown.
+export async function refreshConceptAccuracy(): Promise<void> {
+  try {
+    await supabaseProd.rpc('refresh_concept_accuracy')
+  } catch { /* keep showing the previous scores */ }
+}
+
 export async function fetchLeaks(): Promise<LeakConcept[]> {
-  await supabaseProd.rpc('refresh_concept_accuracy')
+  await refreshConceptAccuracy()
   const { data, error } = await supabaseProd.rpc('get_leaks')
   if (error) throw new Error(error.message)
   return ((data ?? []) as LeakRow[]).map((r) => ({

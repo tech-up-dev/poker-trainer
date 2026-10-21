@@ -8,6 +8,7 @@ import { DatePickerField } from '../components/DatePickerField'
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
+import { refreshConceptAccuracy } from '../lib/leaks'
 import type { LessonProgress } from '../lib/progress'
 
 type ConceptScore = {
@@ -547,6 +548,7 @@ export function StatsPage(): JSX.Element {
   useEffect(() => {
     void (async () => {
       try {
+        await refreshConceptAccuracy()
         const { data, error } = await supabaseProd.rpc('get_all_concept_scores')
         if (error) { setConceptScores([]); return }
         setConceptScores(((data ?? []) as ConceptScore[]).filter((s) => s.concept !== 'test'))
