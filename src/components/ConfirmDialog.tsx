@@ -57,7 +57,7 @@ export function ConfirmDialog({
         aria-labelledby={titleId}
         aria-describedby={messageId}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-lg border border-line bg-canvas shadow-2xl"
+        className="w-full max-w-md rounded-lg border border-line bg-canvas text-left shadow-2xl"
       >
         <div className="px-5 py-4 border-b border-line">
           <h2 id={titleId} className="text-lg font-semibold text-ink">
