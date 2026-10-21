@@ -6,6 +6,7 @@ import { Search, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react'
 import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
+import { refreshConceptAccuracy } from '../lib/leaks'
 import type { LessonProgress } from '../lib/progress'
 import { fetchSkillsPath } from '../lib/skills-path'
 import type { SkillPrinciple, SkillConcept } from '../lib/skills-path'
@@ -135,7 +136,8 @@ export function LessonsPage(): JSX.Element {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    Promise.all([fetchSkillsPath(), fetchAllPublishedLessons(), fetchLessonProgress()])
+    refreshConceptAccuracy()
+      .then(() => Promise.all([fetchSkillsPath(), fetchAllPublishedLessons(), fetchLessonProgress()]))
       .then(([path, allLessons, progressRows]) => {
         setSkillsPath(path)
         setLessons(allLessons)
