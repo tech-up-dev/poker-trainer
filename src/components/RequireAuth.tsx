@@ -13,23 +13,27 @@ import { getMfaStatus } from '../lib/mfa'
 export function RequireAuth(): JSX.Element {
   const { session, isAdmin, loading } = useAuth()
   const location = useLocation()
-  const [needsChallenge, setNeedsChallenge] = useState<boolean | null>(null)
+  // The answer is tied to which side of the code page it was computed on. Without
+  // that, a correct code sends the admin to /admin, the guard still holds the old
+  // "needs a code" answer, and bounces them back to the code page once.
+  const [mfa, setMfa] = useState<{ forVerifyPage: boolean; needs: boolean } | null>(null)
   const onVerifyPage = location.pathname === '/admin/verify'
+  const mfaReady = mfa !== null && mfa.forVerifyPage === onVerifyPage
 
   useEffect(() => {
     if (loading || !session || !isAdmin) return
     let cancelled = false
     // If the check itself fails we let the admin through; the back end is the real gate.
     getMfaStatus()
-      .then((s) => { if (!cancelled) setNeedsChallenge(s.needsChallenge) })
-      .catch(() => { if (!cancelled) setNeedsChallenge(false) })
+      .then((s) => { if (!cancelled) setMfa({ forVerifyPage: onVerifyPage, needs: s.needsChallenge }) })
+      .catch(() => { if (!cancelled) setMfa({ forVerifyPage: onVerifyPage, needs: false }) })
     return () => { cancelled = true }
-  }, [loading, session, isAdmin, location.pathname])
+  }, [loading, session, isAdmin, onVerifyPage])
 
   // Show a spinner on first load (no session yet) or while entitlements are
   // still resolving for an existing session - prevents a false redirect to /play
   // before isAdmin has been confirmed.
-  if (loading || (session && isAdmin && needsChallenge === null)) {
+  if (loading || (session && isAdmin && !mfaReady)) {
     return (
       <div className="min-h-screen bg-canvas text-ink-2 flex items-center justify-center">
         Loading…
@@ -45,7 +49,7 @@ export function RequireAuth(): JSX.Element {
     return <Navigate to="/play" replace />
   }
 
-  if (needsChallenge && !onVerifyPage) {
+  if (mfa?.needs && !onVerifyPage) {
     return <Navigate to="/admin/verify" replace state={{ from: location.pathname + location.search }} />
   }
 
