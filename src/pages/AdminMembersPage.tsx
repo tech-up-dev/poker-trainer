@@ -71,6 +71,11 @@ function MemberRow({
   const [deleteState, setDeleteState] = useState<DeleteState>('idle')
   const [deleteError, setDeleteError] = useState<string | null>(null)
   const canDelete = !isSelf && !member.is_admin
+  const deleteDetails = [
+    { label: 'Email', value: member.email },
+    { label: 'Joined', value: formatDate(member.created_at) },
+    { label: 'Last sign-in', value: formatDate(member.last_sign_in_at) },
+  ]
 
   async function handleReset(): Promise<void> {
     setResetState('sending')
@@ -122,7 +127,7 @@ function MemberRow({
     <tr className="border-t border-line hover:bg-surface-overlay transition-colors">
       <td className="px-4 py-3 min-w-0">
         <div className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium text-ink truncate max-w-[220px]">{member.email}</span>
+          <span className="text-sm font-medium text-ink break-all">{member.email}</span>
           {member.is_admin && (
             <span className="text-[10px] font-bold uppercase tracking-wider text-gold">Admin</span>
           )}
@@ -187,7 +192,8 @@ function MemberRow({
         <ConfirmDialog
           open={deleteState === 'confirming'}
           title="Delete this user?"
-          message={`${member.email} will be permanently deleted, along with their lessons, stats and session history. This cannot be undone.`}
+          message="This account will be permanently deleted, along with its lessons, stats and session history. This cannot be undone. Check the full email carefully, similar addresses are easy to mix up."
+          details={deleteDetails}
           confirmLabel="Delete user"
           destructive
           onConfirm={() => void handleDelete()}
@@ -196,7 +202,8 @@ function MemberRow({
         <ConfirmDialog
           open={deleteState === 'confirming-cancel'}
           title="This member has an active subscription"
-          message={`${member.email} is still paying. Deleting them will also cancel their subscription in Stripe, then permanently remove their account and data. This cannot be undone.`}
+          message="This member is still paying. Deleting them will also cancel their subscription in Stripe, then permanently remove their account and data. This cannot be undone."
+          details={deleteDetails}
           confirmLabel="Cancel subscription and delete"
           destructive
           onConfirm={() => void handleDelete(true)}
