@@ -16,7 +16,6 @@ type Entitlement = {
   status: string
   expires_at: string | null
   stripe_price_id: string | null
-  source: string | null
 }
 
 export function ProfilePage(): JSX.Element {
@@ -28,12 +27,14 @@ export function ProfilePage(): JSX.Element {
   const [portalLoading, setPortalLoading] = useState(false)
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // A calm explanation (not an error) for members who have no billing page to open.
+  const [billingNote, setBillingNote] = useState<string | null>(null)
 
   useEffect(() => {
     if (!session) return
     supabaseProd
       .from('entitlements')
-      .select('entitlement_key, status, expires_at, stripe_price_id, source')
+      .select('entitlement_key, status, expires_at, stripe_price_id')
       .eq('user_id', session.user.id)
       .eq('entitlement_key', 'quiz_app_access')
       .maybeSingle()
@@ -56,29 +57,32 @@ export function ProfilePage(): JSX.Element {
     }
   }
 
-  // Access granted through GoHighLevel has no Stripe subscription to manage.
-  const managedElsewhere = entitlement !== null
-    && !entitlement.stripe_price_id
-    && (entitlement.source ?? '').toLowerCase().startsWith('ghl')
-
   async function handleManageBilling(): Promise<void> {
     setPortalLoading(true)
     setError(null)
+    setBillingNote(null)
     const { data, error: fnErr } = await supabaseProd.functions.invoke('billing-portal', {
       body: { return_url: window.location.href },
     })
     setPortalLoading(false)
     if (fnErr || !(data as { url?: string })?.url) {
-      let reason: string | undefined
+      let body: { code?: string; message?: string; managed_by?: string } | undefined
       try {
-        const body = await (fnErr as { context?: Response } | null)?.context?.json?.() as { message?: string } | undefined
-        reason = body?.message
+        body = await (fnErr as { context?: Response } | null)?.context?.json?.() as typeof body
       } catch { /* fall back to the generic message */ }
-      setError(
-        reason === 'No billing account found'
-          ? 'There is no billing account linked to this membership, so there is no billing page to open. If you think this is a mistake, please contact support.'
-          : 'Could not open billing portal. Please try again.',
-      )
+
+      if (body?.code === 'no_billing_account' || body?.message === 'No billing account found') {
+        // The server knows how this membership was set up, so let it decide the wording.
+        if (body?.managed_by === 'ghl' || body?.managed_by === 'manual') {
+          setBillingNote('Billing is managed through your original purchase, so there is no billing page here. For any billing question, please contact support.')
+        } else if (body?.managed_by === 'stripe_unlinked') {
+          setBillingNote('We could not link your payment to a billing page. Please contact support and we will sort it out.')
+        } else {
+          setBillingNote('There is no billing account linked to this membership, so there is no billing page to open. If you think this is a mistake, please contact support.')
+        }
+        return
+      }
+      setError('Could not open billing portal. Please try again.')
       return
     }
     window.location.href = (data as { url: string }).url
@@ -144,6 +148,9 @@ export function ProfilePage(): JSX.Element {
         </div>
       </div>
 
+      {billingNote !== null && (
+        <p className="text-sm text-ink-2 rounded-xl border border-line bg-surface px-4 py-3" role="status">{billingNote}</p>
+      )}
       {error !== null && (
         <p className="text-sm text-error" role="alert">{error}</p>
       )}
@@ -166,26 +173,19 @@ export function ProfilePage(): JSX.Element {
                     {statusLabel(entitlement.status)}
                   </span>
                 </div>
-                {!managedElsewhere && (
+                {entitlement.expires_at !== null && (
                   <Row label="Next billing" value={formatDate(entitlement.expires_at)} />
                 )}
               </div>
               <div className="pt-1 border-t border-line">
-                {managedElsewhere ? (
-                  <p className="text-sm text-ink-2">
-                    Your membership was set up through Beat Small Stakes, so there is no billing page here.
-                    For any billing question, please contact support.
-                  </p>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleManageBilling}
-                    disabled={portalLoading}
-                    className="btn-primary w-full"
-                  >
-                    {portalLoading ? 'Opening…' : 'Manage billing'}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={handleManageBilling}
+                  disabled={portalLoading}
+                  className="btn-primary w-full"
+                >
+                  {portalLoading ? 'Opening…' : 'Manage billing'}
+                </button>
               </div>
             </div>
           ) : entitlement !== null ? (
