@@ -11,6 +11,7 @@ type Fbq = {
   loaded: boolean
   version: string
   push: unknown
+  disablePushState?: boolean
 }
 
 declare global {
@@ -36,12 +37,16 @@ function startMetaPixel(id: string): void {
   fbq.loaded = true
   fbq.version = '2.0'
   fbq.push = fbq
+  // Only the pages listed in TRACKED_PATHS should report. By default the Pixel also
+  // sends a PageView on every in-app page change and auto-detects button clicks.
+  fbq.disablePushState = true
   window.fbq = fbq
   window._fbq = fbq
   const script = document.createElement('script')
   script.async = true
   script.src = 'https://connect.facebook.net/en_US/fbevents.js'
   document.head.appendChild(script)
+  fbq('set', 'autoConfig', false, id)
   fbq('init', id)
 }
 

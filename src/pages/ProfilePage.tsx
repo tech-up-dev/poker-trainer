@@ -16,6 +16,7 @@ type Entitlement = {
   status: string
   expires_at: string | null
   stripe_price_id: string | null
+  source: string | null
 }
 
 export function ProfilePage(): JSX.Element {
@@ -32,7 +33,7 @@ export function ProfilePage(): JSX.Element {
     if (!session) return
     supabaseProd
       .from('entitlements')
-      .select('entitlement_key, status, expires_at, stripe_price_id')
+      .select('entitlement_key, status, expires_at, stripe_price_id, source')
       .eq('user_id', session.user.id)
       .eq('entitlement_key', 'quiz_app_access')
       .maybeSingle()
@@ -55,6 +56,11 @@ export function ProfilePage(): JSX.Element {
     }
   }
 
+  // Access granted through GoHighLevel has no Stripe subscription to manage.
+  const managedElsewhere = entitlement !== null
+    && !entitlement.stripe_price_id
+    && (entitlement.source ?? '').toLowerCase().startsWith('ghl')
+
   async function handleManageBilling(): Promise<void> {
     setPortalLoading(true)
     setError(null)
@@ -63,7 +69,16 @@ export function ProfilePage(): JSX.Element {
     })
     setPortalLoading(false)
     if (fnErr || !(data as { url?: string })?.url) {
-      setError('Could not open billing portal. Please try again.')
+      let reason: string | undefined
+      try {
+        const body = await (fnErr as { context?: Response } | null)?.context?.json?.() as { message?: string } | undefined
+        reason = body?.message
+      } catch { /* fall back to the generic message */ }
+      setError(
+        reason === 'No billing account found'
+          ? 'There is no billing account linked to this membership, so there is no billing page to open. If you think this is a mistake, please contact support.'
+          : 'Could not open billing portal. Please try again.',
+      )
       return
     }
     window.location.href = (data as { url: string }).url
@@ -151,17 +166,26 @@ export function ProfilePage(): JSX.Element {
                     {statusLabel(entitlement.status)}
                   </span>
                 </div>
-                <Row label="Next billing" value={formatDate(entitlement.expires_at)} />
+                {!managedElsewhere && (
+                  <Row label="Next billing" value={formatDate(entitlement.expires_at)} />
+                )}
               </div>
               <div className="pt-1 border-t border-line">
-                <button
-                  type="button"
-                  onClick={handleManageBilling}
-                  disabled={portalLoading}
-                  className="btn-primary w-full"
-                >
-                  {portalLoading ? 'Opening…' : 'Manage billing'}
-                </button>
+                {managedElsewhere ? (
+                  <p className="text-sm text-ink-2">
+                    Your membership was set up through Beat Small Stakes, so there is no billing page here.
+                    For any billing question, please contact support.
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleManageBilling}
+                    disabled={portalLoading}
+                    className="btn-primary w-full"
+                  >
+                    {portalLoading ? 'Opening…' : 'Manage billing'}
+                  </button>
+                )}
               </div>
             </div>
           ) : entitlement !== null ? (

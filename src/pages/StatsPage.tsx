@@ -655,6 +655,16 @@ export function StatsPage(): JSX.Element {
 
           return (
             <div className="space-y-5">
+              {totalMeasured === 0 && (
+                <div className="rounded-xl border border-line bg-surface px-4 py-3 text-sm text-ink-2">
+                  <p className="font-medium text-ink">Your scores will appear as you practice.</p>
+                  <p className="mt-1">
+                    A concept gets a score once you have answered at least 8 questions in it.
+                    Complete a few more lessons and this page will fill in.
+                  </p>
+                </div>
+              )}
+
               {/* Running count */}
               <p className="text-sm font-medium text-ink-2">
                 Right now: {solidCount} of {totalMeasured > 0 ? totalMeasured : 0} concepts solid
