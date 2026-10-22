@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { FormEvent, JSX } from 'react'
-import { PlayCircle, Zap, AlertTriangle, ChevronRight, Lock, CalendarDays } from 'lucide-react'
+import { PlayCircle, Zap, AlertTriangle, ChevronRight, Lock, CalendarDays, Target } from 'lucide-react'
 
 import { supabaseProd } from '../lib/supabase-prod'
 
@@ -9,7 +9,7 @@ import type { Lesson } from '../../shared/schemas/lesson'
 import { fetchAllPublishedLessons } from '../lib/lessons'
 import { fetchLessonProgress } from '../lib/progress'
 import type { LessonProgress } from '../lib/progress'
-import { fetchLeaks } from '../lib/leaks'
+import { fetchLeaks, fetchHasScoredConcept } from '../lib/leaks'
 import type { LeakConcept } from '../lib/leaks'
 import { fetchConcepts } from '../lib/concepts'
 import type { Concept } from '../lib/concepts'
@@ -17,12 +17,17 @@ import { TodaysTip } from '../components/TodaysTip'
 import { fetchActivitySummary } from '../lib/activity'
 import type { ActivitySummary } from '../lib/activity'
 
+// The lesson a brand-new member is sent to first.
+const FIRST_LESSON_ID = '3-betting-the-core-34-by-seat-and-the-light-3-bet'
+
 export function MemberDashboardPage(): JSX.Element {
   const navigate = useNavigate()
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [progressMap, setProgressMap] = useState<Record<string, LessonProgress>>({})
   const [loading, setLoading] = useState(true)
   const [leaks, setLeaks] = useState<LeakConcept[] | null>(null)
+  // null until known (or if the check fails), so the card falls back to the old wording.
+  const [hasScores, setHasScores] = useState<boolean | null>(null)
   const [showSetPassword, setShowSetPassword] = useState(() => {
     try { return localStorage.getItem('bss_new_member') === '1' } catch { return false }
   })
@@ -50,6 +55,8 @@ export function MemberDashboardPage(): JSX.Element {
       .then(([leakData, conceptData]) => {
         setLeaks(leakData)
         setConcepts(conceptData)
+        // fetchLeaks has just refreshed the summary, so this reads fresh scores.
+        fetchHasScoredConcept().then(setHasScores).catch(() => {})
       })
       .catch(() => setLeaks([]))
   }, [])
@@ -89,11 +96,44 @@ export function MemberDashboardPage(): JSX.Element {
 
   const topLeaks = leaks && leaks.length > 0 ? leaks.slice(0, 3) : []
 
+  // A member with no lesson progress at all gets the welcome card instead.
+  const isFirstTime = !loading && lessons.length > 0 && Object.keys(progressMap).length === 0
+  const firstLessonId = sortedLessons.some((l) => l.lesson_id === FIRST_LESSON_ID)
+    ? FIRST_LESSON_ID
+    : sortedLessons.find((l) => l.lesson_id)?.lesson_id
+  // "No scored concepts yet" is not the same as "no leaks": a new member has neither.
+  const noScoresYet = hasScores === false
+
   return (
     <>
     <div className="max-w-2xl mx-auto space-y-4">
 
-      {/* Block 1 - Pick up where you left off */}
+      {/* Block 1 - Welcome (first-time member) or Pick up where you left off */}
+      {isFirstTime ? (
+      <div className="card-elevated">
+        <p className="text-xs font-semibold text-gold uppercase tracking-widest mb-3">
+          Welcome to the Trainer
+        </p>
+        <h2 className="text-xl font-bold text-ink mb-2">Start your first lesson</h2>
+        <p className="text-sm text-ink-2 mb-4 max-w-md">
+          Every question you answer feeds your stats. After a few lessons, your weakest areas will
+          show up below, and your full numbers will fill in across the Trainer.
+        </p>
+        <div className="flex flex-wrap items-center gap-4">
+          <button
+            type="button"
+            onClick={() => void navigate(firstLessonId ? `/play/lessons/${firstLessonId}` : '/play/lessons')}
+            className="btn-primary btn-lg"
+          >
+            <PlayCircle className="w-5 h-5" />
+            Start First Lesson
+          </button>
+          <Link to="/play/lessons" className="text-sm text-ink-3 hover:text-ink transition-colors">
+            Browse lessons
+          </Link>
+        </div>
+      </div>
+      ) : (
       <div className="card-elevated">
         <p className="text-xs font-semibold text-ink-3 uppercase tracking-widest mb-3">
           Pick up where you left off
@@ -152,6 +192,7 @@ export function MemberDashboardPage(): JSX.Element {
           <p className="text-sm text-ink-3">No lessons available yet.</p>
         )}
       </div>
+      )}
 
       {/* Block 2 - Where you're leaking + Drill button */}
       <div className="card space-y-3">
@@ -171,7 +212,13 @@ export function MemberDashboardPage(): JSX.Element {
           <p className="text-xs text-ink-3 mt-0.5">Your three weakest areas · last 90 days</p>
         </div>
 
-        {topLeaks.length > 0 ? (
+        {noScoresYet ? (
+          <div className="flex flex-col items-center text-center gap-2 rounded-xl border border-dashed border-line px-4 py-6">
+            <Target className="w-6 h-6 text-ink-3" />
+            <p className="text-sm font-medium text-ink-2">Your weakest concepts will show up here.</p>
+            <p className="text-xs text-ink-3">Scores appear after you've answered 8 or more questions on a concept.</p>
+          </div>
+        ) : topLeaks.length > 0 ? (
           <div className="space-y-2">
             <div className="flex justify-end">
               <span className="text-[10px] font-bold uppercase tracking-widest text-ink-3">Accuracy</span>
@@ -196,17 +243,19 @@ export function MemberDashboardPage(): JSX.Element {
           <p className="text-sm text-ink-3">Analysing your history…</p>
         )}
 
-        <button
-          type="button"
-          onClick={() => void navigate('/play/drill')}
-          className="btn-primary w-full flex flex-col items-center justify-center gap-0.5 py-3"
-        >
-          <span className="flex items-center gap-2 font-bold">
-            <Zap className="w-4 h-4" />
-            Drill my weak spots
-          </span>
-          <span className="text-xs font-normal opacity-85">10 custom questions from these areas</span>
-        </button>
+        {!noScoresYet && (
+          <button
+            type="button"
+            onClick={() => void navigate('/play/drill')}
+            className="btn-primary w-full flex flex-col items-center justify-center gap-0.5 py-3"
+          >
+            <span className="flex items-center gap-2 font-bold">
+              <Zap className="w-4 h-4" />
+              Drill my weak spots
+            </span>
+            <span className="text-xs font-normal opacity-85">10 custom questions from these areas</span>
+          </button>
+        )}
       </div>
 
       {/* Block 3 - This month */}
