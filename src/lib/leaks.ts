@@ -32,6 +32,15 @@ export async function refreshConceptAccuracy(): Promise<void> {
   } catch { /* keep showing the previous scores */ }
 }
 
+// True once the member has at least one concept with enough answers to be scored.
+// Callers refresh the summary first (fetchLeaks does), so this only reads it.
+export async function fetchHasScoredConcept(): Promise<boolean> {
+  const { data, error } = await supabaseProd.rpc('get_all_concept_scores')
+  if (error) throw new Error(error.message)
+  return ((data ?? []) as { concept: string; band: string }[])
+    .some((s) => s.concept !== 'test' && s.band !== 'not_enough')
+}
+
 export async function fetchLeaks(): Promise<LeakConcept[]> {
   await refreshConceptAccuracy()
   const { data, error } = await supabaseProd.rpc('get_leaks')
