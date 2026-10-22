@@ -241,10 +241,8 @@ export function MemberDashboardPage(): JSX.Element {
               )
             })}
           </div>
-        ) : leaks !== null && leaks.length === 0 ? (
+        ) : hasScores === true && leaks !== null && leaks.length === 0 ? (
           <p className="text-sm text-ink-2">No leaks - above 75% on all concepts.</p>
-        ) : leaks === null ? (
-          <p className="text-sm text-ink-3">Answer 8+ questions on a concept to see weak spots.</p>
         ) : (
           <p className="text-sm text-ink-3">Analysing your history…</p>
         )}
